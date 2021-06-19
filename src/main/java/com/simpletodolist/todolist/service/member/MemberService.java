@@ -2,8 +2,8 @@ package com.simpletodolist.todolist.service.member;
 
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
-import com.simpletodolist.todolist.exception.DuplicatedMemberException;
-import com.simpletodolist.todolist.exception.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
+import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 
 public interface MemberService {
 

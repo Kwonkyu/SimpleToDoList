@@ -1,11 +1,10 @@
 package com.simpletodolist.todolist.service.todo;
 
 import com.simpletodolist.todolist.domain.dto.TodoDTO;
-import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.domain.dto.TodosDTO;
-import com.simpletodolist.todolist.exception.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.NoTodoListFoundException;
+import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
+import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 
 public interface TodoService {
 

@@ -3,9 +3,6 @@ package com.simpletodolist.todolist.domain.entity;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
-import com.simpletodolist.todolist.exception.DuplicatedTeamJoinException;
-import com.simpletodolist.todolist.exception.InvalidTeamWithdrawException;
-import com.simpletodolist.todolist.exception.NoTeamFoundException;
 import lombok.*;
 
 import javax.persistence.*;
