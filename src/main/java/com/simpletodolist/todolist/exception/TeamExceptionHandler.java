@@ -16,20 +16,20 @@ public class TeamExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ExceptionResponseDTO noTeamFound(NoTeamFoundException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedMemberJoinException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ResponseBody
     public ExceptionResponseDTO duplicatedMemberJoin(DuplicatedMemberJoinException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedTeamException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ResponseBody
     public ExceptionResponseDTO duplicatedTeam(DuplicatedTeamException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 }

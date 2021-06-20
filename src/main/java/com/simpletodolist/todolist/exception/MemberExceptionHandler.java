@@ -17,27 +17,27 @@ public class MemberExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ExceptionResponseDTO noMemberFound(NoMemberFoundException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedMemberException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ResponseBody
     public ExceptionResponseDTO duplicatedMember(DuplicatedMemberException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedTeamJoinException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ResponseBody
     public ExceptionResponseDTO duplicatedTeamJoin(DuplicatedTeamJoinException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(InvalidTeamWithdrawException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ExceptionResponseDTO invalidTeamWithdraw(InvalidTeamWithdrawException exception) {
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 }

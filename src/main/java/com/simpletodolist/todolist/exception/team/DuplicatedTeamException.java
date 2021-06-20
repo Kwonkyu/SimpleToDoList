@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.exception.team;
 
+import com.simpletodolist.todolist.domain.entity.Team;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DuplicatedTeamException extends RuntimeException{
-    private String message = "Already Existing Team.";
-    private String solution = "Try with different team identification value.";
+    private String error = Team.DUPLICATED_TEAM_FOUND;
+    private String message = "Try with different team identification value.";
 }

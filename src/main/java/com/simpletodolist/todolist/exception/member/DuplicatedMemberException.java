@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.exception.member;
 
+import com.simpletodolist.todolist.domain.entity.Member;
 import lombok.*;
 
 @Getter
@@ -7,6 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DuplicatedMemberException extends RuntimeException{
-    private String message = "Already Existing Member.";
-    private String solution = "Try with different user identification value.";
+    private String error = Member.DUPLICATED_MEMBER_FOUND;
+    private String message = "Try with different user identification value.";
 }

@@ -14,7 +14,7 @@ public class TodoListExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ExceptionResponseDTO noTodoListFound(NoTodoListFoundException exception){
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
 }

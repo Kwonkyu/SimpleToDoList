@@ -7,7 +7,7 @@ import lombok.*;
 @RequiredArgsConstructor
 public class ExceptionResponseDTO {
 
+    private final String error;
     private final String message;
-    private final String solution;
 
 }

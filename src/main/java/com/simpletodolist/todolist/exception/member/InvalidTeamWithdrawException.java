@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.exception.member;
 
+import com.simpletodolist.todolist.domain.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvalidTeamWithdrawException extends RuntimeException{
-    private String message = "Not Joined Team.";
-    private String solution = "Try with different team identification value.";
+    private String error = Member.NOT_JOINED_TEAM;
+    private String message = "Try with different team identification value.";
 }

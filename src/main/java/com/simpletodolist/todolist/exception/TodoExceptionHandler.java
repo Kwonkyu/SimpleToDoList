@@ -14,6 +14,6 @@ public class TodoExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ExceptionResponseDTO noTodoFound(NoTodoFoundException exception){
-        return new ExceptionResponseDTO(exception.getMessage(), exception.getSolution());
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 }

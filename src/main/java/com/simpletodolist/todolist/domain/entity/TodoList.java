@@ -13,6 +13,9 @@ import java.util.List;
 @EqualsAndHashCode(of = {"id"})
 public class TodoList {
 
+    public static final String NO_TODOLIST_FOUND = "No TodoList Found";
+
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TODOLIST_ID")
     private long id;

@@ -17,6 +17,12 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(of = {"id"})
 public class Member {
 
+    public static final String NO_MEMBER_FOUND = "No Member Found.";
+    public static final String NOT_JOINED_TEAM = "Not Joined Team.";
+    public static final String DUPLICATED_TEAM_JOINED = "Already Joined Team.";
+    public static final String DUPLICATED_MEMBER_FOUND = "Already Existing Member.";
+
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MEMBER_ID")
     private long id;

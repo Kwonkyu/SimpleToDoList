@@ -7,6 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthenticationFailedException extends RuntimeException{
-    private String message = "Authentication failed.";
-    private String solution = "Provide valid authentication value.";
+    private String error = "Authentication failed.";
+    private String message = "Provide valid authentication value.";
 }
