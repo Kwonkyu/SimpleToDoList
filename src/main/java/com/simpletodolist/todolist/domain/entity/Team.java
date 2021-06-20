@@ -2,7 +2,7 @@ package com.simpletodolist.todolist.domain.entity;
 
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.exception.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import lombok.*;
 
 import javax.persistence.*;
@@ -16,6 +16,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class Team {
+
+    public static final String NO_TEAM_FOUND = "No Team Found.";
+    public static final String DUPLICATED_TEAM_FOUND = "Already Existing Team.";
+    public static final String DUPLICATED_MEMBER_JOINED = "Already Joined Member.";
+
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TEAM_ID")
@@ -51,24 +56,5 @@ public class Team {
         leader = member;
     }
 
-//    public void joinMember(Member member) {
-//        MemberTeamAssociation joinAssociation = new MemberTeamAssociation(member, this);
-//        joinMember(joinAssociation);
-//        member.joinTeam(joinAssociation);
-//    }
-//
-//    public void joinMember(MemberTeamAssociation member) {
-//        this.members.add(member);
-//    }
-//
-//    public void quitMember(Member member) {
-//        MemberTeamAssociation quitAssociation = new MemberTeamAssociation(member, this);
-//        quitMember(quitAssociation);
-//        member.quitTeam(quitAssociation);
-//    }
-//
-//    public void quitMember(MemberTeamAssociation member) {
-//        this.members.remove(member);
-//    }
 
 }

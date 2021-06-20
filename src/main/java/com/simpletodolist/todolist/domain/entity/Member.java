@@ -3,9 +3,6 @@ package com.simpletodolist.todolist.domain.entity;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
-import com.simpletodolist.todolist.exception.DuplicatedTeamJoinException;
-import com.simpletodolist.todolist.exception.InvalidTeamWithdrawException;
-import com.simpletodolist.todolist.exception.NoTeamFoundException;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,6 +16,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class Member {
+
+    public static final String NO_MEMBER_FOUND = "No Member Found.";
+    public static final String NOT_JOINED_TEAM = "Not Joined Team.";
+    public static final String DUPLICATED_TEAM_JOINED = "Already Joined Team.";
+    public static final String DUPLICATED_MEMBER_FOUND = "Already Existing Member.";
+
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MEMBER_ID")

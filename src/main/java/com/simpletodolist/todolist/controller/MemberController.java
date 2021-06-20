@@ -93,7 +93,7 @@ public class MemberController {
      */
     @PostMapping("/{memberId}/todos")
     public ResponseEntity<TodoListDTO> createTodoList(@PathVariable(name = "memberId") String memberId,
-                                                      @RequestBody TodoListDTO todoListDTO) {
+                                                      @Valid @RequestBody TodoListDTO todoListDTO) {
         return ResponseEntity.ok(todoListService.createTodoList(memberId, todoListDTO));
     }
 

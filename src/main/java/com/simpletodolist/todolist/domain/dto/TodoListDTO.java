@@ -19,7 +19,6 @@ public class TodoListDTO {
     @JsonProperty("id")
     private long todoListId;
 
-    @NotBlank
     @JsonProperty("ownerUserId")
     private String ownerId;
 

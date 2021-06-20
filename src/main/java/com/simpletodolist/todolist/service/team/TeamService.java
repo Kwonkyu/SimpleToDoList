@@ -2,10 +2,10 @@ package com.simpletodolist.todolist.service.team;
 
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.exception.DuplicatedMemberJoinException;
-import com.simpletodolist.todolist.exception.InvalidTeamWithdrawException;
-import com.simpletodolist.todolist.exception.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.NoTeamFoundException;
+import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
+import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
+import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 
 public interface TeamService {
 

@@ -11,6 +11,9 @@ import javax.persistence.*;
 @EqualsAndHashCode(of = {"id"})
 public class Todo {
 
+    public static final String NO_TODO_FOUND = "No Todo Found.";
+
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TODO_ID")
     private long id;
