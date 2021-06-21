@@ -4,9 +4,12 @@ import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,7 +18,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = {"id"})
-public class Member {
+public class Member implements UserDetails {
 
     public static final String NO_MEMBER_FOUND = "No Member Found.";
     public static final String NOT_JOINED_TEAM = "Not Joined Team.";
@@ -45,6 +48,9 @@ public class Member {
     @OneToMany(mappedBy = "owner")
     private List<TodoList> todoLists = new ArrayList<>();
 
+    // TODO: implement available status related feature
+    private boolean available = true;
+
 
     public TeamsDTO getTeamsAsDTO(){
         return new TeamsDTO(teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList()));
@@ -64,6 +70,32 @@ public class Member {
 
     public boolean isJoinedTeam(Team team) {
         return teams.stream().anyMatch(t -> t.getTeam().equals(team));
+    }
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return available;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return available;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return available;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return available;
     }
 
 

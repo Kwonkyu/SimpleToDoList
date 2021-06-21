@@ -9,7 +9,14 @@ import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +27,8 @@ public class BasicMemberService implements MemberService{
 
     private final MemberRepository memberRepository;
     private final MemberTeamAssocRepository memberTeamAssocRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
 
     @Override
@@ -28,6 +36,20 @@ public class BasicMemberService implements MemberService{
     public MemberDTO getMemberDetails(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         return new MemberDTO(member);
+    }
+
+    @Override
+    public MemberDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            memberUserId, rawPassword));
+
+            Member member = (Member) authentication.getPrincipal();
+            return new MemberDTO(member);
+        } catch (BadCredentialsException exception) {
+            throw new AuthenticationFailedException();
+        }
     }
 
     @Override
@@ -51,5 +73,10 @@ public class BasicMemberService implements MemberService{
     public TeamsDTO getTeamsOfMember(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         return member.getTeamsAsDTO();
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return memberRepository.findByUserId(username).orElseThrow(NoMemberFoundException::new);
     }
 }

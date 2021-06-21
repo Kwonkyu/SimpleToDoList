@@ -17,18 +17,18 @@ public class MemberDTO {
     @JsonProperty("id")
     private long id;
 
-    @NotBlank
-    @Length(max=32)
+    @NotBlank(groups = {RegisterValidationGroup.class, LoginValidationGroup.class})
+    @Length(max=32, groups = {RegisterValidationGroup.class, LoginValidationGroup.class})
     @JsonProperty("userId")
     private String userId;
 
-    @NotBlank
-    @Length(max=32)
+    @NotBlank(groups = {RegisterValidationGroup.class})
+    @Length(max=32, groups = {RegisterValidationGroup.class})
     @JsonProperty("username")
     private String username;
 
-    @NotBlank
-    @Length(max=64)
+    @NotBlank(groups = {RegisterValidationGroup.class, LoginValidationGroup.class})
+    @Length(max=64, groups = {RegisterValidationGroup.class, LoginValidationGroup.class})
     @JsonProperty("password")
     private String password;
 
@@ -40,4 +40,6 @@ public class MemberDTO {
     }
 
 
+    public interface RegisterValidationGroup {}
+    public interface LoginValidationGroup {}
 }

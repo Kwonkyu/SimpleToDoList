@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,17 +34,6 @@ public class MemberController {
     @GetMapping("/{memberUserId}")
     public ResponseEntity<MemberDTO> memberInfo(@PathVariable(name = "memberUserId") String memberId){
         return ResponseEntity.ok(memberService.getMemberDetails(memberId));
-    }
-
-
-    /**
-     * Register new user.
-     * @param memberDTO Registering user's information.
-     * @return 200 OK with body filled with registered user info.
-     */
-    @PostMapping
-    public ResponseEntity<MemberDTO> registerMember(@Valid @RequestBody MemberDTO memberDTO) {
-        return ResponseEntity.ok(memberService.registerMember(memberDTO));
     }
 
 
