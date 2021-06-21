@@ -4,17 +4,19 @@ import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TodoDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.todo.TodoService;
 import com.simpletodolist.todolist.service.todolist.TodoListService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/member")
@@ -24,6 +26,13 @@ public class MemberController {
     private final TodoService todoService;
     private final TodoListService todoListService;
     private final MemberService memberService;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final MessageSource messageSource;
+
+
+    private String constructMessage(String messageCode) {
+        return messageSource.getMessage(messageCode, null, Locale.KOREAN);
+    }
 
 
     /**
@@ -32,7 +41,9 @@ public class MemberController {
      * @return 200 OK with body filled with user information.
      */
     @GetMapping("/{memberUserId}")
-    public ResponseEntity<MemberDTO> memberInfo(@PathVariable(name = "memberUserId") String memberId){
+    public ResponseEntity<MemberDTO> memberInfo(@PathVariable(name = "memberUserId") String memberId,
+                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.information"));
         return ResponseEntity.ok(memberService.getMemberDetails(memberId));
     }
 
@@ -43,7 +54,9 @@ public class MemberController {
      */
     @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.OK)
-    public void withdrawMember(@PathVariable(name = "memberId") String memberId) {
+    public void withdrawMember(@PathVariable(name = "memberId") String memberId,
+                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.delete"));
         memberService.withdrawMember(memberId);
     }
 
@@ -54,7 +67,9 @@ public class MemberController {
      * @return 200 OK with body filled with to-do lists.
      */
     @GetMapping("/{memberId}/todos")
-    public ResponseEntity<TodoListsDTO> getTodoListsOfMember(@PathVariable(name = "memberId") String memberId){
+    public ResponseEntity<TodoListsDTO> getTodoListsOfMember(@PathVariable(name = "memberId") String memberId,
+                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todolist.get"));
         return ResponseEntity.ok(todoListService.readTodoListsOfMember(memberId));
     }
 
@@ -67,8 +82,9 @@ public class MemberController {
      */
     @GetMapping("/{memberId}/todos/{todoListId}")
     public ResponseEntity<TodoListDTO> getTodoList(@PathVariable(name = "memberId") String memberId,
-                                                   @PathVariable(name = "todoListId") long todoListId) {
-
+                                                   @PathVariable(name = "todoListId") long todoListId,
+                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todolist.get"));
         return ResponseEntity.ok(todoListService.getTodoListDetail(memberId, todoListId));
     }
 
@@ -81,7 +97,9 @@ public class MemberController {
      */
     @PostMapping("/{memberId}/todos")
     public ResponseEntity<TodoListDTO> createTodoList(@PathVariable(name = "memberId") String memberId,
-                                                      @Valid @RequestBody TodoListDTO todoListDTO) {
+                                                      @Valid @RequestBody TodoListDTO todoListDTO,
+                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todolist.post"));
         return ResponseEntity.ok(todoListService.createTodoList(memberId, todoListDTO));
     }
 
@@ -94,7 +112,9 @@ public class MemberController {
     @DeleteMapping("/{memberId}/todos/{todoListId}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteTodoList(@PathVariable(name = "memberId") String memberId,
-                               @PathVariable(name = "todoListId") long todoListId) {
+                               @PathVariable(name = "todoListId") long todoListId,
+                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todolist.delete"));
         todoListService.deleteTodoList(memberId, todoListId);
     }
 
@@ -109,7 +129,9 @@ public class MemberController {
     @GetMapping("/{memberId}/todos/{todoListId}/{todoId}")
     public ResponseEntity<TodoDTO> readTodo(@PathVariable(name = "memberId") String memberId,
                                             @PathVariable(name = "todoListId") long todoListId,
-                                            @PathVariable(name = "todoId") long todoId) {
+                                            @PathVariable(name = "todoId") long todoId,
+                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todo.get"));
         return ResponseEntity.ok(todoService.readTodo(memberId, todoListId, todoId));
     }
 
@@ -124,7 +146,9 @@ public class MemberController {
     @PostMapping("/{memberId}/todos/{todoListId}")
     public ResponseEntity<TodoDTO> writeTodo(@PathVariable(name = "memberId") String memberId,
                                              @PathVariable(name = "todoListId") long todoListId,
-                                             @Valid @RequestBody TodoDTO todoDTO){
+                                             @Valid @RequestBody TodoDTO todoDTO,
+                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todo.post"));
         return ResponseEntity.ok(todoService.writeTodo(memberId, todoListId, todoDTO));
     }
 
@@ -139,7 +163,9 @@ public class MemberController {
     @ResponseStatus(HttpStatus.OK)
     public void deleteTodo(@PathVariable(name = "memberId") String memberId,
                            @PathVariable(name = "todoListId") long todoListId,
-                           @PathVariable(name = "todoId") long todoId) {
+                           @PathVariable(name = "todoId") long todoId,
+                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberId, jwt, constructMessage("unauthorized.member.todo.delete"));
         todoService.deleteTodo(memberId, todoListId, todoId);
     }
 }

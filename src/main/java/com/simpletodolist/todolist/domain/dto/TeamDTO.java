@@ -17,7 +17,6 @@ public class TeamDTO {
     @JsonProperty("id")
     private long id;
 
-    @NotBlank
     @JsonProperty("leaderUserId")
     private String teamLeaderUserId;
 

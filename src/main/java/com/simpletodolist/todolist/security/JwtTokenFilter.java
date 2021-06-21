@@ -3,9 +3,9 @@ package com.simpletodolist.todolist.security;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,8 +44,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
+        Claims claims;
         try {
-            jwtTokenUtil.validateJwtToken(header);
+            claims = jwtTokenUtil.validateJwtToken(header);
         } catch (AuthenticationFailedException exception) {
             try {
                 filterChain.doFilter(request, response);
@@ -57,7 +58,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         // get user identification from token and set to spring security context.
-        UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromToken(header)).orElseThrow(NoMemberFoundException::new);
+        UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());
 

@@ -2,6 +2,7 @@ package com.simpletodolist.todolist.security;
 
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import io.jsonwebtoken.*;
@@ -17,6 +18,7 @@ public class JwtTokenUtil {
 
     private final MemberRepository memberRepository;
 
+
     @Value("${JWT_SECRET}")
     private String JWT_SECRET;
     private String JWT_ISSUER = "SimpleTodoList";
@@ -30,6 +32,7 @@ public class JwtTokenUtil {
     public String generateAccessToken(Member member) {
         return Jwts.builder()
                 // Store authenticated member's user id, username to JWT.
+                // TODO: json을 이용하여 Member 객체를 MemberDTO처럼 저장.
                 .setSubject(String.format("%s / %s", member.getUserId(), member.getUsername()))
                 // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
                 .setIssuer(JWT_ISSUER)
@@ -41,33 +44,37 @@ public class JwtTokenUtil {
                 .compact(); // build JWT.
     }
 
-    public void validateJwtToken(String token) {
+
+    public Claims validateJwtToken(String token) {
         try {
-            Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token);
+            return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
         } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
             throw new AuthenticationFailedException("JWT Validation Failed", ex.getLocalizedMessage());
         }
     }
 
-    private Claims parseToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(JWT_SECRET)
-                .parseClaimsJws(token) // claims for signed, plaintext for unsigned.
-                .getBody();
+    public void validateRequestedUserIdWithJwt(String requestedUserId, String token) {
+        validateRequestedUserIdWithJwt(requestedUserId, token, AuthorizationFailedException.DEFAULT_MESSAGE);
     }
 
-    public String getUserIdFromToken(String token) {
-        Claims claims = parseToken(token);
+    public void validateRequestedUserIdWithJwt(String requestedUserId, String token, String message) {
+        Claims claims = validateJwtToken(token);
+        String tokenUserId = getUserIdFromClaims(claims);
+        if(!tokenUserId.equals(requestedUserId)) {
+            throw new AuthorizationFailedException(AuthorizationFailedException.DEFAULT_ERROR, message);
+        }
+    }
+
+
+    public String getUserIdFromClaims(Claims claims) {
         return claims.getSubject().split(" / ")[0];
     }
 
-    public String getUsernameFromToken(String token) {
-        Claims claims = parseToken(token);
+    public String getUsernameFromClaims(Claims claims) {
         return claims.getSubject().split(" / ")[1];
     }
 
-    public Date getExpirationDateFromToken(String token) {
-        Claims claims = parseToken(token);
+    public Date getExpirationDateFromClaims(Claims claims) {
         return claims.getExpiration();
     }
 }

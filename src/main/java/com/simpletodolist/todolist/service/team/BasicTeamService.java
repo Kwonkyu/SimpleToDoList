@@ -25,6 +25,21 @@ public class BasicTeamService implements TeamService{
     private final TeamRepository teamRepository;
     private final MemberTeamAssocRepository memberTeamAssocRepository;
 
+
+    @Override
+    public boolean authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException {
+        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        return team.getMembers().stream().map(MemberTeamAssociation::getMember).anyMatch(member::equals);
+    }
+
+    @Override
+    public boolean authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException {
+        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        return team.getLeader().equals(member);
+    }
+
     @Override
     public TeamDTO createTeam(TeamDTO teamDTO) {
         Member member = memberRepository.findByUserId(teamDTO.getTeamLeaderUserId()).orElseThrow(NoMemberFoundException::new);
