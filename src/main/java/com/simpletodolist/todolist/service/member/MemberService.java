@@ -39,7 +39,7 @@ public interface MemberService extends UserDetailsService {
      * @param memberUserId Member to withdraw.
      * @throws NoMemberFoundException when given member does not exists.
      */
-    void withdrawMember(String memberUserId, String rawPassword) throws NoMemberFoundException;
+    void withdrawMember(String memberUserId) throws NoMemberFoundException;
 
     /**
      * Get list of teams members joined.

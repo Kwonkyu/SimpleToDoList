@@ -22,6 +22,11 @@ public class PublicController {
     private final JwtTokenUtil jwtTokenUtil;
 
 
+    /**
+     * Login member account with user id and password.
+     * @param memberDTO MemberDTO object containing user id and password.
+     * @return MemberDTO object filled with logged in member's information.
+     */
     @PostMapping("/login")
     public ResponseEntity<MemberDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
         MemberDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());

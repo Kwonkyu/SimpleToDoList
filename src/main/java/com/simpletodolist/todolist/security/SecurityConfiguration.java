@@ -48,7 +48,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // unauthorized request handler. i.e. accessing not permitted method without authorization.
         http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-            // TODO: why keep every call stuck in here??
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getLocalizedMessage());
 //            throw new AuthenticationFailedException("Authentication Failed", authException.getMessage());
 //            can't catch this because controller advice cannot catch filter exception.

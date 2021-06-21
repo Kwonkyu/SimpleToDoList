@@ -61,9 +61,9 @@ public class BasicMemberService implements MemberService{
     }
 
     @Override
-    public void withdrawMember(String memberUserId, String rawPassword) throws NoMemberFoundException {
+    public void withdrawMember(String memberUserId) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if(!passwordEncoder.matches(rawPassword, member.getPassword())) throw new AuthenticationFailedException();
+//        if(!passwordEncoder.matches(rawPassword, member.getPassword())) throw new AuthenticationFailedException();
         member.getTeams().forEach(memberTeamAssocRepository::delete);
         memberRepository.delete(member);
     }

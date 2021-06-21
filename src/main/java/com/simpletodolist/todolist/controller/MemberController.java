@@ -43,10 +43,8 @@ public class MemberController {
      */
     @DeleteMapping("/{memberId}")
     @ResponseStatus(HttpStatus.OK)
-    public void withdrawMember(@PathVariable(name = "memberId") String memberId,
-                               @RequestHeader(name = HttpHeaders.AUTHORIZATION) String password) {
-        // TODO: error handling(message) when authorization header is not given.
-        memberService.withdrawMember(memberId, password);
+    public void withdrawMember(@PathVariable(name = "memberId") String memberId) {
+        memberService.withdrawMember(memberId);
     }
 
 
