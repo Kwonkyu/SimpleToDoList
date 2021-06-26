@@ -10,6 +10,26 @@ import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 public interface TeamService {
 
     /**
+     * Authorize team access as member.
+     * @param memberUserId Member's user id.
+     * @param teamId Team's id.
+     * @return boolean value meaning whether member is in the team or not.
+     * @throws NoMemberFoundException when member with given user id doesn't exists.
+     * @throws NoTeamFoundException when team with given id doesn't exists.
+     */
+    boolean authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException;
+
+    /**
+     * Authorize team access as leader.
+     * @param memberUserId Member's user id.
+     * @param teamId Team's id.
+     * @return boolean value meaning whether member is leader of the team or not.
+     * @throws NoMemberFoundException when member with given user id doesn't exists.
+     * @throws NoTeamFoundException when team with given id doesn't exists.
+     */
+    boolean authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException;
+
+    /**
      * Create new team.
      * @param teamDTO Registering team's information.
      * @return TeamDTO object filled with registered team's information.

@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.exception;
 
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -17,6 +18,13 @@ public class GeneralExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
     public ExceptionResponseDTO authenticationFailed(AuthenticationFailedException exception) {
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    }
+
+    @ExceptionHandler(AuthorizationFailedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public ExceptionResponseDTO authorizationFailed(AuthorizationFailedException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
