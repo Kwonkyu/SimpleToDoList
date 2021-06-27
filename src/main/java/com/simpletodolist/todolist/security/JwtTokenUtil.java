@@ -32,7 +32,6 @@ public class JwtTokenUtil {
     public String generateAccessToken(Member member) {
         return Jwts.builder()
                 // Store authenticated member's user id, username to JWT.
-                // TODO: json을 이용하여 Member 객체를 MemberDTO처럼 저장?
                 .setSubject(String.format("%s / %s / %s", member.getId(), member.getUserId(), member.getUsername()))
                 // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
                 .setIssuer(JWT_ISSUER)

@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.member;
 
+import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
@@ -33,6 +34,16 @@ public interface MemberService extends UserDetailsService {
      * @throws DuplicatedMemberException when member with equivalent user id exists.
      */
     MemberDTO registerMember(MemberDTO memberDTO) throws DuplicatedMemberException;
+
+    /**
+     * Update information of member.
+     * @param memberUserId Member's user id.
+     * @param update Updatable field of member's information.
+     * @param value Updated value.
+     * @return MemberDTO object filled with updated user information.
+     * @throws NoMemberFoundException when member with given id doesn't exists.
+     */
+    MemberDTO updateMember(String memberUserId, UpdatableMemberInformation update, Object value) throws NoMemberFoundException;
 
     /**
      * Withdraw member.

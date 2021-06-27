@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
+import com.simpletodolist.todolist.domain.dto.MemberInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
@@ -42,6 +43,17 @@ public class MemberController {
         jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
         return ResponseEntity.ok(memberService.getMemberDetails(memberUserId));
     }
+
+
+
+    @PutMapping("/{memberUserId}")
+    public ResponseEntity<MemberDTO> updateMemberInfo(@PathVariable(name = "memberUserId") String memberUserId,
+                                                      @RequestBody MemberInformationUpdateRequestDTO requestDTO,
+                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
+        return ResponseEntity.ok(memberService.updateMember(memberUserId, requestDTO.getField(), requestDTO.getValue()));
+    }
+
 
 
     /**

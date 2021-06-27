@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.member;
 
+import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
@@ -55,6 +56,21 @@ public class BasicMemberService implements MemberService{
         memberDTO.setPassword(passwordEncoder.encode(memberDTO.getPassword()));
         Member save = memberRepository.save(new Member(memberDTO));
         return new MemberDTO(save);
+    }
+
+    @Override
+    public MemberDTO updateMember(String memberUserId, UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
+        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+        switch(update) {
+            case USERNAME:
+                member.changeUsername((String) value);
+                break;
+
+            case PASSWORD:
+                member.changePassword(passwordEncoder.encode((String) value));
+                break;
+        }
+        return new MemberDTO(member);
     }
 
     @Override
