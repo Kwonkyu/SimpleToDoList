@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Locale;
 
 @RestController
@@ -48,7 +49,7 @@ public class MemberController {
 
     @PutMapping("/{memberUserId}")
     public ResponseEntity<MemberDTO> updateMemberInfo(@PathVariable(name = "memberUserId") String memberUserId,
-                                                      @RequestBody MemberInformationUpdateRequestDTO requestDTO,
+                                                      @Valid @RequestBody MemberInformationUpdateRequestDTO requestDTO,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
         return ResponseEntity.ok(memberService.updateMember(memberUserId, requestDTO.getField(), requestDTO.getValue()));

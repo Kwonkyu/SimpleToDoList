@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.todo;
 
+import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
 import com.simpletodolist.todolist.domain.dto.TodoDTO;
 import com.simpletodolist.todolist.domain.dto.TodosDTO;
 import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
@@ -43,6 +44,16 @@ public interface TodoService {
      * @return TodoDTO object filled with to-do data and generated id.
      */
     TodoDTO writeTodo(String memberUserId, long todoListId, TodoDTO todoDTO) throws NoMemberFoundException, NoTodoListFoundException;
+
+    /**
+     * Update to-do element.
+     * @param todoId To-do to update.
+     * @param field Updating field.
+     * @param value Updated value.
+     * @return TodoDTO object filled with updated to-do.
+     * @throws NoTodoFoundException when to-do with given id doesn't exists.
+     */
+    TodoDTO updateTodo(long todoId, UpdatableTodoInformation field, Object value) throws NoTodoFoundException;
 
     /**
      * Delete to-do from to-do list.

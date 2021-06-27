@@ -48,5 +48,5 @@ public class Todo {
 
     public void toggleLock() { locked = !locked; }
     public void lock() { locked = true; }
-    public void unlock() { locked = true; }
+    public void unlock() { locked = false; }
 }

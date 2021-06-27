@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.todo;
 
+import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
 import com.simpletodolist.todolist.domain.dto.TodoDTO;
 import com.simpletodolist.todolist.domain.dto.TodosDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
@@ -14,6 +15,7 @@ import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,31 @@ public class BasicTodoService implements TodoService{
         Todo newTodo = new Todo(todo.getTitle(), todo.getContent(), writer, todoList);
         todoRepository.save(newTodo);
         return new TodoDTO(newTodo);
+    }
+
+    @Override
+    public TodoDTO updateTodo(long todoId, UpdatableTodoInformation field, Object value) throws NoTodoFoundException {
+        Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
+        switch (field) {
+            case LOCKED:
+                boolean lock = Boolean.parseBoolean((String) value);
+                if(lock) {
+                    todo.lock();
+                } else {
+                    todo.unlock();
+                }
+                break;
+
+            case CONTENT:
+                todo.changeContent((String) value);
+                break;
+
+            case TITLE:
+                todo.changeTitle((String) value);
+                break;
+        }
+
+        return new TodoDTO(todo);
     }
 
     @Override

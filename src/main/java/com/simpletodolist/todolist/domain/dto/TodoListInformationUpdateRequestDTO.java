@@ -9,9 +9,10 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class TodoListInformationUpdateRequestDTO {
-    @NotNull
-    UpdatableTodoListInformation field;
 
-    @NotNull
-    Object value;
+    @NotNull(message = "Updatable Field Cannot Be Empty.")
+    private UpdatableTodoListInformation field;
+
+    @NotNull(message = "Updated Value Cannot Be Empty.")
+    private Object value;
 }

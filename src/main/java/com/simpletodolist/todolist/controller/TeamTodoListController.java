@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/team/{teamId}")
@@ -60,7 +61,7 @@ public class TeamTodoListController {
                                                       @PathVariable(name = "todoListId") long todoListId,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
                                                       // TODO: resolve HttpMessageNotReadableException where using enums.
-                                                      @RequestBody TodoListInformationUpdateRequestDTO dto) {
+                                                      @Valid @RequestBody TodoListInformationUpdateRequestDTO dto) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
