@@ -32,8 +32,8 @@ public class JwtTokenUtil {
     public String generateAccessToken(Member member) {
         return Jwts.builder()
                 // Store authenticated member's user id, username to JWT.
-                // TODO: json을 이용하여 Member 객체를 MemberDTO처럼 저장.
-                .setSubject(String.format("%s / %s", member.getUserId(), member.getUsername()))
+                // TODO: json을 이용하여 Member 객체를 MemberDTO처럼 저장?
+                .setSubject(String.format("%s / %s / %s", member.getId(), member.getUserId(), member.getUsername()))
                 // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
                 .setIssuer(JWT_ISSUER)
                 .setIssuedAt(new Date())
@@ -57,7 +57,14 @@ public class JwtTokenUtil {
         validateRequestedUserIdWithJwt(requestedUserId, token, AuthorizationFailedException.DEFAULT_MESSAGE);
     }
 
-    public void validateRequestedUserIdWithJwt(String requestedUserId, String token, String message) {
+    /**
+     * Validate if requested user id is equal with authenticated user id.
+     * @param requestedUserId Requested user id.
+     * @param token Authenticated JWT.
+     * @param message AuthorizationFailedException's message when authorization failed.
+     * @throws AuthorizationFailedException when requested user id not matched with authenticated user id.
+     */
+    public void validateRequestedUserIdWithJwt(String requestedUserId, String token, String message) throws AuthorizationFailedException {
         Claims claims = validateJwtToken(token);
         String tokenUserId = getUserIdFromClaims(claims);
         if(!tokenUserId.equals(requestedUserId)) {
@@ -65,13 +72,14 @@ public class JwtTokenUtil {
         }
     }
 
+    public long getIdFromClaims(Claims claims) { return Long.parseLong(claims.getSubject().split(" / ")[0]); }
 
     public String getUserIdFromClaims(Claims claims) {
-        return claims.getSubject().split(" / ")[0];
+        return claims.getSubject().split(" / ")[1];
     }
 
     public String getUsernameFromClaims(Claims claims) {
-        return claims.getSubject().split(" / ")[1];
+        return claims.getSubject().split(" / ")[2];
     }
 
     public Date getExpirationDateFromClaims(Claims claims) {

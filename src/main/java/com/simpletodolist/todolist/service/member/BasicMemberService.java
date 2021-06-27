@@ -9,7 +9,6 @@ import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,16 +33,14 @@ public class BasicMemberService implements MemberService{
     @Override
     @Transactional(readOnly = true)
     public MemberDTO getMemberDetails(String memberUserId) {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return new MemberDTO(member);
+        return new MemberDTO(memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new));
     }
 
     @Override
     public MemberDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            memberUserId, rawPassword));
+                    new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
             return new MemberDTO(member);
@@ -63,7 +60,6 @@ public class BasicMemberService implements MemberService{
     @Override
     public void withdrawMember(String memberUserId) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-//        if(!passwordEncoder.matches(rawPassword, member.getPassword())) throw new AuthenticationFailedException();
         member.getTeams().forEach(memberTeamAssocRepository::delete);
         memberRepository.delete(member);
     }

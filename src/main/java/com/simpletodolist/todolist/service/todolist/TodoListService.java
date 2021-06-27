@@ -2,44 +2,55 @@ package com.simpletodolist.todolist.service.todolist;
 
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 
 public interface TodoListService {
 
     /**
-     * Get information of to-do list.
+     * Authorize if member can access to-do list or not.
      * @param memberUserId Member's user id.
      * @param todoListId To-do list's id.
-     * @return TodoListDTO object containing information of to-do list.
-     * @throws NoMemberFoundException when member does not exists.
-     * @throws NoTodoListFoundException when to-do list does not exists.
+     * @throws NoTodoListFoundException when to-do list with given id not found.
+     * @throws AuthorizationFailedException when member is not authorized with this to-do list.
      */
-    TodoListDTO getTodoListDetail(String memberUserId, long todoListId) throws NoMemberFoundException, NoTodoListFoundException;
+    void authorizeMember(String memberUserId, long todoListId) throws NoTodoListFoundException, AuthorizationFailedException;
+
 
     /**
-     * Get to-do lists of member.
-     * @param memberId Member's user id.
-     * @return TodoListsDTO object containing to-do lists of member.
-     * @throws NoMemberFoundException when member of given id does not exists.
+     * Get information of to-do list.
+     * @param todoListId To-do list's id.
+     * @return TodoListDTO object containing information of to-do list.
+     * @throws NoTodoListFoundException when to-do list does not exists.
      */
-    TodoListsDTO readTodoListsOfMember(String memberId) throws NoMemberFoundException;
+    TodoListDTO getTodoListDetail(long todoListId) throws NoTodoListFoundException;
+
+
+    /**
+     * Read to-do lists of team.
+     * @param teamId Team's id.
+     * @return TodoListsDTO object filled with team's to-do lists.
+     * @throws NoTeamFoundException when team with given id doesn't exists.
+     */
+    TodoListsDTO getTodoListsOfTeam(long teamId) throws NoTeamFoundException;
+
 
     /**
      * Create to-do list of member.
+     * @param teamId Team's id.
      * @param memberUserId Member's user id.
      * @param todoListDTO Information of to-do list.
      * @return TodoListDTO object containing
      * @throws NoMemberFoundException when member with given id doesn't exists.
      */
-    TodoListDTO createTodoList(String memberUserId, TodoListDTO todoListDTO) throws NoMemberFoundException;
+    TodoListDTO createTodoList(long teamId, String memberUserId, TodoListDTO todoListDTO) throws NoTeamFoundException, NoMemberFoundException;
 
     /**
      * Delete to-do list of member.
-     * @param memberUserId Member's user id.
      * @param todoListId To-do list's id.
-     * @throws NoMemberFoundException when member with given id doesn't exists.
      * @throws NoTodoListFoundException when to-do list with given id doesn't exists.
      */
-    void deleteTodoList(String memberUserId, long todoListId) throws NoMemberFoundException, NoTodoListFoundException;
+    void deleteTodoList(long todoListId) throws NoTodoListFoundException;
 }

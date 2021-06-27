@@ -2,6 +2,7 @@ package com.simpletodolist.todolist.service.team;
 
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
@@ -13,28 +14,30 @@ public interface TeamService {
      * Authorize team access as member.
      * @param memberUserId Member's user id.
      * @param teamId Team's id.
-     * @return boolean value meaning whether member is in the team or not.
      * @throws NoMemberFoundException when member with given user id doesn't exists.
      * @throws NoTeamFoundException when team with given id doesn't exists.
+     * @throws AuthorizationFailedException when member is unauthorized for this team.
      */
-    boolean authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException;
+    void authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, AuthorizationFailedException;
 
     /**
      * Authorize team access as leader.
      * @param memberUserId Member's user id.
      * @param teamId Team's id.
-     * @return boolean value meaning whether member is leader of the team or not.
      * @throws NoMemberFoundException when member with given user id doesn't exists.
      * @throws NoTeamFoundException when team with given id doesn't exists.
+     * @throws AuthorizationFailedException when member is unauthorized for leader of this team.
      */
-    boolean authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException;
+    void authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, AuthorizationFailedException;
 
     /**
      * Create new team.
+     * @param memberUserId Team leader's user id.
      * @param teamDTO Registering team's information.
      * @return TeamDTO object filled with registered team's information.
+     * @throws NoMemberFoundException when member with given id doesn't exists.
      */
-    TeamDTO createTeam(TeamDTO teamDTO);
+    TeamDTO createTeam(String memberUserId, TeamDTO teamDTO) throws NoMemberFoundException;
 
     /**
      * Delete team.
@@ -77,4 +80,13 @@ public interface TeamService {
      * @return MembersDTO object filled with team member's information.
      */
     MembersDTO withdrawMember(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, InvalidTeamWithdrawException;
+
+    /**
+     * Change leader of team.
+     * @param teamId Id of team to change leader.
+     * @param memberUserId New leader of team.
+     * @throws NoTeamFoundException when team of given id doesn't exists.
+     * @throws NoMemberFoundException when member of given id doesn't exists.
+     */
+    TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException;
 }

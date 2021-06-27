@@ -1,6 +1,8 @@
 package com.simpletodolist.todolist.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +10,9 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -28,10 +33,14 @@ public class TeamDTO {
     @JsonProperty("teamName")
     private String teamName;
 
+    @JsonProperty("members")
+    private List<String> members = new ArrayList<>();
+
     public TeamDTO(Team team){
         this.id = team.getId();
         this.teamLeaderUserId = team.getLeader().getUserId();
         this.teamLeaderUsername = team.getLeader().getUsername();
         this.teamName = team.getTeamName();
+        this.members = team.getMembers().stream().map(MemberTeamAssociation::getMember).map(Member::getUserId).collect(Collectors.toList());
     }
 }

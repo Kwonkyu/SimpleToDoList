@@ -3,17 +3,22 @@ package com.simpletodolist.todolist.service.todolist;
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.TodoList;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
+import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -23,38 +28,44 @@ public class BasicTodoListService implements TodoListService{
     private final MemberRepository memberRepository;
     private final TodoRepository todoRepository;
     private final TodoListRepository todoListRepository;
+    private final TeamRepository teamRepository;
+    private final MessageSource messageSource;
 
 
-    private TodoList findMembersTodoList(String memberUserId, long todoListId) {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return member.getTodoLists().stream().filter(t -> t.getId() == todoListId).findAny().orElseThrow(NoTodoListFoundException::new);
+    @Override
+    public void authorizeMember(String memberUserId, long todoListId) throws NoTodoListFoundException {
+        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
+        if(todoList.isLocked() && !todoList.getOwner().getUserId().equals(memberUserId)) {
+            throw new AuthorizationFailedException(
+                    AuthorizationFailedException.DEFAULT_ERROR,
+                    messageSource.getMessage("unauthorized.todolist.owner.only", null, Locale.KOREAN));
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TodoListDTO getTodoListDetail(String memberUserId, long todoListId) throws NoMemberFoundException, NoTodoListFoundException {
-        return new TodoListDTO(findMembersTodoList(memberUserId, todoListId));
+    public TodoListDTO getTodoListDetail(long todoListId) throws NoTodoListFoundException {
+        return new TodoListDTO(todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public TodoListsDTO readTodoListsOfMember(String memberId) throws NoMemberFoundException {
-        Member member = memberRepository.findByUserId(memberId).orElseThrow(NoMemberFoundException::new);
-        List<TodoList> todoLists = todoListRepository.findAllByOwner(member);
-        return new TodoListsDTO(todoLists);
+    public TodoListsDTO getTodoListsOfTeam(long teamId) throws NoTeamFoundException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        return new TodoListsDTO(todoListRepository.findAllByTeam(team));
     }
 
     @Override
-    public TodoListDTO createTodoList(String memberUserId, TodoListDTO todoListDTO) {
+    public TodoListDTO createTodoList(long teamId, String memberUserId, TodoListDTO todoListDTO) {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        TodoList todoList = new TodoList(todoListDTO.getTodoListName(), member);
+        TodoList todoList = new TodoList(todoListDTO.getTodoListName(), team, member);
         todoListRepository.save(todoList);
         return new TodoListDTO(todoList);
     }
 
     @Override
-    public void deleteTodoList(String memberUserId, long todoListId) throws NoTodoListFoundException {
-        TodoList todoList = findMembersTodoList(memberUserId, todoListId);
+    public void deleteTodoList(long todoListId) throws NoTodoListFoundException {
+        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
         todoList.getTodos().forEach(todoRepository::delete);
         todoListRepository.delete(todoList);
     }

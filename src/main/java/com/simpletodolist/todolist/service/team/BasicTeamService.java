@@ -5,6 +5,7 @@ import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
+import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
@@ -13,8 +14,11 @@ import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -24,25 +28,32 @@ public class BasicTeamService implements TeamService{
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
     private final MemberTeamAssocRepository memberTeamAssocRepository;
+    private final MessageSource messageSource;
 
 
     @Override
-    public boolean authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+    public void authorizeTeamMember(String memberUserId, long teamId) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        return team.getMembers().stream().map(MemberTeamAssociation::getMember).anyMatch(member::equals);
+        if(team.getMembers().stream().noneMatch(assoc -> assoc.getMember().getUserId().equals(memberUserId))) {
+            throw new AuthorizationFailedException(
+                    AuthorizationFailedException.DEFAULT_ERROR,
+                    messageSource.getMessage("unauthorized.team.not.joined", null, Locale.KOREAN));
+        }
     }
 
     @Override
-    public boolean authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+    public void authorizeTeamLeader(String memberUserId, long teamId) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        return team.getLeader().equals(member);
+        if(!team.getLeader().getUserId().equals(memberUserId)) {
+            throw new AuthorizationFailedException(
+                    AuthorizationFailedException.DEFAULT_ERROR,
+                    messageSource.getMessage("unauthorized.team.not.leader", null, Locale.KOREAN));
+        }
     }
 
     @Override
-    public TeamDTO createTeam(TeamDTO teamDTO) {
-        Member member = memberRepository.findByUserId(teamDTO.getTeamLeaderUserId()).orElseThrow(NoMemberFoundException::new);
+    public TeamDTO createTeam(String memberUserId, TeamDTO teamDTO) throws NoMemberFoundException {
+        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         Team team = new Team(member, teamDTO.getTeamName());
         teamRepository.save(team);
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
@@ -65,8 +76,7 @@ public class BasicTeamService implements TeamService{
     @Override
     @Transactional(readOnly = true)
     public MembersDTO getTeamMembers(long teamId) {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        return team.getMembersAsDTO();
+        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).getMembersAsDTO();
     }
 
     @Override
@@ -87,5 +97,19 @@ public class BasicTeamService implements TeamService{
 
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
         return team.getMembersAsDTO();
+    }
+
+    @Override
+    public TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+        // New leader should be one of member.
+        if(team.getMembers().stream().map(MemberTeamAssociation::getMember).map(Member::getUserId).noneMatch(memberUserId::equals)) {
+            throw new NoMemberFoundException(
+                    NoMemberFoundException.DEFAULT_ERROR,
+                    messageSource.getMessage("unauthorized.leader.not.joined", null, Locale.KOREAN));
+        }
+        team.changeLeader(member);
+        return new TeamDTO(team);
     }
 }
