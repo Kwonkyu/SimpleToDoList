@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.todolist;
 
+import com.simpletodolist.todolist.domain.UpdatableTodoListInformation;
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
@@ -46,6 +47,16 @@ public interface TodoListService {
      * @throws NoMemberFoundException when member with given id doesn't exists.
      */
     TodoListDTO createTodoList(long teamId, String memberUserId, TodoListDTO todoListDTO) throws NoTeamFoundException, NoMemberFoundException;
+
+    /**
+     * Update to-do list's information.
+     * @param todoListId To-do list's id.
+     * @param field Field to update.
+     * @param value Updated value.
+     * @return TodoListDTO object filled with updated to-do list.
+     * @throws NoTodoListFoundException when to-do list with given id not found.
+     */
+    TodoListDTO updateTodoList(long todoListId, UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException;
 
     /**
      * Delete to-do list of member.

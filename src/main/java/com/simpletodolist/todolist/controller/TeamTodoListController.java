@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
+import com.simpletodolist.todolist.domain.dto.TodoListInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -54,6 +55,17 @@ public class TeamTodoListController {
         return ResponseEntity.ok(todoListService.getTodoListDetail(todoListId));
     }
 
+    @PutMapping("/todolist/{todoListId}")
+    public ResponseEntity<TodoListDTO> updateTodoList(@PathVariable(name = "teamId") long teamId,
+                                                      @PathVariable(name = "todoListId") long todoListId,
+                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                                      // TODO: resolve HttpMessageNotReadableException where using enums.
+                                                      @RequestBody TodoListInformationUpdateRequestDTO dto) {
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        teamService.authorizeTeamMember(memberUserId, teamId);
+        todoListService.authorizeMember(memberUserId, todoListId);
+        return ResponseEntity.ok(todoListService.updateTodoList(todoListId, dto.getField(), dto.getValue()));
+    }
 
     @DeleteMapping("/todolist/{todoListId}")
     public void deleteTodoList(@PathVariable(name = "teamId") long teamId,

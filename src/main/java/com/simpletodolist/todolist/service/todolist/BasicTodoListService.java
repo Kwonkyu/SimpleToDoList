@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.todolist;
 
+import com.simpletodolist.todolist.domain.UpdatableTodoListInformation;
 import com.simpletodolist.todolist.domain.dto.TodoListDTO;
 import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
@@ -60,6 +61,28 @@ public class BasicTodoListService implements TodoListService{
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         TodoList todoList = new TodoList(todoListDTO.getTodoListName(), team, member);
         todoListRepository.save(todoList);
+        return new TodoListDTO(todoList);
+    }
+
+    @Override
+    public TodoListDTO updateTodoList(long todoListId, UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException {
+        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
+        // TODO: default block to throw exception.
+        switch (field) {
+            case NAME:
+                todoList.changeName((String) value);
+                break;
+
+            case LOCKED:
+                boolean lock = Boolean.parseBoolean((String) value);
+                if (lock) {
+                    todoList.lock();
+                } else {
+                    todoList.unlock();
+                }
+                break;
+        }
+
         return new TodoListDTO(todoList);
     }
 
