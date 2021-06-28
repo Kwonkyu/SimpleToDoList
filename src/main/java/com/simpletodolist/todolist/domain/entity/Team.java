@@ -36,7 +36,13 @@ public class Team {
     private String teamName;
 
     @OneToMany(mappedBy = "team")
-    private List<MemberTeamAssociation> members = new ArrayList<>();
+    private final List<MemberTeamAssociation> members = new ArrayList<>();
+
+    @OneToMany(mappedBy = "team")
+    private final List<TodoList> todoLists = new ArrayList<>();
+
+    @Column(name = "LOCKED")
+    private boolean locked = false;
 
 
     public MembersDTO getMembersAsDTO(){
@@ -48,13 +54,12 @@ public class Team {
     }
 
     public void changeLeader(Member member) {
-        // leader should be one of member.
-        members.stream()
-                .filter(memberTeamAssociation -> memberTeamAssociation.getMember().equals(member)).findAny()
-                .orElseThrow(NoMemberFoundException::new);
-
         leader = member;
     }
 
+    public void toggleLock() { locked = !locked; }
 
+    public void lock() { locked = true; }
+
+    public void unlock() { locked = false; }
 }

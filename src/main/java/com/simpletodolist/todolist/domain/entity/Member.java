@@ -43,13 +43,10 @@ public class Member implements UserDetails {
     private String password;
 
     @OneToMany(mappedBy = "member")
-    private List<MemberTeamAssociation> teams = new ArrayList<>();
+    private final List<MemberTeamAssociation> teams = new ArrayList<>();
 
-    @OneToMany(mappedBy = "owner")
-    private List<TodoList> todoLists = new ArrayList<>();
-
-    // TODO: implement available status related feature
-    private boolean available = true;
+    @Column(name = "LOCKED")
+    private boolean locked = false;
 
 
     public TeamsDTO getTeamsAsDTO(){
@@ -68,6 +65,12 @@ public class Member implements UserDetails {
         this.password = password;
     }
 
+    public void toggleLock() { locked = !locked; }
+
+    public void lock() { locked = true; }
+
+    public void unlock() { locked = false; }
+
     public boolean isJoinedTeam(Team team) {
         return teams.stream().anyMatch(t -> t.getTeam().equals(team));
     }
@@ -80,22 +83,22 @@ public class Member implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return available;
+        return !locked;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return available;
+        return !locked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return available;
+        return !locked;
     }
 
     @Override
     public boolean isEnabled() {
-        return available;
+        return !locked;
     }
 
 

@@ -51,13 +51,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             try {
                 filterChain.doFilter(request, response);
             } catch (AccessDeniedException ex) {
-                // TODO: 언제 어떤 종류의 예외가 throw되고 처리되는지 조사. 지금 ExceptionHandler랑 sendError 등등 섞여 있어서 문제.
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage());
             } // maybe handle with filter: https://samtao.tistory.com/48
             return;
         }
 
         // get user identification from token and set to spring security context.
+        // TODO: this throw exception cannot be handled by exception handlers.
         UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());

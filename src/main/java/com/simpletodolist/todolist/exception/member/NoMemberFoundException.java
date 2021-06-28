@@ -12,6 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoMemberFoundException extends RuntimeException{
-    private String error = Member.NO_MEMBER_FOUND;
-    private String message = "Try with different member identification value.";
+    public static final String DEFAULT_ERROR = Member.NO_MEMBER_FOUND;
+    public static final String DEFAULT_MESSAGE = "Try with different member identification value.";
+
+    private String error = DEFAULT_ERROR;
+    private String message = DEFAULT_MESSAGE;
 }

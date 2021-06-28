@@ -28,16 +28,25 @@ public class Todo {
 
     @NonNull
     @ManyToOne
+    @JoinColumn(name = "MEMBER_ID")
+    private Member writer;
+
+    @NonNull
+    @ManyToOne
     @JoinColumn(name = "TODOLIST_ID")
     private TodoList todoList;
 
+    @Column(name = "LOCKED")
+    private boolean locked;
 
-    public void changeTitle(String title){
-        this.title = title;
-    }
 
+    public void changeTitle(String title){ this.title = title; }
     public void changeContent(String content){
         this.content = content;
     }
+    public void changeWriter(Member writer) { this.writer = writer; }
 
+    public void toggleLock() { locked = !locked; }
+    public void lock() { locked = true; }
+    public void unlock() { locked = false; }
 }

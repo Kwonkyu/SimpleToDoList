@@ -32,7 +32,7 @@ public class TodoListDTO {
     public TodoListDTO(TodoList todoList) {
         this.todoListId = todoList.getId();
         this.ownerId = todoList.getOwner().getUserId();
-        this.todoListName = todoList.getTodoListName();
+        this.todoListName = todoList.getName();
         this.todos = todoList.getTodos().stream().map(TodoDTO::new).collect(Collectors.toList());
     }
 }
