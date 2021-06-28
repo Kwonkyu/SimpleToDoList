@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.team;
 
+import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
@@ -38,6 +39,16 @@ public interface TeamService {
      * @throws NoMemberFoundException when member with given id doesn't exists.
      */
     TeamDTO createTeam(String memberUserId, TeamDTO teamDTO) throws NoMemberFoundException;
+
+    /**
+     * Update team's information.
+     * @param teamId Id of team to update.
+     * @param field Updating field of team.
+     * @param value Updated value of field.
+     * @return TeamDTO object filled with updated team's informations.
+     * @throws NoTeamFoundException when team with given id doesn't exists.
+     */
+    TeamDTO updateTeam(long teamId, UpdatableTeamInformation field, Object value) throws NoTeamFoundException;
 
     /**
      * Delete team.

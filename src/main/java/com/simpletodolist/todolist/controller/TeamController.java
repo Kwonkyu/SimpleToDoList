@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
+import com.simpletodolist.todolist.domain.dto.TeamInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.team.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,15 @@ public class TeamController {
                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
         return ResponseEntity.ok(teamService.createTeam(userIdFromClaims, teamDTO));
+    }
+
+    @PutMapping("/{teamId}")
+    public ResponseEntity<TeamDTO> updateTeam(@PathVariable(name = "teamId") long teamId,
+                                              @Valid @RequestBody TeamInformationUpdateRequestDTO dto,
+                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
+        return ResponseEntity.ok(teamService.updateTeam(teamId, dto.getField(), dto.getValue()));
     }
 
     @DeleteMapping("/{teamId}")

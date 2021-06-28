@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.service.team;
 
+import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
@@ -57,6 +58,17 @@ public class BasicTeamService implements TeamService{
         Team team = new Team(member, teamDTO.getTeamName());
         teamRepository.save(team);
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
+        return new TeamDTO(team);
+    }
+
+    @Override
+    public TeamDTO updateTeam(long teamId, UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        switch (field) {
+            case NAME:
+                team.changeTeamName((String) value);
+                break;
+        }
         return new TeamDTO(team);
     }
 
