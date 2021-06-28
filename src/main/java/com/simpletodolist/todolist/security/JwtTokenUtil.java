@@ -18,10 +18,13 @@ public class JwtTokenUtil {
 
     private final MemberRepository memberRepository;
 
-
     @Value("${JWT_SECRET}")
     private String JWT_SECRET;
     private String JWT_ISSUER = "SimpleTodoList";
+
+    private enum TokenType {
+        BEARER
+    }
 
 
     public String generateAccessToken(String memberUserId) {
@@ -32,6 +35,7 @@ public class JwtTokenUtil {
     public String generateAccessToken(Member member) {
         return Jwts.builder()
                 // Store authenticated member's user id, username to JWT.
+                // TODO: jsonify?
                 .setSubject(String.format("%s / %s / %s", member.getId(), member.getUserId(), member.getUsername()))
                 // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
                 .setIssuer(JWT_ISSUER)
@@ -44,18 +48,18 @@ public class JwtTokenUtil {
     }
 
 
-    public Claims validateJwtToken(String token) {
+    public Claims validateBearerJWT(String token) {
         try {
-            return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
+            return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token.substring(TokenType.BEARER.name().length()+1)).getBody();
         } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
             throw new AuthenticationFailedException("JWT Validation Failed", ex.getLocalizedMessage());
         }
     }
 
+
     public void validateRequestedUserIdWithJwt(String requestedUserId, String token) {
         validateRequestedUserIdWithJwt(requestedUserId, token, AuthorizationFailedException.DEFAULT_MESSAGE);
     }
-
     /**
      * Validate if requested user id is equal with authenticated user id.
      * @param requestedUserId Requested user id.
@@ -63,13 +67,15 @@ public class JwtTokenUtil {
      * @param message AuthorizationFailedException's message when authorization failed.
      * @throws AuthorizationFailedException when requested user id not matched with authenticated user id.
      */
+
     public void validateRequestedUserIdWithJwt(String requestedUserId, String token, String message) throws AuthorizationFailedException {
-        Claims claims = validateJwtToken(token);
+        Claims claims = validateBearerJWT(token);
         String tokenUserId = getUserIdFromClaims(claims);
         if(!tokenUserId.equals(requestedUserId)) {
             throw new AuthorizationFailedException(AuthorizationFailedException.DEFAULT_ERROR, message);
         }
     }
+
 
     public long getIdFromClaims(Claims claims) { return Long.parseLong(claims.getSubject().split(" / ")[0]); }
 

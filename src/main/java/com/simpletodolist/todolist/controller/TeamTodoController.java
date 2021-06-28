@@ -29,7 +29,7 @@ public class TeamTodoController {
     public ResponseEntity<TodosDTO> readTodos(@PathVariable(name = "teamId") long teamId,
                                               @PathVariable(name = "todoListId") long todoListId,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         return ResponseEntity.ok(todoService.readTodosOfTodoList(todoListId));
     }
@@ -40,7 +40,7 @@ public class TeamTodoController {
                                             @PathVariable(name = "todoListId") long todoListId,
                                             @PathVariable(name = "todoId") long todoId,
                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         return ResponseEntity.ok(todoService.readTodo(todoId));
@@ -51,7 +51,7 @@ public class TeamTodoController {
                                               @PathVariable(name = "todoListId") long todoListId,
                                               @RequestBody TodoDTO todoDTO,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         return ResponseEntity.ok(todoService.writeTodo(memberUserId, todoListId, todoDTO));
@@ -63,7 +63,7 @@ public class TeamTodoController {
                                               @PathVariable(name = "todoId") long todoId,
                                               @Valid @RequestBody TodoInformationUpdateRequestDTO dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         todoService.authorizeMember(memberUserId, todoId);
@@ -75,7 +75,7 @@ public class TeamTodoController {
                            @PathVariable(name = "todoListId") long todoListId,
                            @PathVariable(name = "todoId") long todoId,
                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         todoService.authorizeMember(memberUserId, todoId);
