@@ -59,8 +59,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
                 .antMatchers("/api/public/**").permitAll()
-                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .anyRequest().authenticated();
+                .antMatchers("/api/**").authenticated();
+//                .anyRequest().authenticated();
 
         // auth JWT token before username and password authentication.
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);

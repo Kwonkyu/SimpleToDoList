@@ -1,4 +1,4 @@
-export const API_URL = "localho.st:8080/api";
+export const API_URL = "http://192.168.26.137:8080/api";
 
 
 export const PUBLIC_API_URL = API_URL + "/public";

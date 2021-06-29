@@ -7,6 +7,7 @@ import {requestOption} from '../requestOption.js'
 export async function login(id, password) {
     const loginResult = await tryRequest(
         async ({url, option, message}) => {
+            console.log(`Connecting to ${url}...`);
             return await fetchResult(url, option, message);
         },
         {
@@ -25,6 +26,8 @@ export async function login(id, password) {
             requiredStatus: 200
         },
         (result) => {
+            console.log(result)
+            result.headers.forEach((B, A) => console.log(`${A}: ${B}`))
             localStorage.setItem("JWT", result.headers.get('Authorization'));
             return result.json();
         });

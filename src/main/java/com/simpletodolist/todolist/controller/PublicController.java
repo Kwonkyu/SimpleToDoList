@@ -27,9 +27,9 @@ public class PublicController {
     @PostMapping("/login")
     public ResponseEntity<MemberDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
         MemberDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", jwtTokenUtil.generateAccessToken(loggedInMemberDTO.getUserId())));
-        return new ResponseEntity<>(loggedInMemberDTO, headers, HttpStatus.OK);
+        String token = String.format("Bearer %s", jwtTokenUtil.generateAccessToken(loggedInMemberDTO.getUserId()));
+        loggedInMemberDTO.setToken(token);
+        return ResponseEntity.ok(loggedInMemberDTO);
     }
 
 

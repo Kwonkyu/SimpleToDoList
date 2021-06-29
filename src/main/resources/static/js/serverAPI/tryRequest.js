@@ -9,7 +9,7 @@ export async function tryRequest(
     const requestResult = await action(actionParameter);
     const validationResult = validation(requestResult, validationParameter);
     if (!validationResult) throw new Error("Validation Failed.");
-    return finisher(requestResult);
+    else return finisher(requestResult);
   } catch (error) {
     alert("[ Try Request Failed ]: " + error.message);
   }
