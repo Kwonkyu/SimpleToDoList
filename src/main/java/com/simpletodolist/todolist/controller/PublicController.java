@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.domain.dto.LoginDTO;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -25,8 +26,8 @@ public class PublicController {
      * @return MemberDTO object filled with logged in member's information.
      */
     @PostMapping("/login")
-    public ResponseEntity<MemberDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
-        MemberDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());
+    public ResponseEntity<LoginDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
+        LoginDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());
         loggedInMemberDTO.setToken(jwtTokenUtil.generateAccessToken(loggedInMemberDTO.getUserId()));
         return ResponseEntity.ok(loggedInMemberDTO);
     }

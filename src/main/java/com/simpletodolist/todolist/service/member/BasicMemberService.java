@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.service.member;
 
 import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
+import com.simpletodolist.todolist.domain.dto.LoginDTO;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
@@ -38,13 +39,13 @@ public class BasicMemberService implements MemberService{
     }
 
     @Override
-    public MemberDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
+    public LoginDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
-            return new MemberDTO(member);
+            return new LoginDTO(member);
         } catch (BadCredentialsException exception) {
             throw new AuthenticationFailedException();
         }

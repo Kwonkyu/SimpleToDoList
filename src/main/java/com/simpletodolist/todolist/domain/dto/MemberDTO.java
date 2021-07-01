@@ -12,7 +12,7 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MemberDTO extends TokenDTO{
+public class MemberDTO {
 
     @JsonProperty("id")
     private long id;
