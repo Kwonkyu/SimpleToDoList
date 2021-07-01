@@ -6,6 +6,7 @@ import com.simpletodolist.todolist.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +32,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private boolean validateAuthorizationHeader(String header) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
-        return header != null && !header.isBlank()/* && header.startsWith("Bearer ")*/;
+        return header != null && !header.isBlank() && header.startsWith("Bearer ");
     }
 
     @Override
@@ -46,7 +47,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         Claims claims;
         try {
-            claims = jwtTokenUtil.validateJwtToken(header);
+            claims = jwtTokenUtil.validateBearerJWT(header);
         } catch (AuthenticationFailedException exception) {
             try {
                 filterChain.doFilter(request, response);
@@ -58,13 +59,18 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // get user identification from token and set to spring security context.
         // TODO: this throw exception cannot be handled by exception handlers.
-        UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());
+        // 여기서 NoMemberFoundException이 발생한다는 것은 토큰에 있는 사용자가 실제론 존재하지 않는 상황인 것.
+        try {
+            UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());
 
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-        filterChain.doFilter(request, response);
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request, response);
+        } catch (NoMemberFoundException e) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
+        }
     }
 
 

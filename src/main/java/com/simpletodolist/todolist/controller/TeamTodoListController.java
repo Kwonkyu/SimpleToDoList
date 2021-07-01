@@ -28,7 +28,7 @@ public class TeamTodoListController {
     @GetMapping("/todolist")
     public ResponseEntity<TodoListsDTO> getTeamTodoLists(@PathVariable(name = "teamId") long teamId,
                                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         return ResponseEntity.ok(todoListService.getTodoListsOfTeam(teamId));
     }
@@ -38,7 +38,7 @@ public class TeamTodoListController {
                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
                                                             @RequestBody TodoListDTO todoListDTO,
                                                             HttpServletRequest request){
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         TodoListDTO createdTodoList = todoListService.createTodoList(teamId, memberUserId, todoListDTO);
         HttpHeaders headers = new HttpHeaders();
@@ -51,7 +51,7 @@ public class TeamTodoListController {
     public ResponseEntity<TodoListDTO> getTodoList(@PathVariable(name = "teamId") long teamId,
                                                    @PathVariable(name = "todoListId") long todoListId,
                                                    @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         return ResponseEntity.ok(todoListService.getTodoListDetail(todoListId));
     }
@@ -62,7 +62,7 @@ public class TeamTodoListController {
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
                                                       // TODO: resolve HttpMessageNotReadableException where using enums.
                                                       @Valid @RequestBody TodoListInformationUpdateRequestDTO dto) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         return ResponseEntity.ok(todoListService.updateTodoList(todoListId, dto.getField(), dto.getValue()));
@@ -73,7 +73,7 @@ public class TeamTodoListController {
                                @PathVariable(name = "todoListId") long todoListId,
                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         // TODO: make it as filter?
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateJwtToken(jwt));
+        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         teamService.authorizeTeamMember(memberUserId, teamId);
         todoListService.authorizeMember(memberUserId, todoListId);
         todoListService.deleteTodoList(todoListId);

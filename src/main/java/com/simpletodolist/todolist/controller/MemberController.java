@@ -3,7 +3,6 @@ package com.simpletodolist.todolist.controller;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
 import com.simpletodolist.todolist.domain.dto.MemberInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.domain.dto.TeamsDTO;
-import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.todolist.TodoListService;
