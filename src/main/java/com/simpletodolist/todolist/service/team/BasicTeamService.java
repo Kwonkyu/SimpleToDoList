@@ -33,6 +33,11 @@ public class BasicTeamService implements TeamService{
 
 
     @Override
+    public boolean validateTeamLocked(long teamId) throws NoTeamFoundException {
+        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).isLocked();
+    }
+
+    @Override
     public void authorizeTeamMember(String memberUserId, long teamId) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         if(team.getMembers().stream().noneMatch(assoc -> assoc.getMember().getUserId().equals(memberUserId))) {
@@ -106,8 +111,8 @@ public class BasicTeamService implements TeamService{
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         if(!member.isJoinedTeam(team)) throw new InvalidTeamWithdrawException();
-
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
+        memberTeamAssocRepository.flush(); // TODO: note here. Why it doesn't work without flush? https://github.com/spring-projects/spring-data-jpa/issues/1100
         return team.getMembersAsDTO();
     }
 

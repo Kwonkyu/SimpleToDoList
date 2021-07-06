@@ -1,0 +1,42 @@
+[#_title]
+= Simple To-do List Login / Register API Documentation
+:toc:
+
+Simple To-do List 애플리케이션의 로그인, 회원가입 API 문서입니다.
+
+모든 요청, 응답의 바디(페이로드)는 JSON으로 구성되어 있습니다.
+
+
+== Login
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/PublicController/Login/http-request.adoc[HTTP Request of Login API]
+
+.요청 파라미터
+include::{snippets}/PublicController/Login/request-fields.adoc[HTTP Request Payload of Login API]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/PublicController/Register/http-response.adoc[HTTP Response of Login API]
+
+.응답 파라미터
+include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Login API]
+
+
+== Register
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/PublicController/Register/http-request.adoc[HTTP Request of Register API]
+
+.요청 파라미터
+include::{snippets}/PublicController/Register/request-fields.adoc[HTTP Request Payload of Register API]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/PublicController/Register/http-response.adoc[HTTP Response of Register API]
+
+.응답 파라미터
+include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Register API]
+

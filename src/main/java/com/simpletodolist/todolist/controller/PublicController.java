@@ -27,9 +27,7 @@ public class PublicController {
      */
     @PostMapping("/login")
     public ResponseEntity<LoginDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
-        LoginDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());
-        loggedInMemberDTO.setToken(jwtTokenUtil.generateAccessToken(loggedInMemberDTO.getUserId()));
-        return ResponseEntity.ok(loggedInMemberDTO);
+        return ResponseEntity.ok(memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword()));
     }
 
 

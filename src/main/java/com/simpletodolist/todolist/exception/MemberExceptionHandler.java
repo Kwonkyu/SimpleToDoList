@@ -35,7 +35,7 @@ public class MemberExceptionHandler {
     }
 
     @ExceptionHandler(InvalidTeamWithdrawException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ExceptionResponseDTO invalidTeamWithdraw(InvalidTeamWithdrawException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());

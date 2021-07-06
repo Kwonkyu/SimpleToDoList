@@ -1,0 +1,89 @@
+[#_title]
+= Simple To-do List Team API Documentation
+:toc:
+
+Simple To-do List 애플리케이션의 팀 API 문서입니다.
+
+모든 요청, 응답의 바디(페이로드)는 JSON으로 구성되어 있습니다.
+
+== Get Team Information
+팀의 정보를 조회하는 API입니다.
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamController/getTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamController/getTeam/request-headers.adoc[]
+
+// TODO: 이런거 제목이 잘 안나오는데 우아한형제들 기술 블로그에서 title 설정을 본 것 같은데?
+.요청 파라미터
+include::{snippets}/TeamController/getTeam/path-parameters.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamController/getTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamController/getTeam/response-fields.adoc[]
+
+
+== Create Team
+팀을 생성하는 API입니다.
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamController/createTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamController/createTeam/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamController/createTeam/request-fields.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamController/createTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamController/createTeam/response-fields.adoc[]
+
+
+== Update Team Information
+팀의 속성을 갱신하는 API입니다.
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamController/updateTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamController/updateTeam/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamController/updateTeam/path-parameters.adoc[]
+include::{snippets}/TeamController/updateTeam/request-fields.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamController/updateTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamController/updateTeam/response-fields.adoc[]
+
+
+== Delete Team
+팀을 삭제하는 API입니다.
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamController/deleteTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamController/deleteTeam/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamController/deleteTeam/path-parameters.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamController/deleteTeam/response-body.adoc[]

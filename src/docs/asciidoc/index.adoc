@@ -1,0 +1,105 @@
+= Simple To-do List API Documentation
+Kwonkyu Park
+:toc:
+:icons: font
+:url-quickref: https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/
+
+Simple To-do List 애플리케이션의 API 문서입니다.
+
+애플리케이션에서는 크게 다음과 같은 기능을 제공하고 있습니다.
+
+* 회원 인증
+** 가입된 회원만 애플리케이션을 이용할 수 있습니다.
+** 필요에 따라 팀에 가입하거나 탈퇴할 수 있습니다.
+* 팀원을 추가하고 할 일 리스트를 관리할 수 있는 팀 구성
+** 팀원을 추가하거나 탈퇴시킬 수 있습니다.
+** 필요에 따라 팀원의 추가 가입을 제한할 수 있습니다.
+** 팀에서만 관리할 수 있는 할 일 리스트를 유지할 수 있습니다.
+* 할 일을 작성할 수 있는 할 일 리스트
+** 한 팀에 속한 할 일 리스트는 팀원들의 공유할 수 있습니다.
+** 필요에 따라 자신만 조작할 수 있도록 제한할 수 있습니다.
+
+
+
+== 로그인, 회원가입
+
+인증이 필요하지 않은 *공개된*  API 입니다. 회원 가입 및 로그인 기능이 제공됩니다.
+
+<<public.adoc#_title, API 문서 확인>>
+
+== 회원 관리
+
+인증 토큰이 필요한 *제한된* API입니다. 회원 정보 조회, 수정, 삭제 및 팀 가입, 조회, 탈퇴 기능이 제공됩니다.
+
+<<member.adoc#_title, API 문서 확인>>
+
+== 팀 관리
+
+인증 토큰이 필요한 *제한된* API입니다. 팀 생성, 수정, 삭제, 조회 기능이 제공됩니다.
+
+<<team.adoc#_title, API 문서 확인>>
+
+
+
+.Example block title
+====
+Content in an example block is subject to normal substitutions.
+====
+
+.Sidebar title
+****
+Sidebars contain aside text and are subject to normal substitutions.
+****
+
+==== Third level heading
+
+[#id-for-listing-block]
+.Listing block title
+----
+Content in a listing block is subject to verbatim substitutions.
+Listing block content is commonly used to preserve code input.
+----
+
+===== Fourth level heading
+
+.Table title
+|===
+|Column heading 1 |Column heading 2
+
+|Column 1, row 1
+|Column 2, row 1
+
+|Column 1, row 2
+|Column 2, row 2
+|===
+
+====== Fifth level heading
+
+[quote,firstname lastname,movie title]
+____
+I am a block quote or a prose excerpt.
+I am subject to normal substitutions.
+____
+
+[verse,firstname lastname,poem title and more]
+____
+I am a verse block.
+  Indents and endlines are preserved in verse blocks.
+____
+
+== First level heading
+
+TIP: There are five admonition labels: Tip, Note, Important, Caution and Warning.
+
+// I am a comment and won't be rendered.
+
+. ordered list item
+.. nested ordered list item
+. ordered list item
+
+The text at the end of this sentence is cross referenced to <<_third_level_heading,the third level heading>>
+
+== First level heading
+
+This is a link to the https://docs.asciidoctor.org/home/[Asciidoctor documentation].
+This is an attribute reference {url-quickref}[that links this text to the AsciiDoc Syntax Quick Reference].

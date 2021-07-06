@@ -51,6 +51,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         // unauthorized request handler. i.e. accessing not permitted method without authorization.
+        // TODO: 여기 말고 다른 곳에서 문제를 처리할 수는 없나? 헤더가 없으면 UNAUTHORIZED, 있는데 안맞으면 FORBIDDEN이라던지.
         http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getLocalizedMessage());
 //            throw new AuthenticationFailedException("Authentication Failed", authException.getMessage());

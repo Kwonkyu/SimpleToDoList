@@ -2,11 +2,20 @@ plugins {
 	id 'org.springframework.boot' version '2.4.5'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'org.asciidoctor.convert' version '1.5.9.2'
 }
 
 group = 'com.simpletodolist'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+
+
+bootJar {
+	dependsOn asciidoctor // generate documentation before jar
+	from('${asciidoctor.outputDir}/html5') { // because generated 'html' files from 'adoc' is located on outputDir/html5.
+		into 'static/docs' // move documentation into jar
+	}
+}
 
 configurations {
 	compileOnly {
@@ -16,6 +25,15 @@ configurations {
 
 repositories {
 	mavenCentral()
+}
+
+ext {
+	snippetsDir = file('build/generated-snippets') // because rest docs uses this directory.
+}
+
+asciidoctor {
+	inputs.dir snippetsDir // configure snippetsDir as input of asciidoctor.
+	dependsOn test
 }
 
 dependencies {
@@ -30,8 +48,11 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.5.RELEASE'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-asciidoctor:2.0.5.RELEASE'
 }
 
 test {
+	outputs.dir snippetsDir // add 'snippetsDir' as output.
 	useJUnitPlatform()
 }

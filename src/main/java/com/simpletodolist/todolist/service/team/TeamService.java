@@ -12,6 +12,14 @@ import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 public interface TeamService {
 
     /**
+     * Checks if this team is locked.
+     * @param teamId Team's id.
+     * @return boolean value indicating team is locked or not. If locked, only team leader can join or withdraw members.
+     * @throws NoTeamFoundException when team with given id not found.
+     */
+    boolean validateTeamLocked(long teamId) throws NoTeamFoundException;
+
+    /**
      * Authorize team access as member.
      * @param memberUserId Member's user id.
      * @param teamId Team's id.

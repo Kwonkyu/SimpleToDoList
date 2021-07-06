@@ -22,10 +22,10 @@ public class TeamDTO {
     @JsonProperty("id")
     private long id;
 
-    @JsonProperty("leaderUserId")
+    @JsonProperty("teamLeaderUserId")
     private String teamLeaderUserId;
 
-    @JsonProperty("leaderUsername")
+    @JsonProperty("teamLeaderUsername")
     private String teamLeaderUsername;
 
     @NotBlank
@@ -36,11 +36,15 @@ public class TeamDTO {
     @JsonProperty("members")
     private List<String> members = new ArrayList<>();
 
+    @JsonProperty("locked")
+    private boolean locked;
+
     public TeamDTO(Team team){
         this.id = team.getId();
         this.teamLeaderUserId = team.getLeader().getUserId();
         this.teamLeaderUsername = team.getLeader().getUsername();
         this.teamName = team.getTeamName();
         this.members = team.getMembers().stream().map(MemberTeamAssociation::getMember).map(Member::getUserId).collect(Collectors.toList());
+        this.locked = team.isLocked();
     }
 }
