@@ -28,6 +28,8 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 //import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 // to use path parameter, use static methods of rest documentation request builders.
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -231,7 +233,7 @@ public class MemberControllerTest {
         // withdraw from not joined team.
         mockMvc.perform(delete("/api/member/teams/{teamId}", anotherTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, testToken))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
 
         // normal request.
         MvcResult mvcResult = mockMvc.perform(delete("/api/member/teams/{teamId}", team.getId())
@@ -242,7 +244,7 @@ public class MemberControllerTest {
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         RequestSnippets.authorization,
-                        RequestSnippets.teamIdPathVariable,
+                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
                         ResponseSnippets.membersInformation
                 ))
                 .andReturn();

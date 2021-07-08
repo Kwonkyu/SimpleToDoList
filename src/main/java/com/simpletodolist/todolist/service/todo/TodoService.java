@@ -11,15 +11,13 @@ import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 
 public interface TodoService {
 
-
     /**
-     * Authorize if member can access to-do list or not.
-     * @param memberUserId Member's user id.
+     * Check if to-do is locked or not.
      * @param todoId To-do's id.
-     * @throws NoTodoFoundException when to-do list with given id not found.
-     * @throws AuthorizationFailedException when member is unauthorized for this to-do.
+     * @return Boolean value indicating to-do is locked or not.
+     * @throws NoTodoFoundException when to-do with given id not found.
      */
-    void authorizeMember(String memberUserId, long todoId) throws NoTodoFoundException, AuthorizationFailedException;
+    boolean isTodoLocked(long todoId) throws NoTodoFoundException;
 
     /**
      * Read to-do from member's to-do list.
@@ -61,4 +59,5 @@ public interface TodoService {
      * @throws NoTodoFoundException when to-do with given id doesn't exists.
      */
     void deleteTodo(long todoId) throws NoTodoFoundException;
+
 }

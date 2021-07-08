@@ -1,8 +1,9 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.dto.*;
-import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
+import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class MemberController {
 
     private final MemberService memberService;
     private final TeamService teamService;
+    private final AuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
     private final MessageSource messageSource;
 
@@ -73,10 +75,8 @@ public class MemberController {
     public ResponseEntity<MembersDTO> joinTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
                                             @Valid @RequestBody TeamIdRequestDTO dto) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        if(teamService.validateTeamLocked(dto.getTeamId())) {
-            teamService.authorizeTeamLeader(userIdFromClaims, dto.getTeamId());
-        }
-
+        if(teamService.isTeamLocked(dto.getTeamId())) throw new LockedTeamException();
+        // Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
         return ResponseEntity.ok(teamService.joinMember(dto.getTeamId(), userIdFromClaims));
     }
 
@@ -89,7 +89,6 @@ public class MemberController {
 //        if(teamsOfMember.getTeams().stream().noneMatch(teamDTO -> teamDTO.getId() == dto.getTeamId())) {
 //            throw new InvalidTeamWithdrawException();
 //        }
-
         return ResponseEntity.ok(teamService.withdrawMember(teamId, userIdFromClaims));
     }
 

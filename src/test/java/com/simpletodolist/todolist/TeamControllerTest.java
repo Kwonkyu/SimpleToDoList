@@ -29,6 +29,8 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 //import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 // to use path parameter, use static methods of rest documentation request builders.
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -100,7 +102,7 @@ public class TeamControllerTest {
                 .andDo(document("TeamController/getTeam",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdPathVariable,
+                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
                         RequestSnippets.authorization,
                         ResponseSnippets.teamInformation));
     }
@@ -164,7 +166,7 @@ public class TeamControllerTest {
                 .andDo(document("TeamController/updateTeam",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdPathVariable,
+                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
                         RequestSnippets.updateTeam,
                         RequestSnippets.authorization,
                         ResponseSnippets.teamInformation));
@@ -188,7 +190,7 @@ public class TeamControllerTest {
                 .andDo(document("TeamController/deleteTeam",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdPathVariable,
+                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
                         RequestSnippets.authorization));
 
         // check if team is deleted.

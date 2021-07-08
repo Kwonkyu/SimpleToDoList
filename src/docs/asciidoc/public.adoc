@@ -1,13 +1,26 @@
 [#_title]
 = Simple To-do List Login / Register API Documentation
 :toc:
+:icons: font
+:method-login: POST
+:url-login: /api/public/login
+:method-register: POST
+:url-register: /api/public/register
 
 Simple To-do List 애플리케이션의 로그인, 회원가입 API 문서입니다.
 
-모든 요청, 응답의 바디(페이로드)는 JSON으로 구성되어 있습니다.
+NOTE: 모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 있습니다.
 
+== 로그인
+NOTE: 인증이 필요하지 않은 *공개된*  API 입니다.
 
-== Login
+가입된 회원의 아이디와 비밀번호로 로그인하는 기능입니다. 성공 시 JWT 값이 *token* 필드로 반환됩니다.
+
+이후 토큰은 제한된 API 요청 시 Authorization 헤더에 Bearer 토큰으로 담아서 전송해야 합니다.
+
+====
+{method-login} {url-login}
+====
 
 === HTTP Request
 .HTTP 요청
@@ -18,13 +31,20 @@ include::{snippets}/PublicController/Login/request-fields.adoc[HTTP Request Payl
 
 === HTTP Response
 .HTTP 응답
-include::{snippets}/PublicController/Register/http-response.adoc[HTTP Response of Login API]
+include::{snippets}/PublicController/Register/response-body.adoc[HTTP Response of Login API]
 
 .응답 파라미터
 include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Login API]
 
 
-== Register
+== 회원가입
+NOTE: 인증이 필요하지 않은 *공개된*  API 입니다.
+
+새로운 회원을 가입하기 위한 기능입니다. 중복된 아이디의 회원은 가입할 수 없습니다.
+
+====
+{method-register} {url-register}
+====
 
 === HTTP Request
 .HTTP 요청
@@ -35,7 +55,7 @@ include::{snippets}/PublicController/Register/request-fields.adoc[HTTP Request P
 
 === HTTP Response
 .HTTP 응답
-include::{snippets}/PublicController/Register/http-response.adoc[HTTP Response of Register API]
+include::{snippets}/PublicController/Register/response-body.adoc[HTTP Response of Register API]
 
 .응답 파라미터
 include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Register API]
