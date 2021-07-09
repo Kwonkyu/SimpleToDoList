@@ -58,7 +58,7 @@ public class TeamTodoController {
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizeUntilTodoList(memberUserId, teamId, todoListId);
-        return ResponseEntity.ok(todoService.writeTodo(memberUserId, todoListId, todoDTO));
+        return ResponseEntity.ok(todoService.createTodo(memberUserId, todoListId, todoDTO));
     }
 
     private void authorizeTodo(String memberUserId, long teamId, long todoListId, long todoId) {

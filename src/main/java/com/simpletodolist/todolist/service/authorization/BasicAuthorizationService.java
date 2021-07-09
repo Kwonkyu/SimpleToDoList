@@ -110,6 +110,6 @@ public class BasicAuthorizationService implements AuthorizationService {
 
         TodoList todoList = todoListRepository.findByIdAndTeam(todoListId, team).orElseThrow(NoTodoListFoundException::new);
         Todo todo = todoRepository.findByIdAndTodoList(todoId, todoList).orElseThrow(NoTodoFoundException::new);
-        if(!todo.getWriter().equals(member)) throw new NotWriterTodoException();
+        if(!validateTeamLeader(member, team) && !todo.getWriter().equals(member)) throw new NotWriterTodoException();
     }
 }

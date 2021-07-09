@@ -41,7 +41,7 @@ public interface TodoService {
      * @param todoDTO TodoDTO object filled with to-do data.
      * @return TodoDTO object filled with to-do data and generated id.
      */
-    TodoDTO writeTodo(String memberUserId, long todoListId, TodoDTO todoDTO) throws NoMemberFoundException, NoTodoListFoundException;
+    TodoDTO createTodo(String memberUserId, long todoListId, TodoDTO todoDTO) throws NoMemberFoundException, NoTodoListFoundException;
 
     /**
      * Update to-do element.

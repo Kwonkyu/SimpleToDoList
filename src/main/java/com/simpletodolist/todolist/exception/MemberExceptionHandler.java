@@ -21,14 +21,14 @@ public class MemberExceptionHandler {
     }
 
     @ExceptionHandler(DuplicatedMemberException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ExceptionResponseDTO duplicatedMember(DuplicatedMemberException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedTeamJoinException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ExceptionResponseDTO duplicatedTeamJoin(DuplicatedTeamJoinException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());

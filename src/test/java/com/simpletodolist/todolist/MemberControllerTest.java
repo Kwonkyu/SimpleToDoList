@@ -3,10 +3,13 @@ package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
+import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import com.simpletodolist.todolist.domain.dto.*;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.util.MemberTestMaster;
+import com.simpletodolist.todolist.util.TeamTestMaster;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -48,26 +50,13 @@ public class MemberControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-
-    String testUserId = "testuserid";
-    String testUsername = "testusername";
-    String testPassword = "testpassword";
-
-    String anotherUserId = "anotheruserid";
-    String anotherUsername = "anotherusername";
-    String anotherPassword = "anotherpassword";
-
-    String testToken;
-    String anotherToken;
-
+    MemberTestMaster memberTestMaster;
+    TeamTestMaster teamTestMaster;
 
     @BeforeAll
-    public void initUser() {
-        memberService.registerMember(new MemberDTO(testUserId, testUsername, testPassword));
-        testToken = String.format("Bearer %s", memberService.loginMember(testUserId, testPassword).getToken());
-
-        memberService.registerMember(new MemberDTO(anotherUserId, anotherUsername, anotherPassword));
-        anotherToken = String.format("Bearer %s", memberService.loginMember(anotherUserId, anotherPassword).getToken());
+    public void init() {
+        memberTestMaster = new MemberTestMaster(memberService);
+        teamTestMaster = new TeamTestMaster(teamService);
     }
 
 
@@ -78,13 +67,16 @@ public class MemberControllerTest {
         mockMvc.perform(get("/api/member"))
                 .andExpect(status().isUnauthorized()); // by spring security, token-less request is not authorized.
 
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(get("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, testToken))
+        mockMvc.perform(get("/api/member")
+                .header(HttpHeaders.AUTHORIZATION, requestToken))
                 .andExpect(status().isOk())
                 // expression from https://goessner.net/articles/JsonPath/
-                .andExpect(jsonPath("$.userId").value(testUserId))
-                .andExpect(jsonPath("$.username").value(testUsername))
+                .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
+                .andExpect(jsonPath("$.username").value(newMember.getUsername()))
                 .andDo(document("MemberController/readMemberInfo",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -100,14 +92,18 @@ public class MemberControllerTest {
         mockMvc.perform(patch("/api/member"))
                 .andExpect(status().isUnauthorized());
 
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        String updatedUsername = "newUsername";
+
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(patch("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, anotherToken)
-                .content(objectMapper.writeValueAsString(new MemberInformationUpdateRequestDTO(UpdatableMemberInformation.USERNAME, "newUsername")))
+        mockMvc.perform(patch("/api/member")
+                .header(HttpHeaders.AUTHORIZATION, requestToken)
+                .content(objectMapper.writeValueAsString(new MemberInformationUpdateRequestDTO(UpdatableMemberInformation.USERNAME, updatedUsername)))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(anotherUserId))
-                .andExpect(jsonPath("$.username").value("newUsername"))
+                .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
+                .andExpect(jsonPath("$.username").value(updatedUsername))
                 .andDo(document("MemberController/updateMemberInfo",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -121,19 +117,16 @@ public class MemberControllerTest {
     @Test
     @DisplayName("Delete user")
     public void deleteUser() throws Exception {
-        String deleteUserId = "deletemeid";
-        String deleteUsername = "deletemename";
-        String deletePassword = "deletemepw";
-        memberService.registerMember(new MemberDTO(deleteUserId, deleteUsername, deletePassword));
-        String deleteToken = String.format("Bearer %s", memberService.loginMember(deleteUserId, deletePassword).getToken());
-
         // request without token
         mockMvc.perform(delete("/api/member"))
                 .andExpect(status().isUnauthorized());
 
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(delete("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, deleteToken))
+        mockMvc.perform(delete("/api/member")
+                .header(HttpHeaders.AUTHORIZATION, requestToken))
                 .andExpect(status().isOk())
                 .andDo(document("MemberController/deleteMember",
                         preprocessRequest(prettyPrint()),
@@ -142,16 +135,19 @@ public class MemberControllerTest {
                 .andReturn();
 
         // check member information
-        assertThrows(NoMemberFoundException.class, () -> memberService.getMemberDetails(deleteUserId));
+        assertThrows(NoMemberFoundException.class, () -> memberService.getMemberDetails(newMember.getUserId()));
     }
 
     @Test
     @DisplayName("Get teams of member.")
     public void getTeams() throws Exception {
-        String teamName = "A-Team";
-        TeamDTO teamDTO = new TeamDTO();
-        teamDTO.setTeamName(teamName);
-        teamService.createTeam(testUserId, teamDTO);
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+        teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
 
         // request without token
         mockMvc.perform(get("/api/member/teams"))
@@ -160,7 +156,7 @@ public class MemberControllerTest {
 
         // normal request.
         MvcResult mvcResult = mockMvc.perform(get("/api/member/teams")
-                .header(HttpHeaders.AUTHORIZATION, testToken))
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teams").isArray())
                 .andDo(document("MemberController/getMemberTeams",
@@ -173,30 +169,48 @@ public class MemberControllerTest {
 
         // check member information
         TeamsDTO teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), TeamsDTO.class);
-        assertTrue(teamsDTO.getTeams().stream().anyMatch(dto -> dto.getTeamName().equals(teamName)));
+        assertTrue(teamsDTO.getTeams().stream().anyMatch(dto -> dto.getTeamName().equals(newTeam.getTeamName())));
     }
 
     @Test
     @DisplayName("Join Team")
     public void joinTeam() throws Exception{
-        String teamName = "B-Team";
-        TeamDTO teamDTO = new TeamDTO();
-        teamDTO.setTeamName(teamName);
-        TeamDTO team = teamService.createTeam(testUserId, teamDTO);
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
 
         // request without token
         mockMvc.perform(post("/api/member/teams"))
                 .andExpect(status().isUnauthorized());
 
-        // TODO: 잠긴 팀에 가입하려는 시도.
 
-        // TODO: 이미 가입한 팀에 다시 가입하려는 시도.
+        // try to join already joined team.
+        mockMvc.perform(post("/api/member/teams")
+                .header(HttpHeaders.AUTHORIZATION, requestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
+                .andExpect(status().isBadRequest());
+
+        teamService.updateTeam(newTeam.getId(), UpdatableTeamInformation.LOCKED, true);
+
+        // try to join locked team.
+        mockMvc.perform(post("/api/member/teams")
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
+                .andExpect(status().isForbidden());
+
+
+        teamService.updateTeam(newTeam.getId(), UpdatableTeamInformation.LOCKED, false);
 
         // normal request.
         MvcResult mvcResult = mockMvc.perform(post("/api/member/teams")
-                .header(HttpHeaders.AUTHORIZATION, anotherToken)
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(team.getId()))))
+                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("MemberController/joinTeam",
@@ -210,34 +224,36 @@ public class MemberControllerTest {
 
         // check member is joined.
         MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().anyMatch(dto -> dto.getUserId().equals(anotherUserId)));
+        assertTrue(membersDTO.getMembers().stream().anyMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
     }
 
     @Test
     @DisplayName("Quit Team")
     public void quitTeam() throws Exception{
-        String teamName = "C-Team";
-        TeamDTO teamDTO = new TeamDTO();
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
 
-        teamDTO.setTeamName(teamName);
-        TeamDTO team = teamService.createTeam(anotherUserId, teamDTO);
-        teamService.joinMember(team.getId(), testUserId);
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+        teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
 
-        teamDTO.setTeamName("anotherTeam");
-        TeamDTO anotherTeam = teamService.createTeam(anotherUserId, teamDTO);
+        TeamDTO anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUserId());
+
+        // TODO: 마지막 멤버가 탈퇴하면 팀을 아예 삭제.
 
         // request without token.
-        mockMvc.perform(delete("/api/member/teams/{teamId}", team.getId()))
+        mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId()))
                 .andExpect(status().isUnauthorized());
 
         // withdraw from not joined team.
         mockMvc.perform(delete("/api/member/teams/{teamId}", anotherTeam.getId())
-                .header(HttpHeaders.AUTHORIZATION, testToken))
+                .header(HttpHeaders.AUTHORIZATION, requestToken))
                 .andExpect(status().isBadRequest());
 
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(delete("/api/member/teams/{teamId}", team.getId())
-                .header(HttpHeaders.AUTHORIZATION, testToken))
+        MvcResult mvcResult = mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId())
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("MemberController/quitTeam",
@@ -251,6 +267,6 @@ public class MemberControllerTest {
 
         // check member is quit.
         MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().noneMatch(dto -> dto.getUserId().equals(testUserId)));
+        assertTrue(membersDTO.getMembers().stream().noneMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
     }
 }

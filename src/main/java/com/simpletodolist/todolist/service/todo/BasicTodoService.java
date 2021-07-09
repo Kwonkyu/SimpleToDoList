@@ -46,7 +46,7 @@ public class BasicTodoService implements TodoService{
 
 
     @Override
-    public TodoDTO writeTodo(String memberUserId, long todoListId, TodoDTO todo) {
+    public TodoDTO createTodo(String memberUserId, long todoListId, TodoDTO todo) {
         Member writer = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
         Todo newTodo = new Todo(todo.getTitle(), todo.getContent(), writer, todoList);

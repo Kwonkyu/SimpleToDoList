@@ -58,12 +58,14 @@ public class ResponseSnippets {
             fieldWithPath("id").description("할 일 리스트의 식별자입니다."),
             fieldWithPath("ownerUserId").description("할 일 리스트를 생성한 회원의 아이디입니다."),
             fieldWithPath("name").description("할 일 리스트의 이름입니다."),
-            fieldWithPath("todos").description("할 일의 목록입니다."));
+            fieldWithPath("todos").description("할 일의 목록입니다."),
+            fieldWithPath("locked").description("할 일 리스트의 잠금 상태입니다."));
 
     public static ResponseFieldsSnippet todoLists = responseFields(
             subsectionWithPath("todoLists").description("할 일 리스트의 목록입니다."),
             fieldWithPath("todoLists[].id").description("할 일 리스트의 식별자입니다."),
             fieldWithPath("todoLists[].ownerUserId").description("할 일 리스트를 생성한 회원의 아이디입니다."),
             fieldWithPath("todoLists[].name").description("할 일 리스트의 이름입니다."),
-            fieldWithPath("todoLists[].todos").description("할 일의 목록입니다."));
+            fieldWithPath("todoLists[].todos").description("할 일의 목록입니다."),
+            fieldWithPath("todoLists[].locked").description("할 일 리스트의 잠금 상태입니다."));
 }
