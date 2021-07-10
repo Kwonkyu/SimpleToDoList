@@ -13,7 +13,7 @@
 :method-jointeam: POST
 :url-jointeam: /api/member/teams
 :method-quitteam: DELETE
-:url-quitteam: /api/member/teams
+:url-quitteam: /api/member/teams/<teamId>
 
 Simple To-do List 애플리케이션의 회원 조회 및 관리 API 문서입니다.
 
@@ -165,8 +165,8 @@ include::{snippets}/MemberController/quitTeam/http-request.adoc[]
 .요청 헤더
 include::{snippets}/MemberController/quitTeam/request-headers.adoc[]
 
-.요청 파라미터
-include::{snippets}/MemberController/quitTeam/request-fields.adoc[]
+.요청 패스 파라미터
+include::{snippets}/MemberController/quitTeam/path-parameters.adoc[]
 
 === HTTP Response
 .HTTP 응답
