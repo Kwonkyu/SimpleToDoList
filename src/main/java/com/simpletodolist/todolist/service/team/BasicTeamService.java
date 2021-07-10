@@ -3,17 +3,19 @@ package com.simpletodolist.todolist.service.team;
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
+import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
-import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.member.NotJoinedMemberException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
+import com.simpletodolist.todolist.repository.TodoListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -28,28 +30,14 @@ public class BasicTeamService implements TeamService{
 
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
+    private final TodoListRepository todoListRepository;
     private final MemberTeamAssocRepository memberTeamAssocRepository;
     private final MessageSource messageSource;
 
 
     @Override
-    public void authorizeTeamMember(String memberUserId, long teamId) throws NoTeamFoundException {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        if(team.getMembers().stream().noneMatch(assoc -> assoc.getMember().getUserId().equals(memberUserId))) {
-            throw new AuthorizationFailedException(
-                    AuthorizationFailedException.DEFAULT_ERROR,
-                    messageSource.getMessage("unauthorized.team.not.joined", null, Locale.KOREAN));
-        }
-    }
-
-    @Override
-    public void authorizeTeamLeader(String memberUserId, long teamId) throws NoTeamFoundException {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        if(!team.getLeader().getUserId().equals(memberUserId)) {
-            throw new AuthorizationFailedException(
-                    AuthorizationFailedException.DEFAULT_ERROR,
-                    messageSource.getMessage("unauthorized.team.not.leader", null, Locale.KOREAN));
-        }
+    public boolean isTeamLocked(long teamId) throws NoTeamFoundException {
+        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).isLocked();
     }
 
     @Override
@@ -67,6 +55,12 @@ public class BasicTeamService implements TeamService{
         switch (field) {
             case NAME:
                 team.changeTeamName((String) value);
+                break;
+
+            case LOCKED:
+                boolean request = (boolean) value;
+                if(request) team.lock();
+                else team.unlock();
                 break;
         }
         return new TeamDTO(team);
@@ -92,10 +86,16 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
+    public TodoListsDTO getTeamTodoLists(long teamId) throws NoTeamFoundException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        return new TodoListsDTO(todoListRepository.findAllByTeam(team));
+    }
+
+    @Override
     public MembersDTO joinMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if(member.isJoinedTeam(team)) throw new DuplicatedTeamJoinException();
+        if(memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new DuplicatedTeamJoinException();
 
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
         return team.getMembersAsDTO();
@@ -105,20 +105,20 @@ public class BasicTeamService implements TeamService{
     public MembersDTO withdrawMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if(!member.isJoinedTeam(team)) throw new InvalidTeamWithdrawException();
-
+        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new InvalidTeamWithdrawException();
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
+        memberTeamAssocRepository.flush(); // TODO: note here. Why it doesn't work without flush? https://github.com/spring-projects/spring-data-jpa/issues/1100
         return team.getMembersAsDTO();
     }
 
     @Override
-    public TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException {
+    public TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         // New leader should be one of member.
-        if(team.getMembers().stream().map(MemberTeamAssociation::getMember).map(Member::getUserId).noneMatch(memberUserId::equals)) {
-            throw new NoMemberFoundException(
-                    NoMemberFoundException.DEFAULT_ERROR,
+        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) {
+            throw new NotJoinedMemberException(
+                    NotJoinedMemberException.DEFAULT_ERROR,
                     messageSource.getMessage("unauthorized.leader.not.joined", null, Locale.KOREAN));
         }
         team.changeLeader(member);

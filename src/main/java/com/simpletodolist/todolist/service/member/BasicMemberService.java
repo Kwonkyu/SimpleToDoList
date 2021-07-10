@@ -10,6 +10,7 @@ import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,6 +31,7 @@ public class BasicMemberService implements MemberService{
     private final MemberTeamAssocRepository memberTeamAssocRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
 
 
     @Override
@@ -45,7 +47,7 @@ public class BasicMemberService implements MemberService{
                     new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
-            return new LoginDTO(member);
+            return new LoginDTO(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
         } catch (BadCredentialsException exception) {
             throw new AuthenticationFailedException();
         }

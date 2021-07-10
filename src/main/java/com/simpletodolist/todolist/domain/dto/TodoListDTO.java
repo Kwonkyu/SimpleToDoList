@@ -16,23 +16,28 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class TodoListDTO {
 
+    // TODO: pick these json property string to public static final Strings.
     @JsonProperty("id")
     private long todoListId;
 
     @JsonProperty("ownerUserId")
-    private String ownerId;
+    private String ownerUserId;
 
     @NotBlank
-    @JsonProperty("todoListName")
+    @JsonProperty("name")
     private String todoListName;
 
     @JsonProperty("todos")
     private List<TodoDTO> todos = new ArrayList<>();
 
+    @JsonProperty("locked")
+    private boolean locked;
+
     public TodoListDTO(TodoList todoList) {
         this.todoListId = todoList.getId();
-        this.ownerId = todoList.getOwner().getUserId();
+        this.ownerUserId = todoList.getOwner().getUserId();
         this.todoListName = todoList.getName();
         this.todos = todoList.getTodos().stream().map(TodoDTO::new).collect(Collectors.toList());
+        this.locked = todoList.isLocked();
     }
 }

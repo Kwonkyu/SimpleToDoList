@@ -2,14 +2,14 @@ package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.dto.LoginDTO;
 import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class PublicController {
 
     private final MemberService memberService;
-    private final JwtTokenUtil jwtTokenUtil;
 
 
     /**
@@ -27,9 +26,7 @@ public class PublicController {
      */
     @PostMapping("/login")
     public ResponseEntity<LoginDTO> login(@RequestBody @Validated(MemberDTO.LoginValidationGroup.class) MemberDTO memberDTO) {
-        LoginDTO loggedInMemberDTO = memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword());
-        loggedInMemberDTO.setToken(jwtTokenUtil.generateAccessToken(loggedInMemberDTO.getUserId()));
-        return ResponseEntity.ok(loggedInMemberDTO);
+        return ResponseEntity.ok(memberService.loginMember(memberDTO.getUserId(), memberDTO.getPassword()));
     }
 
 

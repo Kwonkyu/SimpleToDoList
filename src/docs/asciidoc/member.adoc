@@ -1,0 +1,176 @@
+[#_title]
+= Simple To-do List Member API Documentation
+:toc:
+:icons: font
+:method-getmemberinfo: GET
+:url-getmemberinfo: /api/member
+:method-updatememberinfo: PATCH
+:url-updatememberinfo: /api/member
+:method-deletemember: DELETE
+:url-deletemember: /api/member
+:method-getjoinedteams: GET
+:url-getjoinedteams: /api/member/teams
+:method-jointeam: POST
+:url-jointeam: /api/member/teams
+:method-quitteam: DELETE
+:url-quitteam: /api/member/teams/<teamId>
+
+Simple To-do List 애플리케이션의 회원 조회 및 관리 API 문서입니다.
+
+모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 있습니다.
+
+
+== 회원 정보 조회
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+회원 정보를 조회하는 API 입니다.
+
+====
+{method-getmemberinfo} {url-getmemberinfo}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/readMemberInfo/http-request.adoc[HTTP Request of Member Information API]
+
+.요청 헤더
+include::{snippets}/MemberController/readMemberInfo/request-headers.adoc[HTTP Request Headers of Member Information API]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/readMemberInfo/response-body.adoc[HTTP Response of Member Information API]
+
+.응답 파라미터
+include::{snippets}/MemberController/readMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information API]
+
+
+== 회원 정보 수정
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+사용자의 정보를 변경하는 API 입니다.
+
+====
+{method-updatememberinfo} {url-updatememberinfo}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/updateMemberInfo/http-request.adoc[HTTP Request of Member Information Update API]
+
+.요청 헤더
+include::{snippets}/MemberController/updateMemberInfo/request-headers.adoc[HTTP Request Headers of Member Information Update API]
+
+.요청 파라미터
+include::{snippets}/MemberController/updateMemberInfo/request-fields.adoc[HTTP Request Payload of Member Information Update API]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/updateMemberInfo/response-body.adoc[HTTP Response of Member Information Update API]
+
+.응답 파라미터
+include::{snippets}/MemberController/updateMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information Update API]
+
+
+
+
+== 회원 삭제
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+회원 탈퇴 API 입니다.
+
+====
+{method-deletemember} {url-deletemember}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/deleteMember/http-request.adoc[HTTP Request of Delete Member Information API]
+
+.요청 헤더
+include::{snippets}/MemberController/deleteMember/request-headers.adoc[HTTP Request Headers of Delete Member Information API]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/deleteMember/response-body.adoc[HTTP Response of Delete Member Information API]
+
+
+== 가입된 팀 조회
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+현재 사용자가 가입된 팀을 조회하는 API 입니다.
+
+====
+{method-getjoinedteams} {url-getjoinedteams}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/getMemberTeams/http-request.adoc[HTTP Request of Get Joined Teams API]
+
+.요청 헤더
+include::{snippets}/MemberController/getMemberTeams/request-headers.adoc[HTTP Request Headers of Get Joined Teams API]
+
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/getMemberTeams/response-body.adoc[HTTP Response of Get Joined Teams API]
+
+.응답 파라미터
+include::{snippets}/MemberController/getMemberTeams/response-fields.adoc[HTTP Response Payload of Get Joined Teams API]
+
+// TODO: 각 팀의 파라미터 정보도 나중에 추가.
+
+
+== 팀 가입
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀에 가입하기 위한 API 입니다. 팀이 **잠금 상태(locked)**일 경우 가입할 수 없습니다.
+
+====
+{method-jointeam} {url-jointeam}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/joinTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/MemberController/joinTeam/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/MemberController/joinTeam/request-fields.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/joinTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/MemberController/joinTeam/response-fields.adoc[]
+
+
+== 팀 탈퇴
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀에서 탈퇴하기 위한 API 입니다. 가입과 달리 특별한 제한이 없습니다.
+
+====
+{method-quitteam} {url-quitteam}
+====
+
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/MemberController/quitTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/MemberController/quitTeam/request-headers.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/MemberController/quitTeam/path-parameters.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/MemberController/quitTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/MemberController/quitTeam/response-fields.adoc[]

@@ -3,6 +3,7 @@ package com.simpletodolist.todolist.controller;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.domain.dto.TeamInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import javax.validation.Valid;
 public class TeamController {
 
     private final TeamService teamService;
+    private final AuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
 
 
@@ -25,7 +27,7 @@ public class TeamController {
     public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,
                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamMember(userIdFromClaims, teamId);
+        authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
         return ResponseEntity.ok(teamService.getTeamDetails(teamId));
     }
 
@@ -41,7 +43,7 @@ public class TeamController {
                                               @Valid @RequestBody TeamInformationUpdateRequestDTO dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
+        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
         return ResponseEntity.ok(teamService.updateTeam(teamId, dto.getField(), dto.getValue()));
     }
 
@@ -50,7 +52,7 @@ public class TeamController {
     public void removeTeam(@PathVariable(name = "teamId") long teamId,
                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
+        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
         teamService.deleteTeam(teamId);
     }
 

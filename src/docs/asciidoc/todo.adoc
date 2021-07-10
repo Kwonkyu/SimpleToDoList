@@ -1,0 +1,156 @@
+= Simple To-do List To-do List To-do API Documentation
+:toc:
+:icons: font
+:method-gettodos: GET
+:url-gettodos: /api/team/<teamId>/todolist/<todoListId>/todo
+:method-gettodo: GET
+:url-gettodo: /api/team/<teamId>/todolist/<todoListId>/todo/<todoId>
+:method-createtodo: POST
+:url-createtodo: /api/team/<teamId>/todolist/<todolistId>/todo
+:method-updatetodo: PUT
+:url-updatetodo: /api/team/<teamId>/todolist/<todolistId>/todo/<todoId>
+:method-deletetodo: DELETE
+:url-deletetodo: /api/team/<teamId>/todolist/<todolistId>/todo/<todoId>
+
+Simple To-do List 애플리케이션의 할 일 API 문서입니다.
+
+NOTE: 모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 있습니다.
+
+== 할 일 리스트의 모든 할 일 조회
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일 리스트의 할 일을 조회하는 API 입니다.
+
+====
+{method-gettodos} {url-gettodos}
+====
+
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamTodoController/getTodos/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamTodoController/getTodos/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamTodoController/getTodos/request-headers.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamTodoController/getTodos/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamTodoController/getTodos/response-fields.adoc[]
+
+
+== 할 일 리스트의 특정 할 일 조회
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일 리스트에 속한 특정 할 일을 조회하는 API 입니다.
+
+====
+{method-gettodo} {url-gettodo}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamTodoController/getTodo/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamTodoController/getTodo/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamTodoController/getTodo/request-headers.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamTodoController/getTodo/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamTodoController/getTodo/response-fields.adoc[]
+
+
+== 할 일 추가.
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일 리스트에 할 일을 추가하는 API 입니다.
+
+====
+{method-createtodo} {url-createtodo}
+====
+
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamTodoController/createTodo/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamTodoController/createTodo/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamTodoController/createTodo/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamTodoController/createTodo/request-fields.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamTodoController/createTodo/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamTodoController/createTodo/response-fields.adoc[]
+
+
+== 할 일 수정
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일을 수정하는 API 입니다. **잠금 요청**은 작성자만 요청할 수 있으며 **잠금 상태**의 할 일은 작성자만 수정할 수 있습니다.
+
+====
+{method-updatetodo} {url-updatetodo}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamTodoController/updateTodo/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamTodoController/updateTodo/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamTodoController/updateTodo/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamTodoController/updateTodo/request-fields.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamTodoController/updateTodo/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamTodoController/updateTodo/response-fields.adoc[]
+
+
+== 할 일 삭제
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일을 삭제하는 API 입니다. **잠금 상태**의 할 일은 작성자만 삭제할 수 있습니다.
+
+====
+{method-deletetodo} {url-deletetodo}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamTodoController/deleteTodo/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamTodoController/deleteTodo/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamTodoController/deleteTodo/request-headers.adoc[]
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamTodoController/deleteTodo/request-body.adoc[]

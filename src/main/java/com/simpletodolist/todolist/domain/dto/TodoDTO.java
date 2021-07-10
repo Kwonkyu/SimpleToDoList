@@ -27,9 +27,13 @@ public class TodoDTO {
     @JsonProperty("content")
     private String content;
 
+    @JsonProperty("locked")
+    private boolean locked;
+
     public TodoDTO(Todo todo){
         this.id = todo.getId();
         this.title = todo.getTitle();
         this.content = todo.getContent();
+        this.locked = todo.isLocked();
     }
 }

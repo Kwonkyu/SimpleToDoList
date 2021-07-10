@@ -1,8 +1,6 @@
 package com.simpletodolist.todolist.exception;
 
-import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
-import com.simpletodolist.todolist.exception.team.DuplicatedTeamException;
-import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
+import com.simpletodolist.todolist.exception.team.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,16 +18,37 @@ public class TeamExceptionHandler {
     }
 
     @ExceptionHandler(DuplicatedMemberJoinException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ExceptionResponseDTO duplicatedMemberJoin(DuplicatedMemberJoinException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedTeamException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ExceptionResponseDTO duplicatedTeam(DuplicatedTeamException exception) {
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    }
+
+    @ExceptionHandler(LockedTeamException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public ExceptionResponseDTO lockedTeam(LockedTeamException exception) {
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    }
+
+    @ExceptionHandler(NotJoinedTeamException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public ExceptionResponseDTO notJoinedTeam(NotJoinedTeamException exception) {
+        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    }
+
+    @ExceptionHandler(NotTeamLeaderException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public ExceptionResponseDTO notLeaderOfTeam(NotTeamLeaderException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 }

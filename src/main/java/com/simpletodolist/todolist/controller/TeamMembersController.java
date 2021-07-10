@@ -1,14 +1,17 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.domain.dto.MemberJoinTeamDTO;
 import com.simpletodolist.todolist.domain.dto.MembersDTO;
 import com.simpletodolist.todolist.domain.dto.TeamDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/team/{teamId}/")
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class TeamMembersController {
 
     private final TeamService teamService;
+    private final AuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
 
 
@@ -23,30 +27,29 @@ public class TeamMembersController {
     public ResponseEntity<MembersDTO> getTeamMembers(@PathVariable(name = "teamId") long teamId,
                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamMember(userIdFromClaims, teamId);
+        authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
         return ResponseEntity.ok(teamService.getTeamMembers(teamId));
     }
 
 
     // TODO: 추후 invite, request, decline 방식으로 변경.
-    @PostMapping("/members/{memberUserId}")
+    @PostMapping("/members")
     public ResponseEntity<MembersDTO> registerNewMember(@PathVariable(name = "teamId") long teamId,
-                                                        @PathVariable(name = "memberUserId") String memberUserId,
+                                                        @Valid @RequestBody MemberJoinTeamDTO dto,
                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
-        return ResponseEntity.ok(teamService.joinMember(teamId, memberUserId));
+        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
+        return ResponseEntity.ok(teamService.joinMember(teamId, dto.userId));
     }
 
 
     @DeleteMapping("/members/{memberUserId}")
-    @ResponseStatus(HttpStatus.OK)
-    public void withdrawMember(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<MembersDTO> withdrawMember(@PathVariable(name = "teamId") long teamId,
                                @PathVariable(name = "memberUserId") String memberUserId,
                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
-        teamService.withdrawMember(teamId, memberUserId);
+        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
+        return ResponseEntity.ok(teamService.withdrawMember(teamId, memberUserId));
     }
 
 
@@ -55,7 +58,7 @@ public class TeamMembersController {
                                                           @PathVariable(name = "memberUserId") String memberUserId,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        teamService.authorizeTeamLeader(userIdFromClaims, teamId);
+        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
         return ResponseEntity.ok(teamService.changeLeader(teamId, memberUserId));
     }
 }

@@ -22,7 +22,7 @@ public class GeneralExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationFailedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
     public ExceptionResponseDTO authorizationFailed(AuthorizationFailedException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());

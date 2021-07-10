@@ -71,10 +71,6 @@ public class Member implements UserDetails {
 
     public void unlock() { locked = false; }
 
-    public boolean isJoinedTeam(Team team) {
-        return teams.stream().anyMatch(t -> t.getTeam().equals(team));
-    }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

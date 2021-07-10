@@ -1,0 +1,72 @@
+= Simple To-do List API Documentation
+Kwonkyu Park
+:toc:
+:icons: font
+
+Simple To-do List 애플리케이션의 API 문서입니다.
+
+애플리케이션에서는 크게 다음과 같은 기능을 제공하고 있습니다.
+
+* 회원 인증
+** 가입된 회원만 애플리케이션을 이용할 수 있습니다.
+** 필요에 따라 팀에 가입하거나 탈퇴할 수 있습니다.
+* 팀원을 추가하고 할 일 리스트를 관리할 수 있는 팀 구성
+** 팀원을 추가하거나 탈퇴시킬 수 있습니다.
+** 필요에 따라 팀원의 추가 가입을 제한할 수 있습니다.
+** 팀에서만 관리할 수 있는 할 일 리스트를 유지할 수 있습니다.
+* 할 일을 작성할 수 있는 할 일 리스트
+** 한 팀에 속한 할 일 리스트는 팀원들의 공유할 수 있습니다.
+** 필요에 따라 자신만 조작할 수 있도록 제한할 수 있습니다.
+
+'''
+
+== 로그인, 회원가입
+NOTE: 인증이 필요하지 않은 *공개된*  API 입니다.
+// There are five admonition labels: Tip, Note, Important, Caution and Warning.
+
+회원 가입 및 로그인 기능이 제공됩니다.
+
+<<public.adoc#_title, API 문서 확인>>
+
+== 회원 관리
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+회원 정보 조회, 수정, 삭제 및 팀 가입, 조회, 탈퇴 기능이 제공됩니다.
+
+<<member.adoc#_title, API 문서 확인>>
+
+== 팀 관리
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀 생성, 수정, 삭제, 조회, 팀원 추가 및 탈퇴 기능이 제공됩니다.
+
+<<team.adoc#_title, API 문서 확인>>
+
+== 팀원 관리
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀원 추가, 삭제 또는 팀장을 임명하는 기능이 제공됩니다.
+
+<<teammember.adoc#_title, API 문서 확인>>
+
+== 할 일 리스트 관리
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀의 할 일 리스트를 추가, 변경, 삭제하는 기능이 제공됩니다.
+
+<<todolist.adoc#_title, API 문서 확인>>
+
+== 할 일 관리
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+할 일 리스트의 할 일을 추가, 변경, 삭제하는 기능이 제공됩니다.
+
+<<todo.adoc#_title, API 문서 확인>>
+
+.END OF DOCUMENT
+****
+Simple To-do List Application API v1 Documentation
+
+2021.07.07 작성
+****
+

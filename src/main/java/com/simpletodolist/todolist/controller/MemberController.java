@@ -1,11 +1,11 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.MemberInformationUpdateRequestDTO;
-import com.simpletodolist.todolist.domain.dto.TeamsDTO;
+import com.simpletodolist.todolist.domain.dto.*;
+import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.member.MemberService;
-import com.simpletodolist.todolist.service.todolist.TodoListService;
+import com.simpletodolist.todolist.service.team.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
@@ -21,64 +21,75 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class MemberController {
 
-    private final TodoListService todoListService;
     private final MemberService memberService;
+    private final TeamService teamService;
+    private final AuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
     private final MessageSource messageSource;
 
 
-    private String constructMessage(String messageCode) {
-        return messageSource.getMessage(messageCode, null, Locale.KOREAN);
-    }
-
-
     /**
      * Get information of user based on given user id.
-     * @param memberUserId User's user id.
-     * @return 200 OK with body filled with user information.
+     * @return MemberDTO object filled with user information.
      */
-    @GetMapping("/{memberUserId}")
-    public ResponseEntity<MemberDTO> memberInfo(@PathVariable(name = "memberUserId") String memberUserId,
-                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
-        return ResponseEntity.ok(memberService.getMemberDetails(memberUserId));
+    @GetMapping
+    public ResponseEntity<MemberDTO> memberInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        return ResponseEntity.ok(memberService.getMemberDetails(userIdFromClaims));
     }
 
 
 
-    @PutMapping("/{memberUserId}")
-    public ResponseEntity<MemberDTO> updateMemberInfo(@PathVariable(name = "memberUserId") String memberUserId,
-                                                      @Valid @RequestBody MemberInformationUpdateRequestDTO requestDTO,
+    @PatchMapping
+    public ResponseEntity<MemberDTO> updateMemberInfo(@Valid @RequestBody MemberInformationUpdateRequestDTO requestDTO,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
-        return ResponseEntity.ok(memberService.updateMember(memberUserId, requestDTO.getField(), requestDTO.getValue()));
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
+        return ResponseEntity.ok(memberService.updateMember(userIdFromClaims, requestDTO.getField(), requestDTO.getValue()));
     }
 
 
-
-    /**
-     * Delete user.
-     * @param memberUserId User's user id.
-     */
-    @DeleteMapping("/{memberId}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
-    public void withdrawMember(@PathVariable(name = "memberId") String memberUserId,
-                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
-        memberService.withdrawMember(memberUserId);
+    public void withdrawMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
+        memberService.withdrawMember(userIdFromClaims);
     }
 
 
     /**
      * Get teams member joined.
-     * @param memberUserId Member's user id.
      * @param jwt JWT
      * @return TeamsDTO object filled with member's teams.
      */
-    @GetMapping("/{memberId}/teams")
-    public ResponseEntity<TeamsDTO> getTeamsOfMember(@PathVariable(name = "memberId") String memberUserId,
-                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        jwtTokenUtil.validateRequestedUserIdWithJwt(memberUserId, jwt, constructMessage("unauthorized.member"));
-        return ResponseEntity.ok(memberService.getTeamsOfMember(memberUserId));
+    @GetMapping("/teams")
+    public ResponseEntity<TeamsDTO> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
+        return ResponseEntity.ok(memberService.getTeamsOfMember(userIdFromClaims));
     }
+
+
+    @PostMapping("/teams")
+    public ResponseEntity<MembersDTO> joinTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                            @Valid @RequestBody TeamIdRequestDTO dto) {
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        if(teamService.isTeamLocked(dto.getTeamId())) throw new LockedTeamException();
+        // Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
+        return ResponseEntity.ok(teamService.joinMember(dto.getTeamId(), userIdFromClaims));
+    }
+
+    @DeleteMapping("/teams/{teamId}")
+    public ResponseEntity<MembersDTO> quitTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                               @PathVariable(name = "teamId") long teamId) {
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        // TODO: note. it causes delete not flushed. why?
+//        TeamsDTO teamsOfMember = memberService.getTeamsOfMember(userIdFromClaims);
+//        if(teamsOfMember.getTeams().stream().noneMatch(teamDTO -> teamDTO.getId() == dto.getTeamId())) {
+//            throw new InvalidTeamWithdrawException();
+//        }
+        return ResponseEntity.ok(teamService.withdrawMember(teamId, userIdFromClaims));
+    }
+
 }
