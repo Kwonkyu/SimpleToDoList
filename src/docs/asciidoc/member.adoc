@@ -163,15 +163,13 @@ IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 .HTTP 요청
 include::{snippets}/MemberController/quitTeam/http-request.adoc[]
 
+.요청 패스 파라미터
+include::{snippets}/MemberController/quitTeam/path-parameters.adoc[]
+
 .요청 헤더
 include::{snippets}/MemberController/quitTeam/request-headers.adoc[]
 
-.요청 패스 파라미터
-include::{snippets}/MemberController/quitTeam/path-parameters.adoc[]
 
 === HTTP Response
 .HTTP 응답
 include::{snippets}/MemberController/quitTeam/response-body.adoc[]
-
-.응답 파라미터
-include::{snippets}/MemberController/quitTeam/response-fields.adoc[]

@@ -88,15 +88,16 @@ public class MemberController {
 
 
     @DeleteMapping("/teams/{teamId}")
-    public ResponseEntity<MembersDTO> quitTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                               @PathVariable(name = "teamId") long teamId) {
+    @ResponseStatus(HttpStatus.OK)
+    public void quitTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                         @PathVariable(name = "teamId") long teamId) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         // TODO: note. it causes delete not flushed. why?
 //        TeamsDTO teamsOfMember = memberService.getTeamsOfMember(userIdFromClaims);
 //        if(teamsOfMember.getTeams().stream().noneMatch(teamDTO -> teamDTO.getId() == dto.getTeamId())) {
 //            throw new InvalidTeamWithdrawException();
 //        }
-        return ResponseEntity.ok(teamService.withdrawMember(teamId, userIdFromClaims));
+        teamService.withdrawMember(teamId, userIdFromClaims);
     }
 
 }

@@ -252,18 +252,17 @@ public class MemberControllerTest {
         MvcResult mvcResult = mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("MemberController/quitTeam",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         RequestSnippets.authorization,
-                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        ResponseSnippets.membersInformation
+                        RequestSnippets.teamIdPath
                 ))
                 .andReturn();
 
         // check member is quit.
-        MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().noneMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
+        assertTrue(
+                teamService.getTeamMembers(newTeam.getId()).getMembers().stream()
+                        .noneMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
     }
 }
