@@ -8,6 +8,7 @@ import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import com.simpletodolist.todolist.service.todolist.TodoListService;
+import com.simpletodolist.todolist.util.URIGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -48,15 +49,11 @@ public class TeamTodoListController {
     @PostMapping("/todolist")
     public ResponseEntity<TodoListDTO> createTodoListOnTeam(@PathVariable(name = "teamId") long teamId,
                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                                            @RequestBody @Valid TodoListDTO todoListDTO,
-                                                            HttpServletRequest request){
+                                                            @RequestBody @Valid TodoListDTO todoListDTO){
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(memberUserId, teamId);
         TodoListDTO createdTodoList = todoListService.createTodoList(teamId, memberUserId, todoListDTO);
-        HttpHeaders headers = new HttpHeaders();
-        // TODO: apply hateoas or location header to other 'create-something' requests.
-        headers.set(HttpHeaders.LOCATION, request.getRequestURL().append(String.format("/%d", createdTodoList.getTodoListId())).toString());
-        return new ResponseEntity<>(createdTodoList, headers, HttpStatus.OK);
+        return ResponseEntity.created(URIGenerator.createTodoList(teamId, createdTodoList.getTodoListId())).body(createdTodoList);
     }
 
     @GetMapping("/todolist/{todoListId}")

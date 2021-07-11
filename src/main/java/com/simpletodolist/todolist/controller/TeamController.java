@@ -5,6 +5,7 @@ import com.simpletodolist.todolist.domain.dto.TeamInformationUpdateRequestDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.util.URIGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,8 @@ public class TeamController {
     public ResponseEntity<TeamDTO> registerTeam(@Valid @RequestBody TeamDTO teamDTO,
                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        return ResponseEntity.ok(teamService.createTeam(userIdFromClaims, teamDTO));
+        TeamDTO team = teamService.createTeam(userIdFromClaims, teamDTO);
+        return ResponseEntity.created(URIGenerator.createTeam(team.getId())).body(team);
     }
 
     @PutMapping("/{teamId}")

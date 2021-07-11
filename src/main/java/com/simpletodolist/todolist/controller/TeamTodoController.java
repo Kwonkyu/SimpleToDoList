@@ -7,6 +7,7 @@ import com.simpletodolist.todolist.domain.dto.TodosDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.todo.TodoService;
+import com.simpletodolist.todolist.util.URIGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,8 @@ public class TeamTodoController {
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizeUntilTodoList(memberUserId, teamId, todoListId);
-        return ResponseEntity.ok(todoService.createTodo(memberUserId, todoListId, todoDTO));
+        TodoDTO todo = todoService.createTodo(memberUserId, todoListId, todoDTO);
+        return ResponseEntity.created(URIGenerator.createTodo(teamId, todoListId, todo.getId())).body(todo);
     }
 
     private void authorizeTodo(String memberUserId, long teamId, long todoListId, long todoId) {

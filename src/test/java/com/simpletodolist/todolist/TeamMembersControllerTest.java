@@ -129,7 +129,8 @@ public class TeamMembersControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new MemberJoinTeamDTO(joiningMember.getUserId()))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("TeamMembersController/joinMember",
                         preprocessRequest(prettyPrint()),
