@@ -1,8 +1,7 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import lombok.*;
 
 import javax.persistence.*;

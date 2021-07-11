@@ -1,7 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.domain.dto.TeamInformationUpdateRequestDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -42,7 +42,7 @@ public class TeamController {
 
     @PutMapping("/{teamId}")
     public ResponseEntity<TeamDTO> updateTeam(@PathVariable(name = "teamId") long teamId,
-                                              @Valid @RequestBody TeamInformationUpdateRequestDTO dto,
+                                              @Valid @RequestBody TeamInformationUpdateRequest dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);

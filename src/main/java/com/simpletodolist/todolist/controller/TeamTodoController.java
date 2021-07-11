@@ -1,9 +1,9 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
-import com.simpletodolist.todolist.domain.dto.TodoDTO;
-import com.simpletodolist.todolist.domain.dto.TodoInformationUpdateRequestDTO;
-import com.simpletodolist.todolist.domain.dto.TodosDTO;
+import com.simpletodolist.todolist.controller.bind.TodoDTO;
+import com.simpletodolist.todolist.controller.bind.request.TodoInformationUpdateRequest;
+import com.simpletodolist.todolist.controller.bind.TodosDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.todo.TodoService;
@@ -77,7 +77,7 @@ public class TeamTodoController {
     public ResponseEntity<TodoDTO> updateTodo(@PathVariable(name = "teamId") long teamId,
                                               @PathVariable(name = "todoListId") long todoListId,
                                               @PathVariable(name = "todoId") long todoId,
-                                              @Valid @RequestBody TodoInformationUpdateRequestDTO dto,
+                                              @Valid @RequestBody TodoInformationUpdateRequest dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         if(dto.getField().equals(UpdatableTodoInformation.LOCKED)) {

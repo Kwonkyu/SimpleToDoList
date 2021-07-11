@@ -1,6 +1,10 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.domain.dto.*;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.MemberInformationUpdateRequest;
 import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
@@ -38,7 +42,7 @@ public class MemberController {
 
 
     @PatchMapping
-    public ResponseEntity<MemberDTO> updateMemberInfo(@Valid @RequestBody MemberInformationUpdateRequestDTO requestDTO,
+    public ResponseEntity<MemberDTO> updateMemberInfo(@Valid @RequestBody MemberInformationUpdateRequest requestDTO,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
@@ -72,14 +76,14 @@ public class MemberController {
     }
 
 
-    @PostMapping("/teams")
-    public ResponseEntity<MembersDTO> joinTeam(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                               @Valid @RequestBody TeamIdRequestDTO dto) {
+    @PutMapping("/teams/{teamId}")
+    public ResponseEntity<MembersDTO> joinTeam(@PathVariable(name = "teamId") long teamId,
+                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        if (teamService.isTeamLocked(teamId)) throw new LockedTeamException();
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        if (teamService.isTeamLocked(dto.getTeamId())) throw new LockedTeamException();
         // Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
-        MembersDTO membersDTO = teamService.joinMember(dto.getTeamId(), userIdFromClaims);
-        return ResponseEntity.created(URIGenerator.joinTeam(dto.getTeamId())).body(membersDTO);
+        MembersDTO membersDTO = teamService.joinMember(teamId, userIdFromClaims);
+        return ResponseEntity.created(URIGenerator.joinTeam(teamId)).body(membersDTO);
     }
 
 

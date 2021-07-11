@@ -2,9 +2,13 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TodoListDTO;
+import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
+import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import com.simpletodolist.todolist.domain.UpdatableTodoListInformation;
-import com.simpletodolist.todolist.domain.dto.*;
 import com.simpletodolist.todolist.dto.request.TodoListCreateDTO;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -30,15 +34,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @SpringBootTest
@@ -248,35 +248,35 @@ public class TeamTodoListControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "na"))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "na"))))
                 .andExpect(status().isNotFound());
 
         // update not exist to-do list.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), 123456789)
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "na"))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "na"))))
                 .andExpect(status().isNotFound());
 
         // update to-do list of not joined team.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, notJoinedToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "na"))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "na"))))
                 .andExpect(status().isForbidden());
 
         // update locked to-do list by not owner.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "na"))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "na"))))
                 .andExpect(status().isForbidden());
 
         // update locked to-do list by owner.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "Unlocked"))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "Unlocked"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Unlocked"));
 
@@ -284,7 +284,7 @@ public class TeamTodoListControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.LOCKED, false))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.LOCKED, false))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ownerUserId").value(lockMember.getUserId()))
                 .andExpect(jsonPath("$.locked").value(false));
@@ -293,14 +293,14 @@ public class TeamTodoListControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.LOCKED, true))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.LOCKED, true))))
                 .andExpect(status().isForbidden());
 
         // normal request.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken) // if it's not locked every can update it.
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, "Updated by owner."))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, "Updated by owner."))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.name").value("Updated by owner."))

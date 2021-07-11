@@ -1,15 +1,12 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.domain.dto.LoginDTO;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.dto.request.LoginRequestDTO;
 import com.simpletodolist.todolist.dto.request.RegisterRequestDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,11 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

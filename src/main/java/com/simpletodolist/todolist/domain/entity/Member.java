@@ -1,8 +1,8 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.domain.dto.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

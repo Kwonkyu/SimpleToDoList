@@ -1,7 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.domain.dto.LoginDTO;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.LoginDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

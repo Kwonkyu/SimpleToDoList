@@ -1,12 +1,7 @@
 package com.simpletodolist.todolist.util;
 
-import com.simpletodolist.todolist.domain.dto.LoginDTO;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.repository.MemberRepository;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.HashMap;
 import java.util.Map;

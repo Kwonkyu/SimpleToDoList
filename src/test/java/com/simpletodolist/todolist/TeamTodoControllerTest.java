@@ -1,8 +1,12 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TodoDTO;
+import com.simpletodolist.todolist.controller.bind.TodoListDTO;
+import com.simpletodolist.todolist.controller.bind.request.TodoInformationUpdateRequest;
 import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
-import com.simpletodolist.todolist.domain.dto.*;
 import com.simpletodolist.todolist.dto.request.TodoCreateDTO;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -246,11 +250,11 @@ public class TeamTodoControllerTest {
         TodoDTO lockedTodo = todoTestMaster.createNewTodo(lockMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
 
         String updatedTitle = "Updated Title";
-        TodoInformationUpdateRequestDTO titleDTO = new TodoInformationUpdateRequestDTO(
+        TodoInformationUpdateRequest titleDTO = new TodoInformationUpdateRequest(
                 UpdatableTodoInformation.TITLE, updatedTitle
         );
         String updatedContent = "Updated Content";
-        TodoInformationUpdateRequestDTO contentDTO = new TodoInformationUpdateRequestDTO(
+        TodoInformationUpdateRequest contentDTO = new TodoInformationUpdateRequest(
                 UpdatableTodoInformation.CONTENT, updatedContent
         );
 
@@ -297,7 +301,7 @@ public class TeamTodoControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, otherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequestDTO(UpdatableTodoInformation.LOCKED, true))))
+                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.LOCKED, true))))
                 .andExpect(status().isForbidden());
 
         todoService.updateTodo(lockedTodo.getId(), UpdatableTodoInformation.LOCKED, true);
@@ -306,14 +310,14 @@ public class TeamTodoControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, otherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequestDTO(UpdatableTodoInformation.CONTENT, "updated content"))))
+                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "updated content"))))
                 .andExpect(status().isForbidden());
 
         // update locked to-do by writer.
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequestDTO(UpdatableTodoInformation.CONTENT, "updated content"))))
+                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "updated content"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(lockedTodo.getId()))
                 .andExpect(jsonPath("$.content").value("updated content"));
@@ -322,7 +326,7 @@ public class TeamTodoControllerTest {
         mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequestDTO(UpdatableTodoInformation.CONTENT, "OVERRIDDEN"))))
+                .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "OVERRIDDEN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(lockedTodo.getId()))
                 .andExpect(jsonPath("$.content").value("OVERRIDDEN"));

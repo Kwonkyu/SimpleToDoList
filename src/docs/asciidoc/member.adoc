@@ -10,8 +10,8 @@
 :url-deletemember: /api/member
 :method-getjoinedteams: GET
 :url-getjoinedteams: /api/member/teams
-:method-jointeam: POST
-:url-jointeam: /api/member/teams
+:method-jointeam: PUT
+:url-jointeam: /api/member/teams/<teamId>
 :method-quitteam: DELETE
 :url-quitteam: /api/member/teams/<teamId>
 
@@ -134,11 +134,12 @@ IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 .HTTP 요청
 include::{snippets}/MemberController/joinTeam/http-request.adoc[]
 
+.요청 패스 파라미터
+include::{snippets}/MemberController/joinTeam/path-parameters.adoc[]
+
 .요청 헤더
 include::{snippets}/MemberController/joinTeam/request-headers.adoc[]
 
-.요청 파라미터
-include::{snippets}/MemberController/joinTeam/request-fields.adoc[]
 
 === HTTP Response
 .HTTP 응답

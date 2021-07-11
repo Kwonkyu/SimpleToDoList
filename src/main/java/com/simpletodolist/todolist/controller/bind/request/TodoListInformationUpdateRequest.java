@@ -1,6 +1,6 @@
-package com.simpletodolist.todolist.domain.dto;
+package com.simpletodolist.todolist.controller.bind.request;
 
-import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
+import com.simpletodolist.todolist.domain.UpdatableTodoListInformation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,10 +12,10 @@ import javax.validation.constraints.NotNull;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberInformationUpdateRequestDTO {
+public class TodoListInformationUpdateRequest {
 
     @NotNull(message = "Updatable Field Cannot Be Empty.")
-    private UpdatableMemberInformation field;
+    private UpdatableTodoListInformation field;
 
     @NotNull(message = "Updated Value Cannot Be Empty.")
     private Object value;

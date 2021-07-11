@@ -2,9 +2,13 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.MemberInformationUpdateRequest;
 import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
-import com.simpletodolist.todolist.domain.dto.*;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -99,7 +103,7 @@ public class MemberControllerTest {
         // normal request.
         mockMvc.perform(patch("/api/member")
                 .header(HttpHeaders.AUTHORIZATION, requestToken)
-                .content(objectMapper.writeValueAsString(new MemberInformationUpdateRequestDTO(UpdatableMemberInformation.USERNAME, updatedUsername)))
+                .content(objectMapper.writeValueAsString(new MemberInformationUpdateRequest(UpdatableMemberInformation.USERNAME, updatedUsername)))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
@@ -142,7 +146,6 @@ public class MemberControllerTest {
     @DisplayName("Get teams of member.")
     public void getTeams() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
@@ -152,7 +155,6 @@ public class MemberControllerTest {
         // request without token
         mockMvc.perform(get("/api/member/teams"))
                 .andExpect(status().isUnauthorized());
-        // TODO: 나중에 헤더가 없으면 unauthorized 대신 bad request로?
 
         // normal request.
         MvcResult mvcResult = mockMvc.perform(get("/api/member/teams")
@@ -183,34 +185,28 @@ public class MemberControllerTest {
         String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
 
         // request without token
-        mockMvc.perform(post("/api/member/teams"))
+        mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId()))
                 .andExpect(status().isUnauthorized());
 
 
         // try to join already joined team.
-        mockMvc.perform(post("/api/member/teams")
-                .header(HttpHeaders.AUTHORIZATION, requestToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
+        mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId())
+                .header(HttpHeaders.AUTHORIZATION, requestToken))
                 .andExpect(status().isBadRequest());
 
         teamService.updateTeam(newTeam.getId(), UpdatableTeamInformation.LOCKED, true);
 
         // try to join locked team.
-        mockMvc.perform(post("/api/member/teams")
-                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
+        mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId())
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isForbidden());
 
 
         teamService.updateTeam(newTeam.getId(), UpdatableTeamInformation.LOCKED, false);
 
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(post("/api/member/teams")
-                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamIdRequestDTO(newTeam.getId()))))
+        MvcResult mvcResult = mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId())
+                .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(jsonPath("$.members").isArray())
@@ -218,7 +214,7 @@ public class MemberControllerTest {
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         RequestSnippets.authorization,
-                        RequestSnippets.teamId,
+                        RequestSnippets.teamIdPath,
                         ResponseSnippets.membersInformation
                 ))
                 .andReturn();

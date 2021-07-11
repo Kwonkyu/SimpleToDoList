@@ -3,9 +3,9 @@ package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.domain.dto.TeamInformationUpdateRequestDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
 import com.simpletodolist.todolist.dto.request.TeamRegisterDTO;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -150,14 +150,14 @@ public class TeamControllerTest {
         mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, updatedTeamName))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, updatedTeamName))))
                 .andExpect(status().isForbidden());
 
         // normal request.
         mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequestDTO(UpdatableTeamInformation.NAME, updatedTeamName))))
+                .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, updatedTeamName))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamName").value(updatedTeamName))
                 .andDo(document("TeamController/updateTeam",

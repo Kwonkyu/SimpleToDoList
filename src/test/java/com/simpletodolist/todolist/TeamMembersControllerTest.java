@@ -1,11 +1,9 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.MemberJoinTeamDTO;
-import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
@@ -19,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDoc
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -107,37 +104,30 @@ public class TeamMembersControllerTest {
         String joiningToken = memberTestMaster.getRequestToken(joiningMember.getUserId(), joiningMember.getPassword());
 
         // request without token
-        mockMvc.perform(post("/api/team/{teamId}/members", newTeam.getId()))
+        mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId()))
                 .andExpect(status().isUnauthorized());
 
         // request by not joined member
-        mockMvc.perform(post("/api/team/{teamId}/members", newTeam.getId())
-                .header(HttpHeaders.AUTHORIZATION, joiningToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new MemberJoinTeamDTO(joiningMember.getUserId()))))
+        mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, joiningToken))
                 .andExpect(status().isForbidden());
 
         // request by not leader
-        mockMvc.perform(post("/api/team/{teamId}/members", newTeam.getId())
-                .header(HttpHeaders.AUTHORIZATION, anotherToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new MemberJoinTeamDTO(joiningMember.getUserId()))))
+        mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, anotherToken))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(post("/api/team/{teamId}/members", newTeam.getId())
-                .header(HttpHeaders.AUTHORIZATION, newToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new MemberJoinTeamDTO(joiningMember.getUserId()))))
+        MvcResult mvcResult = mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("TeamMembersController/joinMember",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
                         RequestSnippets.authorization,
-                        RequestSnippets.userId,
+                        RequestSnippets.teamIdAndUserIdPath,
                         ResponseSnippets.membersInformation))
                 .andReturn();
 

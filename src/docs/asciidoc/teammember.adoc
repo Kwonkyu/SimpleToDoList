@@ -4,8 +4,8 @@
 :icons: font
 :method-getmembers: GET
 :url-getmembers: /api/team/<teamId>/members
-:method-joinmember: POST
-:url-joinmember: /api/team/<teamId>/members
+:method-joinmember: PUT
+:url-joinmember: /api/team/<teamId>/members/<memberId>
 :method-quitmember: DELETE
 :url-quitmember: /api/team/<teamId>/members/<memberId>
 :method-changeleader: PUT
@@ -64,8 +64,6 @@ include::{snippets}/TeamMembersController/joinMember/path-parameters.adoc[]
 .요청 헤더
 include::{snippets}/TeamMembersController/joinMember/request-headers.adoc[]
 
-.요청 파라미터
-include::{snippets}/TeamMembersController/joinMember/request-fields.adoc[]
 
 === HTTP Response
 .HTTP 응답

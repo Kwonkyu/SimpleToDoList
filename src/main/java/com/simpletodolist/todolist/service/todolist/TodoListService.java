@@ -1,13 +1,10 @@
 package com.simpletodolist.todolist.service.todolist;
 
 import com.simpletodolist.todolist.domain.UpdatableTodoListInformation;
-import com.simpletodolist.todolist.domain.dto.TodoListDTO;
-import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
-import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
+import com.simpletodolist.todolist.controller.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
-import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
 import com.simpletodolist.todolist.exception.todolist.LockedTodoListException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 

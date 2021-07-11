@@ -28,8 +28,9 @@ public class RequestSnippets {
     public static RequestHeadersSnippet authorization = requestHeaders(
             headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer 토큰(JWT)을 담는 헤더입니다."));
 
-    public static final RequestFieldsSnippet userId = requestFields(
-            fieldWithPath("userId").description("사용자의 아이디입니다."));
+    public static final PathParametersSnippet teamIdAndUserIdPath = pathParameters(
+            parameterWithName("teamId").description("팀의 식별자입니다."),
+            parameterWithName("userId").description("사용자의 아이디입니다."));
 
     public static final RequestFieldsSnippet teamId = requestFields(
             fieldWithPath("teamId").description("팀의 식별자입니다."));

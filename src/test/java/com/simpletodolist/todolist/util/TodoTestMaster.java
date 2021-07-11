@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.util;
 
-import com.simpletodolist.todolist.domain.dto.TodoDTO;
+import com.simpletodolist.todolist.controller.bind.TodoDTO;
 import com.simpletodolist.todolist.service.todo.TodoService;
 
 import java.util.HashMap;

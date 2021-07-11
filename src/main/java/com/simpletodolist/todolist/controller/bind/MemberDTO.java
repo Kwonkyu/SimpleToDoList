@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.domain.dto;
+package com.simpletodolist.todolist.controller.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simpletodolist.todolist.domain.entity.Member;

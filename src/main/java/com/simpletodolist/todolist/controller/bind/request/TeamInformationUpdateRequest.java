@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.domain.dto;
+package com.simpletodolist.todolist.controller.bind.request;
 
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeamInformationUpdateRequestDTO {
+public class TeamInformationUpdateRequest {
 
     @NotNull(message = "Updatable Field Cannot Be Empty.")
     private UpdatableTeamInformation field;

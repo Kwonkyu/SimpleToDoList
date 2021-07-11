@@ -1,9 +1,9 @@
 package com.simpletodolist.todolist.service.team;
 
 import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
-import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.domain.dto.TodoListsDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;

@@ -1,8 +1,8 @@
 package com.simpletodolist.todolist.service.todo;
 
 import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
-import com.simpletodolist.todolist.domain.dto.TodoDTO;
-import com.simpletodolist.todolist.domain.dto.TodosDTO;
+import com.simpletodolist.todolist.controller.bind.TodoDTO;
+import com.simpletodolist.todolist.controller.bind.TodosDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import com.simpletodolist.todolist.domain.entity.TodoList;
