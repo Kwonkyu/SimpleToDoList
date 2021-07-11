@@ -6,7 +6,7 @@
 :url-getteam: /api/team/<teamId>
 :method-registerteam: POST
 :url-registerteam: /api/team
-:method-updateteam: PUT
+:method-updateteam: PATCH
 :url-updateteam: /api/team/<teamId>
 :method-deleteteam: DELETE
 :url-deleteteam: /api/team/<teamId>

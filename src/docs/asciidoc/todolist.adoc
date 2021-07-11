@@ -7,7 +7,7 @@
 :url-createtodolist: /api/team/<teamId>/todolist
 :method-gettodolist: GET
 :url-gettodolist: /api/team/<teamId>/todolist/<todolistId>
-:method-updatetodolist: PUT
+:method-updatetodolist: PATCH
 :url-updatetodolist: /api/team/<teamId>/todolist/<todolistId>
 :method-deletetodolist: DELETE
 :url-deletetodolist: /api/team/<teamId>/todolist/<todolistId>

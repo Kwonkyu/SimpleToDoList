@@ -138,23 +138,23 @@ public class TeamControllerTest {
         String updatedTeamName = "updatedTeam";
 
         // request without token.
-        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())).andExpect(status().isUnauthorized());
 
         // request without mandatory values.
-        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
+        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
         // request without authorization
-        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
+        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, updatedTeamName))))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
+        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TeamInformationUpdateRequest(UpdatableTeamInformation.NAME, updatedTeamName))))

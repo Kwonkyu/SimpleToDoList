@@ -7,7 +7,7 @@
 :url-gettodo: /api/team/<teamId>/todolist/<todoListId>/todo/<todoId>
 :method-createtodo: POST
 :url-createtodo: /api/team/<teamId>/todolist/<todolistId>/todo
-:method-updatetodo: PUT
+:method-updatetodo: PATCH
 :url-updatetodo: /api/team/<teamId>/todolist/<todolistId>/todo/<todoId>
 :method-deletetodo: DELETE
 :url-deletetodo: /api/team/<teamId>/todolist/<todolistId>/todo/<todoId>

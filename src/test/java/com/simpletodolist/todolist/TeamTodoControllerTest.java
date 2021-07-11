@@ -259,46 +259,46 @@ public class TeamTodoControllerTest {
         );
 
         // request without token.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId()))
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId()))
                 .andExpect(status().isUnauthorized());
 
         // request not existing team.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", 123456789, newTodoList.getTodoListId(), newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", 123456789, newTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
                 .andExpect(status().isNotFound());
 
         // request not joined team.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", otherTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", otherTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
                 .andExpect(status().isForbidden());
 
         // request not existing todolist.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",  newTeam.getId(), 123456789, newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",  newTeam.getId(), 123456789, newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
                 .andExpect(status().isNotFound());
 
         // request different todolist.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",newTeam.getId(), otherTodoList.getTodoListId(), newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",newTeam.getId(), otherTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
                 .andExpect(status().isNotFound());
 
         // request not existing to-do.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",  newTeam.getId(), newTodoList.getTodoListId(), 123456789)
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}",  newTeam.getId(), newTodoList.getTodoListId(), 123456789)
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
                 .andExpect(status().isNotFound());
 
         // try lock by not writer.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, otherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.LOCKED, true))))
@@ -307,14 +307,14 @@ public class TeamTodoControllerTest {
         todoService.updateTodo(lockedTodo.getId(), UpdatableTodoInformation.LOCKED, true);
 
         // updated locked to-do by not writer.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, otherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "updated content"))))
                 .andExpect(status().isForbidden());
 
         // update locked to-do by writer.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "updated content"))))
@@ -323,7 +323,7 @@ public class TeamTodoControllerTest {
                 .andExpect(jsonPath("$.content").value("updated content"));
 
         // override locked to-do by team leader.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), lockedTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TodoInformationUpdateRequest(UpdatableTodoInformation.CONTENT, "OVERRIDDEN"))))
@@ -332,7 +332,7 @@ public class TeamTodoControllerTest {
                 .andExpect(jsonPath("$.content").value("OVERRIDDEN"));
 
         // normal request.
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(titleDTO)))
@@ -348,7 +348,7 @@ public class TeamTodoControllerTest {
                         RequestSnippets.updateTodo,
                         ResponseSnippets.todo));
 
-        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(contentDTO)))

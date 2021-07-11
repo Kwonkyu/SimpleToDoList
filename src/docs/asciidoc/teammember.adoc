@@ -5,11 +5,11 @@
 :method-getmembers: GET
 :url-getmembers: /api/team/<teamId>/members
 :method-joinmember: PUT
-:url-joinmember: /api/team/<teamId>/members/<memberId>
+:url-joinmember: /api/team/<teamId>/members/<userId>
 :method-quitmember: DELETE
-:url-quitmember: /api/team/<teamId>/members/<memberId>
+:url-quitmember: /api/team/<teamId>/members/<userId>
 :method-changeleader: PUT
-:url-changeleader: /api/team/<teamId>/leader/<memberId>
+:url-changeleader: /api/team/<teamId>/leader/<userId>
 
 Simple To-do List 애플리케이션의 팀원 API 문서입니다.
 

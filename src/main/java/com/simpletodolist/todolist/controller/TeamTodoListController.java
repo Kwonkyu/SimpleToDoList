@@ -63,7 +63,7 @@ public class TeamTodoListController {
         return ResponseEntity.ok(todoListService.getTodoListDetail(todoListId));
     }
 
-    @PutMapping("/todolist/{todoListId}")
+    @PatchMapping("/todolist/{todoListId}")
     public ResponseEntity<TodoListDTO> updateTodoList(@PathVariable(name = "teamId") long teamId,
                                                       @PathVariable(name = "todoListId") long todoListId,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,

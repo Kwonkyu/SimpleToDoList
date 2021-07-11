@@ -73,7 +73,7 @@ public class TeamTodoController {
         }
     }
 
-    @PutMapping("/todo/{todoId}")
+    @PatchMapping("/todo/{todoId}")
     public ResponseEntity<TodoDTO> updateTodo(@PathVariable(name = "teamId") long teamId,
                                               @PathVariable(name = "todoListId") long todoListId,
                                               @PathVariable(name = "todoId") long todoId,

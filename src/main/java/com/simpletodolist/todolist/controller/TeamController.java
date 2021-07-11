@@ -40,7 +40,7 @@ public class TeamController {
         return ResponseEntity.created(URIGenerator.createTeam(team.getId())).body(team);
     }
 
-    @PutMapping("/{teamId}")
+    @PatchMapping("/{teamId}")
     public ResponseEntity<TeamDTO> updateTeam(@PathVariable(name = "teamId") long teamId,
                                               @Valid @RequestBody TeamInformationUpdateRequest dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
