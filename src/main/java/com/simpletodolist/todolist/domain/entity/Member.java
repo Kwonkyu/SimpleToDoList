@@ -48,10 +48,15 @@ public class Member implements UserDetails {
     @Column(name = "LOCKED")
     private boolean locked = false;
 
-
-    public TeamsDTO getTeamsAsDTO(){
+    // TODO: 1+N check.
+    public TeamsDTO getTeamsDTO(){
         return new TeamsDTO(teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList()));
     }
+
+    public List<TeamDTO> getTeamDTOList() {
+        return teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList());
+    }
+
 
     public void changeUserId(String userId){
         this.userId = userId;

@@ -10,7 +10,9 @@ public class ResponseSnippets {
             fieldWithPath("id").description("사용자의 식별값입니다."),
             fieldWithPath("userId").description("사용자의 아이디입니다."),
             fieldWithPath("username").description("사용자의 이름입니다."),
-            fieldWithPath("password").description("사용자의 비밀번호입니다."));
+            fieldWithPath("password").description("사용자의 비밀번호입니다."),
+            fieldWithPath("locked").description("사용자의 잠금 상태입니다."),
+            subsectionWithPath("teams").description("사용자가 가입한 팀의 정보입니다."));
     // TODO: add hypermedia links with links() like HATEOAS.
 
     public static final ResponseFieldsSnippet membersInformation = responseFields(
@@ -28,7 +30,7 @@ public class ResponseSnippets {
             fieldWithPath("teamLeaderUserId").description("팀장의 회원 아이디입니다."),
             fieldWithPath("teamLeaderUsername").description("팀장의 회원 이름입니다."),
             fieldWithPath("teamName").description("팀의 이름입니다."),
-            fieldWithPath("members").description("팀원의 목록입니다."),
+            subsectionWithPath("todoLists").description("팀의 할 일 리스트 목록입니다."),
             fieldWithPath("locked").description("팀의 잠금 상태입니다."));
 
     public static final ResponseFieldsSnippet teamsInformation = responseFields(
@@ -37,8 +39,7 @@ public class ResponseSnippets {
             fieldWithPath("teams[].teamLeaderUserId").description("팀장의 회원 아이디입니다."),
             fieldWithPath("teams[].teamLeaderUsername").description("팀장의 회원 이름입니다."),
             fieldWithPath("teams[].teamName").description("팀의 이름입니다."),
-            // TODO: 지금 팀을 조회하면 팀원밖에 조회가 안되는데 할 일 리스트는 어떻게 얻나???
-            fieldWithPath("teams[].members[]").description("팀원의 아이디 목록입니다."),
+            fieldWithPath("teams[].todoLists").description("팀의 할 일 리스트 목록입니다."),
             fieldWithPath("teams[].locked").description("팀의 잠금 상태입니다."));
 
     public static ResponseFieldsSnippet todo = responseFields(

@@ -82,7 +82,7 @@ public class BasicTeamService implements TeamService{
     @Override
     @Transactional(readOnly = true)
     public MembersDTO getTeamMembers(long teamId) {
-        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).getMembersAsDTO();
+        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).getMembersDTO();
     }
 
     @Override
@@ -98,7 +98,7 @@ public class BasicTeamService implements TeamService{
         if(memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new DuplicatedTeamJoinException();
 
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
-        return team.getMembersAsDTO();
+        return team.getMembersDTO();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class BasicTeamService implements TeamService{
         if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new InvalidTeamWithdrawException();
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
         memberTeamAssocRepository.flush(); // TODO: note here. Why it doesn't work without flush? https://github.com/spring-projects/spring-data-jpa/issues/1100
-        return team.getMembersAsDTO();
+        return team.getMembersDTO();
     }
 
     @Override

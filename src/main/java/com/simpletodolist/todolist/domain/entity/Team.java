@@ -44,7 +44,7 @@ public class Team {
     private boolean locked = false;
 
 
-    public MembersDTO getMembersAsDTO(){
+    public MembersDTO getMembersDTO(){
         return new MembersDTO(members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO::new).collect(Collectors.toList()));
     }
 

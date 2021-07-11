@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
+import com.simpletodolist.todolist.domain.entity.TodoList;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,8 +34,8 @@ public class TeamDTO {
     @JsonProperty("teamName")
     private String teamName;
 
-    @JsonProperty("members")
-    private List<String> members = new ArrayList<>();
+    @JsonProperty("todoLists")
+    private List<TodoListDTO> todoLists = new ArrayList<>();
 
     @JsonProperty("locked")
     private boolean locked;
@@ -44,7 +45,7 @@ public class TeamDTO {
         this.teamLeaderUserId = team.getLeader().getUserId();
         this.teamLeaderUsername = team.getLeader().getUsername();
         this.teamName = team.getTeamName();
-        this.members = team.getMembers().stream().map(MemberTeamAssociation::getMember).map(Member::getUserId).collect(Collectors.toList());
+        this.todoLists = team.getTodoLists().stream().map(TodoListDTO::new).collect(Collectors.toList());
         this.locked = team.isLocked();
     }
 }

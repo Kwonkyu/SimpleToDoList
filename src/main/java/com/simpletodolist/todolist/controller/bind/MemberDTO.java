@@ -2,10 +2,14 @@ package com.simpletodolist.todolist.controller.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -30,11 +34,19 @@ public class MemberDTO {
     @JsonProperty("password")
     private String password;
 
+    @JsonProperty("teams")
+    private List<TeamDTO> teams = new ArrayList<>();
+
+    @JsonProperty("locked")
+    private boolean locked;
+
     public MemberDTO(Member member){
-        this.id = member.getId();
-        this.userId = member.getUserId();
-        this.username = member.getUsername();
-        this.password = "ENCRYPTED";
+        id = member.getId();
+        userId = member.getUserId();
+        username = member.getUsername();
+        password = "ENCRYPTED";
+        teams = member.getTeamDTOList();
+        locked = member.isLocked();
     }
 
     public MemberDTO(String userId, String username, String password) {

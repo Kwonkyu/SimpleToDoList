@@ -87,7 +87,7 @@ public class BasicMemberService implements MemberService{
     @Transactional(readOnly = true)
     public TeamsDTO getTeamsOfMember(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return member.getTeamsAsDTO();
+        return member.getTeamsDTO();
     }
 
     @Override
