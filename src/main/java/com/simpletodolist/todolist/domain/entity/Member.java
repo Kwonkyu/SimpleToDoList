@@ -1,8 +1,8 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.domain.dto.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -48,10 +48,15 @@ public class Member implements UserDetails {
     @Column(name = "LOCKED")
     private boolean locked = false;
 
-
-    public TeamsDTO getTeamsAsDTO(){
+    // TODO: 1+N check.
+    public TeamsDTO getTeamsDTO(){
         return new TeamsDTO(teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList()));
     }
+
+    public List<TeamDTO> getTeamDTOList() {
+        return teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList());
+    }
+
 
     public void changeUserId(String userId){
         this.userId = userId;
@@ -70,10 +75,6 @@ public class Member implements UserDetails {
     public void lock() { locked = true; }
 
     public void unlock() { locked = false; }
-
-    public boolean isJoinedTeam(Team team) {
-        return teams.stream().anyMatch(t -> t.getTeam().equals(team));
-    }
 
 
     @Override

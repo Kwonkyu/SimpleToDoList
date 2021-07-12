@@ -1,9 +1,9 @@
 package com.simpletodolist.todolist.service.member;
 
-import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
-import com.simpletodolist.todolist.domain.dto.LoginDTO;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
+import com.simpletodolist.todolist.controller.bind.LoginDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;

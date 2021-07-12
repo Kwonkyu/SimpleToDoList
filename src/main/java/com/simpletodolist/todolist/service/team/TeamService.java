@@ -1,9 +1,12 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
-import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.domain.dto.TeamDTO;
-import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
+import com.simpletodolist.todolist.exception.member.NotJoinedMemberException;
 import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
@@ -12,24 +15,22 @@ import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 public interface TeamService {
 
     /**
-     * Authorize team access as member.
-     * @param memberUserId Member's user id.
+     * Check whether team is locked or not.
      * @param teamId Team's id.
-     * @throws NoMemberFoundException when member with given user id doesn't exists.
-     * @throws NoTeamFoundException when team with given id doesn't exists.
-     * @throws AuthorizationFailedException when member is unauthorized for this team.
+     * @return Boolean value indicating team is locked or not.
+     * @throws NoTeamFoundException when team with given id not found.
      */
-    void authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, AuthorizationFailedException;
+    boolean isTeamLocked(long teamId) throws NoTeamFoundException;
 
     /**
-     * Authorize team access as leader.
-     * @param memberUserId Member's user id.
-     * @param teamId Team's id.
-     * @throws NoMemberFoundException when member with given user id doesn't exists.
-     * @throws NoTeamFoundException when team with given id doesn't exists.
-     * @throws AuthorizationFailedException when member is unauthorized for leader of this team.
+     * Search teams with given value of field.
+     * @param field Type to find team(team's name, owner's user id, etc...)
+     * @param value Value of field.
+     * @param searcherUserId Searcher's user id.
+     * @param includeJoined whether except joined team or not.
+     * @return TeamsDTO object with teams.
      */
-    void authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, AuthorizationFailedException;
+    TeamsDTO searchTeams(SearchTeamField field, Object value, String searcherUserId, boolean includeJoined);
 
     /**
      * Create new team.
@@ -45,7 +46,7 @@ public interface TeamService {
      * @param teamId Id of team to update.
      * @param field Updating field of team.
      * @param value Updated value of field.
-     * @return TeamDTO object filled with updated team's informations.
+     * @return TeamDTO object filled with updated team's information.
      * @throws NoTeamFoundException when team with given id doesn't exists.
      */
     TeamDTO updateTeam(long teamId, UpdatableTeamInformation field, Object value) throws NoTeamFoundException;
@@ -74,6 +75,14 @@ public interface TeamService {
     MembersDTO getTeamMembers(long teamId) throws NoTeamFoundException;
 
     /**
+     * Get to-do lists of team.
+     * @param teamId Team's id.
+     * @return TodoListsDTO filled with team's to-do lists.
+     * @throws NoTeamFoundException when team with given id not found.
+     */
+    TodoListsDTO getTeamTodoLists(long teamId) throws NoTeamFoundException;
+
+    /**
      * Join member to team.
      * @param teamId Team to join new member.
      * @param memberUserId Member to join team.
@@ -98,6 +107,7 @@ public interface TeamService {
      * @param memberUserId New leader of team.
      * @throws NoTeamFoundException when team of given id doesn't exists.
      * @throws NoMemberFoundException when member of given id doesn't exists.
+     * @throws NotJoinedMemberException when new leader member is not joined team.
      */
-    TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException;
+    TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException;
 }

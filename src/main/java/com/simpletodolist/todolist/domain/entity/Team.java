@@ -1,8 +1,7 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.MembersDTO;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -28,7 +27,7 @@ public class Team {
 
     @NonNull
     @OneToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "LEADER_ID")
     private Member leader;
 
     @NonNull
@@ -45,7 +44,7 @@ public class Team {
     private boolean locked = false;
 
 
-    public MembersDTO getMembersAsDTO(){
+    public MembersDTO getMembersDTO(){
         return new MembersDTO(members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO::new).collect(Collectors.toList()));
     }
 

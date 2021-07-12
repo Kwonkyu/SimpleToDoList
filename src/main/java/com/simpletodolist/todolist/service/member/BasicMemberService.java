@@ -1,15 +1,16 @@
 package com.simpletodolist.todolist.service.member;
 
-import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
-import com.simpletodolist.todolist.domain.dto.LoginDTO;
-import com.simpletodolist.todolist.domain.dto.MemberDTO;
-import com.simpletodolist.todolist.domain.dto.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
+import com.simpletodolist.todolist.controller.bind.LoginDTO;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,6 +31,7 @@ public class BasicMemberService implements MemberService{
     private final MemberTeamAssocRepository memberTeamAssocRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
 
 
     @Override
@@ -45,7 +47,7 @@ public class BasicMemberService implements MemberService{
                     new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
-            return new LoginDTO(member);
+            return new LoginDTO(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
         } catch (BadCredentialsException exception) {
             throw new AuthenticationFailedException();
         }
@@ -85,7 +87,7 @@ public class BasicMemberService implements MemberService{
     @Transactional(readOnly = true)
     public TeamsDTO getTeamsOfMember(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return member.getTeamsAsDTO();
+        return member.getTeamsDTO();
     }
 
     @Override
