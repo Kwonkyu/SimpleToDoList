@@ -21,22 +21,8 @@ asciidoctor {
 		'snippets': snippetsDir
 }
 
-asciidoctor.doFirst {
-	delete file("src/main/resources/static/docs") // delete old documents.
-}
-
-task copyDocument(type: Copy) {
-	dependsOn asciidoctor
-	from file("build/asciidoc/html5")
-	into file("src/main/resources/static/docs")
-}
-
-build {
-	dependsOn copyDocument
-}
-
 bootJar {
-	dependsOn copyDocument // generate documentation before jar
+	dependsOn asciidoctor// generate documentation before jar
 	from('${asciidoctor.outputDir}/html5') { // generated 'html' files from 'adoc' is located at build directory.
 		into 'static/docs' // move these documentations into static of jar
 	}
