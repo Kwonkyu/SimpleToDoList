@@ -71,22 +71,23 @@ public class TeamControllerTest {
     @Test
     @DisplayName("Search Teams")
     public void searchTeams() throws Exception {
+        String keyword = "FIND_ME";
         MemberDTO member1_3 = memberTestMaster.createNewMember();
-        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello World");
-        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Cruel World");
-        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello Cruel");
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello Cruel" + keyword);
         String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUserId(), member1_3.getPassword());
 
         MemberDTO member4_5 = memberTestMaster.createNewMember();
-        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Reloaded");
-        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Revolution");
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Revolution" + keyword);
         String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUserId(), member4_5.getPassword());
 
         // search teams except joined teams.
         MvcResult mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "", false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, false))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -98,7 +99,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "", false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, false))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -113,7 +114,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "", true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -128,7 +129,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "", true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
