@@ -32,7 +32,6 @@ task copyDocument(type: Copy) {
 }
 
 build {
-	dependsOn clean
 	dependsOn copyDocument
 	dependsOn bootJar
 }
