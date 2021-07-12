@@ -27,7 +27,7 @@ public class Team {
 
     @NonNull
     @OneToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "LEADER_ID")
     private Member leader;
 
     @NonNull

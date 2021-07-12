@@ -1,6 +1,8 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
 import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
@@ -19,6 +21,16 @@ public interface TeamService {
      * @throws NoTeamFoundException when team with given id not found.
      */
     boolean isTeamLocked(long teamId) throws NoTeamFoundException;
+
+    /**
+     * Search teams with given value of field.
+     * @param field Type to find team(team's name, owner's user id, etc...)
+     * @param value Value of field.
+     * @param searcherUserId Searcher's user id.
+     * @param includeJoined whether except joined team or not.
+     * @return TeamsDTO object with teams.
+     */
+    TeamsDTO searchTeams(SearchTeamField field, Object value, String searcherUserId, boolean includeJoined);
 
     /**
      * Create new team.

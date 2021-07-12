@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoInformation;
 import com.simpletodolist.todolist.controller.bind.TodoDTO;
 import com.simpletodolist.todolist.controller.bind.request.TodoInformationUpdateRequest;
 import com.simpletodolist.todolist.controller.bind.TodosDTO;

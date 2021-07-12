@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.controller.bind.request;
 
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

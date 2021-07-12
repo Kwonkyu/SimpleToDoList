@@ -7,8 +7,8 @@ import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import com.simpletodolist.todolist.controller.bind.request.MemberInformationUpdateRequest;
-import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -34,7 +34,6 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 //import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 // to use path parameter, use static methods of rest documentation request builders.
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

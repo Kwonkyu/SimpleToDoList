@@ -6,7 +6,7 @@ import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TodoDTO;
 import com.simpletodolist.todolist.controller.bind.TodoListDTO;
 import com.simpletodolist.todolist.controller.bind.request.TodoInformationUpdateRequest;
-import com.simpletodolist.todolist.domain.UpdatableTodoInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoInformation;
 import com.simpletodolist.todolist.dto.request.TodoCreateDTO;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;

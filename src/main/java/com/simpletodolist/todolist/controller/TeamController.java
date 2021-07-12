@@ -1,7 +1,9 @@
 package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
 import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
+import com.simpletodolist.todolist.controller.bind.request.TeamSearchRequest;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -23,6 +25,14 @@ public class TeamController {
     private final AuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
 
+
+    @GetMapping
+    public ResponseEntity<TeamsDTO> searchTeams(@Valid @RequestBody TeamSearchRequest request,
+                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        // TODO: jwt를 계속 파싱하는 것도 번거로운데 필터같은걸로 파싱해서 메서드로 전달해줄 수 있나?
+        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        return ResponseEntity.ok(teamService.searchTeams(request.getSearchTeamField(), request.getSearchValue(), userIdFromClaims, request.isIncludeJoined()));
+    }
 
     @GetMapping("/{teamId}")
     public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,

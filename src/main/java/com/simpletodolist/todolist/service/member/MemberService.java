@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.service.member;
 
-import com.simpletodolist.todolist.domain.UpdatableMemberInformation;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
 import com.simpletodolist.todolist.controller.bind.LoginDTO;
 import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.controller.bind.TeamsDTO;

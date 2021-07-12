@@ -1,6 +1,8 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.domain.UpdatableTeamInformation;
+import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
+import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
 import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
@@ -21,7 +23,10 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +43,34 @@ public class BasicTeamService implements TeamService{
     @Override
     public boolean isTeamLocked(long teamId) throws NoTeamFoundException {
         return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).isLocked();
+    }
+
+    @Override
+    public TeamsDTO searchTeams(SearchTeamField field, Object value, String searcherUserId, boolean includeJoined) {
+        List<Team> result;
+        Member member = memberRepository.findByUserId(String.valueOf(searcherUserId)).orElseThrow(NoMemberFoundException::new);
+
+        switch (field) {
+            case LEADER:
+                String leaderUserId = String.valueOf(value);
+                Member leader = memberRepository.findByUserId(leaderUserId).orElseThrow(NoMemberFoundException::new);
+                result = includeJoined ?
+                        teamRepository.findAllByLeader(leader) :
+                        teamRepository.findAllByLeaderAndNotJoined(leader, member);
+                break;
+
+            case TEAMNAME:
+                String teamName = String.valueOf(value);
+                result = includeJoined ?
+                        teamRepository.findAllByTeamNameContaining(teamName) :
+                        teamRepository.findAllByTeamNameLikeAndNotJoined(teamName, member);
+                break;
+
+            default:
+                result = new ArrayList<>();
+        }
+
+        return new TeamsDTO(result.stream().map(TeamDTO::new).collect(Collectors.toList()));
     }
 
     @Override
