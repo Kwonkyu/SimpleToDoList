@@ -2,6 +2,8 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
@@ -28,14 +30,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-// to use path parameter, use static methods of rest documentation request builders.
+import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -81,11 +87,14 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
                 .andExpect(jsonPath("$.username").value(newMember.getUsername()))
                 .andDo(document("MemberController/readMemberInfo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        ResponseSnippets.memberInformation))
-                .andReturn();
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.memberInformation
+                        )));
     }
 
     @Test
@@ -108,13 +117,18 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
                 .andExpect(jsonPath("$.username").value(updatedUsername))
                 .andDo(document("MemberController/updateMemberInfo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.updateUser,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.memberInformation
-                ))
-                .andReturn();
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.Member.UpdateUser.updateField,
+                                RequestSnippets.Member.UpdateUser.updateValue
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.memberInformation
+                        )));
     }
 
     @Test
@@ -132,10 +146,10 @@ public class MemberControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, requestToken))
                 .andExpect(status().isOk())
                 .andDo(document("MemberController/deleteMember",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization))
-                .andReturn();
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization)));
 
         // check member information
         assertThrows(NoMemberFoundException.class, () -> memberService.getMemberDetails(newMember.getUserId()));
@@ -161,11 +175,14 @@ public class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teams").isArray())
                 .andDo(document("MemberController/getMemberTeams",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        ResponseSnippets.teamsInformation
-                ))
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                            EntityDescriptor.Team.teams
+                        )))
                 .andReturn();
 
         // check member information
@@ -210,12 +227,17 @@ public class MemberControllerTest {
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("MemberController/joinTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        RequestSnippets.teamIdPath,
-                        ResponseSnippets.membersInformation
-                ))
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.members
+                        )))
                 .andReturn();
 
         // check member is joined.
@@ -248,16 +270,17 @@ public class MemberControllerTest {
                 .andExpect(status().isBadRequest());
 
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId())
+        mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherRequestToken))
                 .andExpect(status().isOk())
                 .andDo(document("MemberController/quitTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        RequestSnippets.teamIdPath
-                ))
-                .andReturn();
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        pathParameters(
+                                RequestSnippets.teamIdPath)));
 
         // check member is quit.
         assertTrue(

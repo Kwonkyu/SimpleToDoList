@@ -2,14 +2,15 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.RequestSnippets;
+import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
 import com.simpletodolist.todolist.controller.bind.request.TeamSearchRequest;
 import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
 import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
-import com.simpletodolist.todolist.controller.bind.request.TeamInformationUpdateRequest;
 import com.simpletodolist.todolist.dto.request.TeamRegisterDTO;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -29,17 +30,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-// to use path parameter, use static methods of rest documentation request builders.
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -89,6 +91,18 @@ public class TeamControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, false))))
                 .andExpect(status().isOk())
+                .andDo(document("TeamController/searchTeam",
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestFields(
+                                RequestSnippets.Team.SearchTeam.searchMode,
+                                RequestSnippets.Team.SearchTeam.searchValue,
+                                RequestSnippets.Team.SearchTeam.includeJoined),
+                        requestHeaders(
+                                RequestSnippets.authorization),
+                        responseFields(
+                                EntityDescriptor.Team.teams
+                        )))
                 .andReturn();
 
         TeamsDTO teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), TeamsDTO.class);
@@ -271,11 +285,16 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.id").value(newTeam.getId()))
                 .andExpect(jsonPath("$.teamName").value(newTeam.getTeamName()))
                 .andDo(document("TeamController/getTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdPath,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.teamInformation));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Team.teamInformation
+                        )));
     }
 
     @Test
@@ -307,11 +326,17 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.teamLeaderUserId").value(newMember.getUserId()))
                 .andExpect(jsonPath("$.teamLeaderUsername").value(newMember.getUsername()))
                 .andDo(document("TeamController/createTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamName,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.teamInformation));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.Team.CreateTeam.teamName
+                        ),
+                        responseFields(
+                                EntityDescriptor.Team.teamInformation
+                        )));
     }
 
     @Test
@@ -348,12 +373,21 @@ public class TeamControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamName").value(updatedTeamName))
                 .andDo(document("TeamController/updateTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        RequestSnippets.updateTeam,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.teamInformation));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        requestFields(
+                                RequestSnippets.Team.UpdateTeam.updateField,
+                                RequestSnippets.Team.UpdateTeam.updateValue
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Team.teamInformation
+                        )));
     }
 
     @Test
@@ -378,10 +412,14 @@ public class TeamControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
                 .andDo(document("TeamController/deleteTeam",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        RequestSnippets.authorization));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        )));
 
         // check if team is deleted.
         assertThrows(NoTeamFoundException.class, () -> teamService.getTeamDetails(newTeam.getId()));

@@ -1,6 +1,8 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.controller.bind.MembersDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
@@ -21,11 +23,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -78,11 +82,16 @@ public class TeamMembersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("TeamMembersController/getMembers",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        RequestSnippets.authorization,
-                        ResponseSnippets.membersInformation))
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                            EntityDescriptor.Member.members)))
                 .andReturn();
 
         // check result contains member.
@@ -124,11 +133,17 @@ public class TeamMembersControllerTest {
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("TeamMembersController/joinMember",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        RequestSnippets.teamIdAndUserIdPath,
-                        ResponseSnippets.membersInformation))
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.userIdPath
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.members)))
                 .andReturn();
 
         // check result contains member.
@@ -169,14 +184,18 @@ public class TeamMembersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members").isArray())
                 .andDo(document("TeamMembersController/deleteMember",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
 // https://github.com/spring-projects/spring-restdocs/issues/285 multiple path parameters can't be separated.
                         pathParameters(
-                                parameterWithName("userId").description("사용자의 아이디입니다."),
-                                parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        RequestSnippets.authorization,
-                        ResponseSnippets.membersInformation))
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.userIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.members)))
                 .andReturn();
 
         // check result contains member.
@@ -223,13 +242,16 @@ public class TeamMembersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamLeaderUserId").value(anotherMember.getUserId()))
                 .andDo(document("TeamMembersController/changeLeader",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
                         pathParameters(
-                                parameterWithName("userId").description("사용자의 아이디입니다."),
-                                parameterWithName("teamId").description("팀의 식별자입니다.")),
-                        RequestSnippets.authorization,
-                        ResponseSnippets.teamInformation))
-                .andReturn();
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.userIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Team.teamInformation)));
     }
 }

@@ -2,6 +2,8 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TodoListDTO;
@@ -33,12 +35,17 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @SpringBootTest
@@ -106,11 +113,16 @@ public class TeamTodoListControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.todoLists").isArray())
                 .andDo(document("TeamTodoListController/getTodolists",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.authorization,
-                        RequestSnippets.teamIdPath,
-                        ResponseSnippets.todoLists))
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.TodoList.todoLists)))
                 .andReturn();
 
         // check to-do list is in team.
@@ -157,12 +169,20 @@ public class TeamTodoListControllerTest {
                 .andExpect(jsonPath("$.name").value(todoListName))
                 .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
                 .andDo(document("TeamTodoListController/createTodoList",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdPath,
-                        RequestSnippets.authorization,
-                        RequestSnippets.todoListName,
-                        ResponseSnippets.todoList));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.TodoList.CreateTodoList.todoListName
+                        ),
+                        responseFields(
+                                EntityDescriptor.TodoList.todoListInformation
+                        )));
 
         // check to-do list is created.
         assertTrue(teamService.getTeamTodoLists(newTeam.getId()).getTodoLists().stream()
@@ -175,7 +195,6 @@ public class TeamTodoListControllerTest {
         MemberDTO newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
         TeamDTO anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUserId());
@@ -209,11 +228,18 @@ public class TeamTodoListControllerTest {
                 .andExpect(jsonPath("$.name").value(newTodoList.getTodoListName()))
                 .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
                 .andDo(document("TeamTodoListController/getTodoList",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdPath,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.todoList));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.TodoList.todoListInformation
+                        )));
     }
 
     @Test
@@ -305,12 +331,22 @@ public class TeamTodoListControllerTest {
                 .andExpect(jsonPath("$.name").value("Updated by owner."))
                 .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
                 .andDo(document("TeamTodoListController/updateTodoList",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdPath,
-                        RequestSnippets.authorization,
-                        RequestSnippets.todoListUpdate,
-                        ResponseSnippets.todoList));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.TodoList.UpdateTodoList.field,
+                                RequestSnippets.TodoList.UpdateTodoList.value
+                        ),
+                        responseFields(
+                                EntityDescriptor.TodoList.todoListInformation
+                        )));
     }
 
     @Test
@@ -383,10 +419,14 @@ public class TeamTodoListControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)) // if it's not locked, every can remove it.
                 .andExpect(status().isOk())
                 .andDo(document("TeamTodoListController/deleteTodoList",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdPath,
-                        RequestSnippets.authorization));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization)));
 
         assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(newTodoList.getTodoListId()));
 

@@ -1,6 +1,8 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.controller.bind.MemberDTO;
 import com.simpletodolist.todolist.controller.bind.TeamDTO;
 import com.simpletodolist.todolist.controller.bind.TodoDTO;
@@ -30,12 +32,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
+import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @SpringBootTest
@@ -110,11 +116,16 @@ public class TeamTodoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.todos").isArray())
                 .andDo(document("TeamTodoController/getTodos",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdPath,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.todos));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath),
+                        responseFields(
+                                EntityDescriptor.Todo.todos)));
     }
 
     @Test
@@ -166,11 +177,19 @@ public class TeamTodoControllerTest {
                 .andExpect(jsonPath("$.title").value(newTodo.getTitle()))
                 .andExpect(jsonPath("$.content").value(newTodo.getContent()))
                 .andDo(document("TeamTodoController/getTodo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdAndTodoIdPath,
-                        RequestSnippets.authorization,
-                        ResponseSnippets.todo));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath,
+                                RequestSnippets.todoIdPath
+                        ),
+                        responseFields(
+                                EntityDescriptor.Todo.todoInformation
+                        )));
     }
 
     @Test
@@ -219,12 +238,21 @@ public class TeamTodoControllerTest {
                 .andExpect(jsonPath("$.title").value("title"))
                 .andExpect(jsonPath("$.content").value("content"))
                 .andDo(document("TeamTodoController/createTodo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdPath,
-                        RequestSnippets.authorization,
-                        RequestSnippets.todo,
-                        ResponseSnippets.todo));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.Todo.CreateTodo.title,
+                                RequestSnippets.Todo.CreateTodo.content
+                        ),
+                        responseFields(
+                                EntityDescriptor.Todo.todoInformation)));
     }
 
     @Test
@@ -341,13 +369,24 @@ public class TeamTodoControllerTest {
                 .andExpect(jsonPath("$.title").value(updatedTitle))
                 .andExpect(jsonPath("$.content").value(newTodo.getContent()))
                 .andDo(document("TeamTodoController/updateTodo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdAndTodoIdPath,
-                        RequestSnippets.authorization,
-                        RequestSnippets.updateTodo,
-                        ResponseSnippets.todo));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath,
+                                RequestSnippets.todoIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        requestFields(
+                                RequestSnippets.Todo.UpdateTodo.field,
+                                RequestSnippets.Todo.UpdateTodo.value
+                        ),
+                        responseFields(
+                                EntityDescriptor.Todo.todoInformation)));
 
+        // content update.
         mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -434,10 +473,16 @@ public class TeamTodoControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
                 .andDo(document("TeamTodoController/deleteTodo",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        RequestSnippets.teamIdAndTodoListIdAndTodoIdPath,
-                        RequestSnippets.authorization));
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.todoListIdPath,
+                                RequestSnippets.todoIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        )));
 
         assertThrows(NoTodoFoundException.class, () -> todoService.readTodo(newTodo.getId()));
     }
