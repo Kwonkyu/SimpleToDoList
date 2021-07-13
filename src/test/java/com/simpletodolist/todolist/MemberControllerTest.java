@@ -129,6 +129,14 @@ public class MemberControllerTest {
                         responseFields(
                                 EntityDescriptor.Member.memberInformation
                         )));
+
+
+        mockMvc.perform(patch("/api/member")
+                .header(HttpHeaders.AUTHORIZATION, requestToken)
+                .content(objectMapper.writeValueAsString(new MemberInformationUpdateRequest(UpdatableMemberInformation.LOCKED, true)))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.locked").value(true));
     }
 
     @Test

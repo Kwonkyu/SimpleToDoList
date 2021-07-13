@@ -89,7 +89,7 @@ public class TeamControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, keyword, false))))
                 .andExpect(status().isOk())
                 .andDo(document("TeamController/searchTeam",
                         commonRequestPreprocessor,
@@ -113,7 +113,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, keyword, false))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -128,7 +128,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, keyword, true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -143,7 +143,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, keyword, true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, keyword, true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -160,7 +160,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "World", true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, "World", true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -172,7 +172,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "World", false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, "World", false))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -183,7 +183,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "Matrix", true))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, "Matrix", true))))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -196,7 +196,7 @@ public class TeamControllerTest {
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.TEAMNAME, "Matrix", false))))
+                .content(objectMapper.writeValueAsString(new TeamSearchRequest(SearchTeamField.NAME, "Matrix", false))))
                 .andExpect(status().isOk())
                 .andReturn();
 

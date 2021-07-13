@@ -59,7 +59,7 @@ public class BasicTeamService implements TeamService{
                         teamRepository.findAllByLeaderAndNotJoined(leader, member);
                 break;
 
-            case TEAMNAME:
+            case NAME:
                 String teamName = String.valueOf(value);
                 result = includeJoined ?
                         teamRepository.findAllByTeamNameContaining(teamName) :

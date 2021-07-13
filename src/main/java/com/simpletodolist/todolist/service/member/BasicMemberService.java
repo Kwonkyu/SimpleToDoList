@@ -72,6 +72,11 @@ public class BasicMemberService implements MemberService{
             case PASSWORD:
                 member.changePassword(passwordEncoder.encode((String) value));
                 break;
+
+            case LOCKED:
+                boolean command = (boolean) value;
+                if(command) member.lock();
+                else member.unlock();
         }
         return new MemberDTO(member);
     }
