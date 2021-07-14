@@ -1,8 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -12,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.Response;
 
 @RestController
 @RequestMapping("/api/team/{teamId}/")
@@ -25,8 +27,8 @@ public class TeamMembersController {
 
 
     @GetMapping("/members")
-    public ResponseEntity<MembersDTO> getTeamMembers(@PathVariable(name = "teamId") long teamId,
-                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<List<Response>> getTeamMembers(@PathVariable(name = "teamId") long teamId,
+                                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
         return ResponseEntity.ok(teamService.getTeamMembers(teamId));
@@ -34,9 +36,9 @@ public class TeamMembersController {
 
 
     @GetMapping("/members/{userId}")
-    public ResponseEntity<MemberDTO> memberInfo(@PathVariable(name = "teamId") long teamId,
-            @PathVariable(name = "userId") String userId,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<Response> memberInfo(@PathVariable(name = "teamId") long teamId,
+                                                         @PathVariable(name = "userId") String userId,
+                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
         return ResponseEntity.ok(memberService.getMemberDetails(userId));
@@ -44,7 +46,7 @@ public class TeamMembersController {
 
     // TODO: 추후 invite, request, decline 방식으로 변경.
     @PutMapping("/members/{userId}")
-    public ResponseEntity<MembersDTO> registerNewMember(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<List<Response>> registerNewMember(@PathVariable(name = "teamId") long teamId,
                                                         @PathVariable(name = "userId") String userId,
                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
@@ -54,7 +56,7 @@ public class TeamMembersController {
 
 
     @DeleteMapping("/members/{userId}")
-    public ResponseEntity<MembersDTO> withdrawMember(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<List<Response>> withdrawMember(@PathVariable(name = "teamId") long teamId,
                                                      @PathVariable(name = "userId") String userId,
                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
@@ -64,7 +66,7 @@ public class TeamMembersController {
 
 
     @PutMapping("/leader/{memberUserId}")
-    public ResponseEntity<TeamDTO> changeTeamLeaderStatus(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TeamDTO.Response> changeTeamLeaderStatus(@PathVariable(name = "teamId") long teamId,
                                                           @PathVariable(name = "memberUserId") String memberUserId,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));

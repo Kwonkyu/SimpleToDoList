@@ -1,7 +1,6 @@
 package com.simpletodolist.todolist.service.todolist;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoListInformation;
-import com.simpletodolist.todolist.controller.bind.TodoListDTO;
+import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.TodoList;
@@ -15,6 +14,9 @@ import com.simpletodolist.todolist.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.simpletodolist.todolist.domain.bind.TodoListDTO.RegisterRequest;
+import static com.simpletodolist.todolist.domain.bind.TodoListDTO.Response;
 
 @Service
 @RequiredArgsConstructor
@@ -34,21 +36,21 @@ public class BasicTodoListService implements TodoListService{
 
     @Override
     @Transactional(readOnly = true)
-    public TodoListDTO getTodoListDetail(long todoListId) throws NoTodoListFoundException {
-        return new TodoListDTO(todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new));
+    public Response getTodoListDetail(long todoListId) throws NoTodoListFoundException {
+        return new Response(todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new));
     }
 
     @Override
-    public TodoListDTO createTodoList(long teamId, String memberUserId, TodoListDTO todoListDTO) {
+    public Response createTodoList(long teamId, String memberUserId, RegisterRequest todoListDTO) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         TodoList todoList = new TodoList(todoListDTO.getTodoListName(), team, member);
         todoListRepository.save(todoList);
-        return new TodoListDTO(todoList);
+        return new Response(todoList);
     }
 
     @Override
-    public TodoListDTO updateTodoList(long todoListId, UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException {
+    public Response updateTodoList(long todoListId, TodoListDTO.UpdateRequest.UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException {
         TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
         switch (field) {
             case NAME:
@@ -65,7 +67,7 @@ public class BasicTodoListService implements TodoListService{
                 break;
         }
 
-        return new TodoListDTO(todoList);
+        return new Response(todoList);
     }
 
     @Override

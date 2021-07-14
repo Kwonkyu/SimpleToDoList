@@ -2,7 +2,7 @@ package com.simpletodolist.todolist;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.dto.request.RegisterRequestDTO;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class CORSTest {
         mockMvc.perform(post("/api/public/register")
                 .header(HttpHeaders.ORIGIN, "www.intellij.com")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RegisterRequestDTO("corsuserid", "corsusername", "corspassword"))))
+                .content(objectMapper.writeValueAsString(MemberDTO.RegisterRequest.builder().userId("corsuserid").username("corsusername").password("corspassword").build())))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "www.intellij.com"));

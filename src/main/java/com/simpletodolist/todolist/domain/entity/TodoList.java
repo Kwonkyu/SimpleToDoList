@@ -21,7 +21,7 @@ public class TodoList {
     private long id;
 
     @NonNull
-    @Column(name = "NAME")
+    @Column(name = "NAME", nullable = false, length = 64)
     private String name;
 
     @NonNull

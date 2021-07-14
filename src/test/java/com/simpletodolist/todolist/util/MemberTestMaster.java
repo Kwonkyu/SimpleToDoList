@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.util;
 
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class MemberTestMaster {
 
-    private final static Map<String, MemberDTO> members = new HashMap<>();
+    private final static Map<String, MemberDTO.Response> members = new HashMap<>();
 
     private final MemberService memberService;
 
@@ -21,19 +21,20 @@ public class MemberTestMaster {
         return UUID.randomUUID().toString().replaceAll("-", "").substring(0, Math.min(length, 32));
     }
 
-    public MemberDTO createNewMember() {
+    public MemberDTO.Response createNewMember() {
         return createNewMember(randomString(31));
     }
-    public MemberDTO createNewMember(String userId) {
+    public MemberDTO.Response createNewMember(String userId) {
         String originalPassword = randomString(32);
-        MemberDTO newMember = new MemberDTO(userId, randomString(16), originalPassword);
-        newMember.setId(memberService.registerMember(newMember).getId());
-        newMember.setPassword(originalPassword);
-        members.put(userId, newMember);
-        return newMember;
+        MemberDTO.RegisterRequest newMember = MemberDTO.RegisterRequest.builder()
+                .userId(userId).username(randomString(16)).password(originalPassword).build();
+        MemberDTO.Response response = memberService.registerMember(newMember);
+        response.setPassword(originalPassword);
+        members.put(userId, response);
+        return response;
     }
 
-    public MemberDTO getMemberInfo(String userId) {
+    public MemberDTO.Response getMemberInfo(String userId) {
         return members.get(userId);
     }
 

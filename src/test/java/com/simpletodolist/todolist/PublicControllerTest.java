@@ -3,9 +3,7 @@ package com.simpletodolist.todolist;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.Snippets.EntityDescriptor;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.dto.request.LoginRequestDTO;
-import com.simpletodolist.todolist.dto.request.RegisterRequestDTO;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import org.junit.jupiter.api.BeforeAll;
@@ -53,7 +51,7 @@ public class PublicControllerTest {
     @Test
     @DisplayName("Login Account")
     public void loginTest() throws Exception {
-        MemberDTO newMember = memberTestMaster.createNewMember();
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
 
         // not available http methods.
         mockMvc.perform(get("/api/public/login"))
@@ -69,7 +67,10 @@ public class PublicControllerTest {
         mockMvc.perform(
                 post("/api/public/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new LoginRequestDTO(newMember.getUserId(), newMember.getPassword()))))
+                        .content(objectMapper.writeValueAsString(MemberDTO.LoginRequest.builder()
+                                .userId(newMember.getUserId())
+                                .password(newMember.getPassword())
+                                .build())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString())
                 .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
@@ -104,7 +105,11 @@ public class PublicControllerTest {
         // normal http request.
         mockMvc.perform(post("/api/public/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RegisterRequestDTO(testUserId, testUsername, testPassword))))
+                .content(objectMapper.writeValueAsString(MemberDTO.RegisterRequest.builder()
+                        .userId(testUserId)
+                        .username(testUsername)
+                        .password(testPassword)
+                        .build())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(testUserId))
                 .andExpect(jsonPath("$.username").value(testUsername))

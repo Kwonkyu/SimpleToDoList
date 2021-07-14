@@ -1,11 +1,11 @@
 package com.simpletodolist.todolist;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.Snippets.EntityDescriptor;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
@@ -22,6 +22,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
 import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
@@ -61,11 +63,11 @@ public class TeamMembersControllerTest {
     @Test
     @DisplayName("Get members of team")
     public void getMembersOfTeam() throws Exception {
-        MemberDTO newMember = memberTestMaster.createNewMember();
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
         String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
 
         // request without token
         mockMvc.perform(get("/api/team/{teamId}/members", newTeam.getId()))
@@ -80,7 +82,7 @@ public class TeamMembersControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/api/team/{teamId}/members", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.members").isArray())
+                .andExpect(jsonPath("$").isArray())
                 .andDo(document("TeamMembersController/getMembers",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -95,21 +97,21 @@ public class TeamMembersControllerTest {
                 .andReturn();
 
         // check result contains member.
-        MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().anyMatch(dto -> dto.getUserId().equals(newMember.getUserId())));
+        List<MemberDTO.Response> membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
+        assertTrue(membersDTO.stream().anyMatch(dto -> dto.getUserId().equals(newMember.getUserId())));
     }
 
     @Test
     @DisplayName("Join member to team")
     public void joinMember() throws Exception {
-        MemberDTO newMember = memberTestMaster.createNewMember();
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
         String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
         teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
 
-        MemberDTO joiningMember = memberTestMaster.createNewMember();
+        MemberDTO.Response joiningMember = memberTestMaster.createNewMember();
         String joiningToken = memberTestMaster.getRequestToken(joiningMember.getUserId(), joiningMember.getPassword());
 
         // request without token
@@ -131,7 +133,7 @@ public class TeamMembersControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("$.members").isArray())
+                .andExpect(jsonPath("$").isArray())
                 .andDo(document("TeamMembersController/joinMember",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -147,21 +149,21 @@ public class TeamMembersControllerTest {
                 .andReturn();
 
         // check result contains member.
-        MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().anyMatch(dto -> dto.getUserId().equals(joiningMember.getUserId())));
+        List<MemberDTO.Response> membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
+        assertTrue(membersDTO.stream().anyMatch(dto -> dto.getUserId().equals(joiningMember.getUserId())));
     }
 
     @Test
     @DisplayName("Withdraw member from team")
     public void withdrawMember() throws Exception {
-        MemberDTO newMember = memberTestMaster.createNewMember();
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
         String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
         teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
 
-        MemberDTO otherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response otherMember = memberTestMaster.createNewMember();
         String otherToken = memberTestMaster.getRequestToken(otherMember.getUserId(), otherMember.getPassword());
 
         // request without token
@@ -182,7 +184,8 @@ public class TeamMembersControllerTest {
         MvcResult mvcResult = mockMvc.perform(delete("/api/team/{teamId}/members/{userId}", newTeam.getId(), anotherMember.getUserId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.members").isArray())
+                // https://support.smartbear.com/alertsite/docs/monitors/api/endpoint/jsonpath.html
+                .andExpect(jsonPath("$").isArray())
                 .andDo(document("TeamMembersController/deleteMember",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -199,21 +202,21 @@ public class TeamMembersControllerTest {
                 .andReturn();
 
         // check result contains member.
-        MembersDTO membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MembersDTO.class);
-        assertTrue(membersDTO.getMembers().stream().noneMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
+        List<MemberDTO.Response> membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
+        assertTrue(membersDTO.stream().noneMatch(dto -> dto.getUserId().equals(anotherMember.getUserId())));
     }
 
     @Test
     @DisplayName("Change team leader")
     public void changeLeader() throws Exception {
-        MemberDTO newMember = memberTestMaster.createNewMember();
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
         String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
         teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
 
-        MemberDTO otherMember = memberTestMaster.createNewMember();
+        MemberDTO.Response otherMember = memberTestMaster.createNewMember();
         String otherToken = memberTestMaster.getRequestToken(otherMember.getUserId(), otherMember.getPassword());
 
 

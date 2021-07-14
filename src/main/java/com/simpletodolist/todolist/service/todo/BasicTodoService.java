@@ -1,8 +1,6 @@
 package com.simpletodolist.todolist.service.todo;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoInformation;
-import com.simpletodolist.todolist.controller.bind.TodoDTO;
-import com.simpletodolist.todolist.controller.bind.TodosDTO;
+import com.simpletodolist.todolist.domain.bind.TodoDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import com.simpletodolist.todolist.domain.entity.TodoList;
@@ -15,6 +13,12 @@ import com.simpletodolist.todolist.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.simpletodolist.todolist.domain.bind.TodoDTO.Create;
+import static com.simpletodolist.todolist.domain.bind.TodoDTO.Response;
 
 @Service
 @RequiredArgsConstructor
@@ -33,29 +37,30 @@ public class BasicTodoService implements TodoService{
 
     @Override
     @Transactional(readOnly = true)
-    public TodoDTO readTodo(long todoId) throws NoTodoFoundException {
-        return new TodoDTO(todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new));
+    public Response readTodo(long todoId) throws NoTodoFoundException {
+        return new Response(todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new));
     }
 
 
     @Override
     @Transactional(readOnly = true)
-    public TodosDTO readTodosOfTodoList(long todoListId) throws NoTodoListFoundException {
-        return new TodosDTO(todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new).getTodos());
+    public List<Response> readTodosOfTodoList(long todoListId) throws NoTodoListFoundException {
+        return todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new).getTodos().stream()
+                .map(Response::new).collect(Collectors.toList());
     }
 
 
     @Override
-    public TodoDTO createTodo(String memberUserId, long todoListId, TodoDTO todo) {
+    public Response createTodo(String memberUserId, long todoListId, Create todo) {
         Member writer = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
         Todo newTodo = new Todo(todo.getTitle(), todo.getContent(), writer, todoList);
         todoRepository.save(newTodo);
-        return new TodoDTO(newTodo);
+        return new TodoDTO.Response(newTodo);
     }
 
     @Override
-    public TodoDTO updateTodo(long todoId, UpdatableTodoInformation field, Object value) throws NoTodoFoundException {
+    public Response updateTodo(long todoId, TodoDTO.Update.UpdatableTodoInformation field, Object value) throws NoTodoFoundException {
         Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
         switch (field) {
             case LOCKED:
@@ -76,7 +81,7 @@ public class BasicTodoService implements TodoService{
                 break;
         }
 
-        return new TodoDTO(todo);
+        return new Response(todo);
     }
 
     @Override

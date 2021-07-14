@@ -1,13 +1,14 @@
 package com.simpletodolist.todolist.service.member;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
-import com.simpletodolist.todolist.controller.bind.LoginDTO;
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+
+import java.util.List;
+
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
 
 public interface MemberService extends UserDetailsService {
 
@@ -17,7 +18,7 @@ public interface MemberService extends UserDetailsService {
      * @return MemberDTO object filled with found member's information.
      * @throws NoMemberFoundException when no member found with given user id.
      */
-    MemberDTO getMemberDetails(String memberUserId) throws NoMemberFoundException;
+    Response getMemberDetails(String memberUserId) throws NoMemberFoundException;
 
     /**
      * Login user account with user id and password.
@@ -26,7 +27,7 @@ public interface MemberService extends UserDetailsService {
      * @return LoginDTO object filled with logged in member's information and token.
      * @throws AuthenticationFailedException When password does not matched.
      */
-    LoginDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException;
+    LoginResponse loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException;
 
     /**
      * Register new member.
@@ -34,7 +35,7 @@ public interface MemberService extends UserDetailsService {
      * @return MemberDTO object filled with registered member's information.
      * @throws DuplicatedMemberException when member with equivalent user id exists.
      */
-    MemberDTO registerMember(MemberDTO memberDTO) throws DuplicatedMemberException;
+    Response registerMember(RegisterRequest registerRequest) throws DuplicatedMemberException;
 
     /**
      * Update information of member.
@@ -44,7 +45,7 @@ public interface MemberService extends UserDetailsService {
      * @return MemberDTO object filled with updated user information.
      * @throws NoMemberFoundException when member with given id doesn't exists.
      */
-    MemberDTO updateMember(String memberUserId, UpdatableMemberInformation update, Object value) throws NoMemberFoundException;
+    Response updateMember(String memberUserId, UpdateRequest.UpdatableMemberInformation update, Object value) throws NoMemberFoundException;
 
     /**
      * Withdraw member.
@@ -59,5 +60,5 @@ public interface MemberService extends UserDetailsService {
      * @return TeamsDTO object filled with found member's teams.
      * @throws NoMemberFoundException when no member found with given user id.
      */
-    TeamsDTO getTeamsOfMember(String memberUserId) throws NoMemberFoundException;
+    List<TeamDTO.Response> getTeamsOfMember(String memberUserId) throws NoMemberFoundException;
 }

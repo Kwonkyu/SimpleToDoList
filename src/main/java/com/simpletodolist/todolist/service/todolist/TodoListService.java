@@ -1,12 +1,14 @@
 package com.simpletodolist.todolist.service.todolist;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoListInformation;
-import com.simpletodolist.todolist.controller.bind.TodoListDTO;
+import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
 import com.simpletodolist.todolist.exception.todolist.LockedTodoListException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
+
+import static com.simpletodolist.todolist.domain.bind.TodoListDTO.RegisterRequest;
+import static com.simpletodolist.todolist.domain.bind.TodoListDTO.Response;
 
 public interface TodoListService {
 
@@ -24,7 +26,7 @@ public interface TodoListService {
      * @return TodoListDTO object containing information of to-do list.
      * @throws NoTodoListFoundException when to-do list does not exists.
      */
-    TodoListDTO getTodoListDetail(long todoListId) throws NoTodoListFoundException;
+    Response getTodoListDetail(long todoListId) throws NoTodoListFoundException;
 
 
     /**
@@ -37,7 +39,7 @@ public interface TodoListService {
      * @throws NoTeamFoundException when team with given id doesn't exists.
      * @throws NotJoinedTeamException when member is not joined on team.
      */
-    TodoListDTO createTodoList(long teamId, String memberUserId, TodoListDTO todoListDTO) throws NoTeamFoundException, NoMemberFoundException, NotJoinedTeamException;
+    Response createTodoList(long teamId, String memberUserId, RegisterRequest todoListDTO) throws NoTeamFoundException, NoMemberFoundException, NotJoinedTeamException;
 
     /**
      * Update to-do list's information.
@@ -47,7 +49,7 @@ public interface TodoListService {
      * @return TodoListDTO object filled with updated to-do list.
      * @throws NoTodoListFoundException when to-do list with given id not found.
      */
-    TodoListDTO updateTodoList(long todoListId, UpdatableTodoListInformation field, Object value)
+    Response updateTodoList(long todoListId, TodoListDTO.UpdateRequest.UpdatableTodoListInformation field, Object value)
             throws NoTodoListFoundException, LockedTodoListException;
 
     /**

@@ -1,9 +1,6 @@
 package com.simpletodolist.todolist.service.member;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableMemberInformation;
-import com.simpletodolist.todolist.controller.bind.LoginDTO;
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
@@ -22,6 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -36,33 +37,33 @@ public class BasicMemberService implements MemberService{
 
     @Override
     @Transactional(readOnly = true)
-    public MemberDTO getMemberDetails(String memberUserId) {
-        return new MemberDTO(memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new));
+    public Response getMemberDetails(String memberUserId) {
+        return new Response(memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new));
     }
 
     @Override
-    public LoginDTO loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
+    public LoginResponse loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
-            return new LoginDTO(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
+            return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
         } catch (BadCredentialsException exception) {
             throw new AuthenticationFailedException();
         }
     }
 
     @Override
-    public MemberDTO registerMember(MemberDTO memberDTO) {
-        if(memberRepository.existsByUserId(memberDTO.getUserId())) throw new DuplicatedMemberException();
-        memberDTO.setPassword(passwordEncoder.encode(memberDTO.getPassword()));
-        Member save = memberRepository.save(new Member(memberDTO));
-        return new MemberDTO(save);
+    public Response registerMember(RegisterRequest registerRequest) {
+        if(memberRepository.existsByUserId(registerRequest.getUserId())) throw new DuplicatedMemberException();
+        registerRequest.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        Member save = memberRepository.save(new Member(registerRequest.getUserId(), registerRequest.getUsername(), registerRequest.getPassword()));
+        return new Response(save);
     }
 
     @Override
-    public MemberDTO updateMember(String memberUserId, UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
+    public Response updateMember(String memberUserId, UpdateRequest.UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         switch(update) {
             case USERNAME:
@@ -78,7 +79,7 @@ public class BasicMemberService implements MemberService{
                 if(command) member.lock();
                 else member.unlock();
         }
-        return new MemberDTO(member);
+        return new Response(member);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class BasicMemberService implements MemberService{
 
     @Override
     @Transactional(readOnly = true)
-    public TeamsDTO getTeamsOfMember(String memberUserId) {
+    public List<TeamDTO.Response> getTeamsOfMember(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         return member.getTeamsDTO();
     }

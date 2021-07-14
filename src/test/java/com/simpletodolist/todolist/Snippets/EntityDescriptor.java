@@ -10,7 +10,8 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 public class EntityDescriptor {
 
     public static class Team {
-        public static final FieldDescriptor teams = subsectionWithPath("teams").description("팀의 목록입니다.");
+        // https://stackoverflow.com/questions/31162140/how-to-document-top-level-array-as-response-payload-with-spring-rest-docs
+        public static final FieldDescriptor teams = subsectionWithPath("[]").description("팀의 목록입니다.");
         public static final FieldDescriptor teamId = fieldWithPath("id").description("팀의 식별자입니다.");
         public static final FieldDescriptor teamLeaderUserId = fieldWithPath("teamLeaderUserId").description("팀장의 회원 아이디입니다.");
         public static final FieldDescriptor teamLeaderUsername = fieldWithPath("teamLeaderUsername").description("팀장의 회원 이름입니다.");
@@ -22,7 +23,7 @@ public class EntityDescriptor {
     }
 
     public static class Member {
-        public static final FieldDescriptor members = subsectionWithPath("members").description("회원의 목록입니다.");
+        public static final FieldDescriptor members = subsectionWithPath("[]").description("회원의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("사용자의 식별값입니다.");
         public static final FieldDescriptor userId = fieldWithPath("userId").description("사용자의 아이디입니다.");
         public static final FieldDescriptor username = fieldWithPath("username").description("사용자의 이름입니다.");
@@ -36,7 +37,7 @@ public class EntityDescriptor {
     }
 
     public static class Todo {
-        public static final FieldDescriptor todos = subsectionWithPath("todos").description("할 일의 목록입니다.");
+        public static final FieldDescriptor todos = subsectionWithPath("[]").description("할 일의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("할 일의 식별자입니다.");
         public static final FieldDescriptor title = fieldWithPath("title").description("할 일의 제목입니다.");
         public static final FieldDescriptor content = fieldWithPath("content").description("할 일의 내용입니다.");
@@ -46,7 +47,7 @@ public class EntityDescriptor {
     }
 
     public static class TodoList {
-        public static final FieldDescriptor todoLists = subsectionWithPath("todoLists").description("할 일 리스트의 목록입니다.");
+        public static final FieldDescriptor todoLists = subsectionWithPath("[]").description("할 일 리스트의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("할 일 리스트의 식별자입니다.");
         public static final FieldDescriptor ownerUserId = fieldWithPath("ownerUserId").description("할 일 리스트를 생성한 회원의 아이디입니다.");
         public static final FieldDescriptor name = fieldWithPath("name").description("할 일 리스트의 이름입니다.");

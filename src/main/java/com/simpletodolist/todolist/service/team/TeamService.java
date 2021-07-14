@@ -1,16 +1,15 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
-import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
-import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
+import com.simpletodolist.todolist.domain.bind.*;
 import com.simpletodolist.todolist.exception.member.NotJoinedMemberException;
 import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
+
+import java.util.List;
+
+import static com.simpletodolist.todolist.domain.bind.TeamDTO.*;
 
 public interface TeamService {
 
@@ -30,7 +29,7 @@ public interface TeamService {
      * @param includeJoined whether except joined team or not.
      * @return TeamsDTO object with teams.
      */
-    TeamsDTO searchTeams(SearchTeamField field, Object value, String searcherUserId, boolean includeJoined);
+    List<Response> searchTeams(SearchRequest.SearchTeamField field, Object value, String searcherUserId, boolean includeJoined);
 
     /**
      * Create new team.
@@ -39,7 +38,7 @@ public interface TeamService {
      * @return TeamDTO object filled with registered team's information.
      * @throws NoMemberFoundException when member with given id doesn't exists.
      */
-    TeamDTO createTeam(String memberUserId, TeamDTO teamDTO) throws NoMemberFoundException;
+    Response createTeam(String memberUserId, RegisterRequest teamDTO) throws NoMemberFoundException;
 
     /**
      * Update team's information.
@@ -49,7 +48,7 @@ public interface TeamService {
      * @return TeamDTO object filled with updated team's information.
      * @throws NoTeamFoundException when team with given id doesn't exists.
      */
-    TeamDTO updateTeam(long teamId, UpdatableTeamInformation field, Object value) throws NoTeamFoundException;
+    Response updateTeam(long teamId, UpdateRequest.UpdatableTeamInformation field, Object value) throws NoTeamFoundException;
 
     /**
      * Delete team.
@@ -64,7 +63,7 @@ public interface TeamService {
      * @return TeamDTO object filled with found team's information.
      * @throws NoTeamFoundException when team with given id doesn't exists.
      */
-    TeamDTO getTeamDetails(long teamId) throws NoTeamFoundException;
+    Response getTeamDetails(long teamId) throws NoTeamFoundException;
 
     /**
      * Get members information of team.
@@ -72,7 +71,7 @@ public interface TeamService {
      * @return MembersDTO object filled with member's information.
      * @throws NoTeamFoundException when team with given id doesn't exists.
      */
-    MembersDTO getTeamMembers(long teamId) throws NoTeamFoundException;
+    List<MemberDTO.Response> getTeamMembers(long teamId) throws NoTeamFoundException;
 
     /**
      * Get to-do lists of team.
@@ -80,7 +79,7 @@ public interface TeamService {
      * @return TodoListsDTO filled with team's to-do lists.
      * @throws NoTeamFoundException when team with given id not found.
      */
-    TodoListsDTO getTeamTodoLists(long teamId) throws NoTeamFoundException;
+    List<TodoListDTO.Response> getTeamTodoLists(long teamId) throws NoTeamFoundException;
 
     /**
      * Join member to team.
@@ -91,7 +90,7 @@ public interface TeamService {
      * @throws NoTeamFoundException when joining team doesn't exist.
      * @throws DuplicatedMemberJoinException when member already joined team.
      */
-    MembersDTO joinMember(long teamId, String memberUserId) throws NoMemberFoundException, NoTeamFoundException, DuplicatedMemberJoinException;
+    List<MemberDTO.Response> joinMember(long teamId, String memberUserId) throws NoMemberFoundException, NoTeamFoundException, DuplicatedMemberJoinException;
 
     /**
      * Withdraw member from team.
@@ -99,7 +98,7 @@ public interface TeamService {
      * @param memberUserId Member to withdraw.
      * @return MembersDTO object filled with team member's information.
      */
-    MembersDTO withdrawMember(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, InvalidTeamWithdrawException;
+    List<MemberDTO.Response> withdrawMember(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, InvalidTeamWithdrawException;
 
     /**
      * Change leader of team.
@@ -109,5 +108,5 @@ public interface TeamService {
      * @throws NoMemberFoundException when member of given id doesn't exists.
      * @throws NotJoinedMemberException when new leader member is not joined team.
      */
-    TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException;
+    Response changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException;
 }

@@ -1,9 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTodoListInformation;
-import com.simpletodolist.todolist.controller.bind.TodoListDTO;
-import com.simpletodolist.todolist.controller.bind.request.TodoListInformationUpdateRequest;
-import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
+import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.team.TeamService;
@@ -15,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+
+import static com.simpletodolist.todolist.domain.bind.TodoListDTO.*;
 
 @RestController
 @RequestMapping("/api/team/{teamId}")
@@ -37,25 +37,25 @@ public class TeamTodoListController {
     }
 
     @GetMapping("/todolist")
-    public ResponseEntity<TodoListsDTO> getTeamTodoLists(@PathVariable(name = "teamId") long teamId,
-                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<List<Response>> getTeamTodoLists(@PathVariable(name = "teamId") long teamId,
+                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(memberUserId, teamId);
         return ResponseEntity.ok(teamService.getTeamTodoLists(teamId));
     }
 
     @PostMapping("/todolist")
-    public ResponseEntity<TodoListDTO> createTodoListOnTeam(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<Response> createTodoListOnTeam(@PathVariable(name = "teamId") long teamId,
                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                                            @RequestBody @Valid TodoListDTO todoListDTO){
+                                                            @RequestBody @Valid RegisterRequest todoListDTO){
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(memberUserId, teamId);
-        TodoListDTO createdTodoList = todoListService.createTodoList(teamId, memberUserId, todoListDTO);
+        Response createdTodoList = todoListService.createTodoList(teamId, memberUserId, todoListDTO);
         return ResponseEntity.created(URIGenerator.createTodoList(teamId, createdTodoList.getTodoListId())).body(createdTodoList);
     }
 
     @GetMapping("/todolist/{todoListId}")
-    public ResponseEntity<TodoListDTO> getTodoList(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<Response> getTodoList(@PathVariable(name = "teamId") long teamId,
                                                    @PathVariable(name = "todoListId") long todoListId,
                                                    @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
@@ -64,13 +64,13 @@ public class TeamTodoListController {
     }
 
     @PatchMapping("/todolist/{todoListId}")
-    public ResponseEntity<TodoListDTO> updateTodoList(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<Response> updateTodoList(@PathVariable(name = "teamId") long teamId,
                                                       @PathVariable(name = "todoListId") long todoListId,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
                                                       // TODO: check HttpMessageNotReadableException where using enums.
-                                                      @Valid @RequestBody TodoListInformationUpdateRequest dto) {
+                                                      @Valid @RequestBody TodoListDTO.UpdateRequest dto) {
         String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        if(dto.getField().equals(UpdatableTodoListInformation.LOCKED)) {
+        if(dto.getField().equals(UpdateRequest.UpdatableTodoListInformation.LOCKED)) {
             authorizationService.fullAuthorization(memberUserId, teamId, todoListId);
         } else {
             authorizeTodoList(memberUserId, teamId, todoListId);

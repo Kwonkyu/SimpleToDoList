@@ -1,11 +1,6 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
-import com.simpletodolist.todolist.controller.bind.request.field.SearchTeamField;
-import com.simpletodolist.todolist.controller.bind.request.field.UpdatableTeamInformation;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
-import com.simpletodolist.todolist.controller.bind.TodoListsDTO;
+import com.simpletodolist.todolist.domain.bind.*;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
@@ -28,6 +23,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static com.simpletodolist.todolist.domain.bind.TeamDTO.*;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -46,7 +43,7 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public TeamsDTO searchTeams(SearchTeamField field, Object value, String searcherUserId, boolean includeJoined) {
+    public List<TeamDTO.Response> searchTeams(SearchRequest.SearchTeamField field, Object value, String searcherUserId, boolean includeJoined) {
         List<Team> result;
         Member member = memberRepository.findByUserId(String.valueOf(searcherUserId)).orElseThrow(NoMemberFoundException::new);
 
@@ -70,20 +67,20 @@ public class BasicTeamService implements TeamService{
                 result = new ArrayList<>();
         }
 
-        return new TeamsDTO(result.stream().map(TeamDTO::new).collect(Collectors.toList()));
+        return result.stream().map(TeamDTO.Response::new).collect(Collectors.toList());
     }
 
     @Override
-    public TeamDTO createTeam(String memberUserId, TeamDTO teamDTO) throws NoMemberFoundException {
+    public Response createTeam(String memberUserId, RegisterRequest teamDTO) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         Team team = new Team(member, teamDTO.getTeamName());
         teamRepository.save(team);
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
-        return new TeamDTO(team);
+        return new TeamDTO.Response(team);
     }
 
     @Override
-    public TeamDTO updateTeam(long teamId, UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
+    public Response updateTeam(long teamId, UpdateRequest.UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         switch (field) {
             case NAME:
@@ -96,7 +93,7 @@ public class BasicTeamService implements TeamService{
                 else team.unlock();
                 break;
         }
-        return new TeamDTO(team);
+        return new TeamDTO.Response(team);
     }
 
     @Override
@@ -108,24 +105,24 @@ public class BasicTeamService implements TeamService{
 
     @Override
     @Transactional(readOnly = true)
-    public TeamDTO getTeamDetails(long teamId) {
-        return new TeamDTO(teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new));
+    public Response getTeamDetails(long teamId) {
+        return new TeamDTO.Response(teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MembersDTO getTeamMembers(long teamId) {
+    public List<MemberDTO.Response> getTeamMembers(long teamId) {
         return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).getMembersDTO();
     }
 
     @Override
-    public TodoListsDTO getTeamTodoLists(long teamId) throws NoTeamFoundException {
+    public List<TodoListDTO.Response> getTeamTodoLists(long teamId) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        return new TodoListsDTO(todoListRepository.findAllByTeam(team));
+        return todoListRepository.findAllByTeam(team).stream().map(TodoListDTO.Response::new).collect(Collectors.toList());
     }
 
     @Override
-    public MembersDTO joinMember(long teamId, String memberUserId) {
+    public List<MemberDTO.Response> joinMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         if(memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new DuplicatedTeamJoinException();
@@ -135,7 +132,7 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public MembersDTO withdrawMember(long teamId, String memberUserId) {
+    public List<MemberDTO.Response> withdrawMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new InvalidTeamWithdrawException();
@@ -145,7 +142,7 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public TeamDTO changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
+    public Response changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         // New leader should be one of member.
@@ -155,6 +152,6 @@ public class BasicTeamService implements TeamService{
                     messageSource.getMessage("unauthorized.leader.not.joined", null, Locale.KOREAN));
         }
         team.changeLeader(member);
-        return new TeamDTO(team);
+        return new Response(team);
     }
 }

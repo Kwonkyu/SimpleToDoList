@@ -1,8 +1,6 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,18 +41,14 @@ public class Member implements UserDetails {
     private String password;
 
     @OneToMany(mappedBy = "member")
-    private final List<MemberTeamAssociation> teams = new ArrayList<>();
+    private List<MemberTeamAssociation> teams = new ArrayList<>();
 
     @Column(name = "LOCKED")
-    private boolean locked = false;
+    private boolean locked;
 
     // TODO: 1+N check.
-    public TeamsDTO getTeamsDTO(){
-        return new TeamsDTO(teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList()));
-    }
-
-    public List<TeamDTO> getTeamDTOList() {
-        return teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO::new).collect(Collectors.toList());
+    public List<TeamDTO.Response> getTeamsDTO(){
+        return teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO.Response::new).collect(Collectors.toList());
     }
 
 
@@ -100,13 +94,6 @@ public class Member implements UserDetails {
     @Override
     public boolean isEnabled() {
         return !locked;
-    }
-
-
-    public Member(MemberDTO memberDTO){
-        this.userId = memberDTO.getUserId();
-        this.username = memberDTO.getUsername();
-        this.password = memberDTO.getPassword();
     }
 
 }
