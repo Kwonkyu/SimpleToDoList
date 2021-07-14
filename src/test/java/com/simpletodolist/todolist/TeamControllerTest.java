@@ -10,8 +10,10 @@ import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.service.todolist.TodoListService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import com.simpletodolist.todolist.util.TeamTestMaster;
+import com.simpletodolist.todolist.util.TodoListTestMaster;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,18 +54,22 @@ public class TeamControllerTest {
     @Autowired
     MemberService memberService;
     @Autowired
+    TodoListService todoListService;
+    @Autowired
     TeamService teamService;
     @Autowired
     ObjectMapper objectMapper;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
+    TodoListTestMaster todoListTestMaster;
 
 
     @BeforeAll
     public void init() {
         memberTestMaster = new MemberTestMaster(memberService);
         teamTestMaster = new TeamTestMaster(teamService);
+        todoListTestMaster = new TodoListTestMaster(todoListService);
     }
 
 
@@ -309,6 +315,8 @@ public class TeamControllerTest {
         MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
         TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
+        todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}", newTeam.getId()))

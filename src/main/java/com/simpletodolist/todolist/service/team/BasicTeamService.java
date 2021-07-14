@@ -89,13 +89,14 @@ public class BasicTeamService implements TeamService{
     @Override
     public Basic updateTeam(long teamId, UpdateRequest.UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        String changedValue = String.valueOf(value);
         switch (field) {
             case NAME:
-                team.changeTeamName((String) value);
+                team.changeTeamName(changedValue.length() > 64 ? changedValue.substring(0, 64) : changedValue);
                 break;
 
             case LOCKED:
-                boolean request = (boolean) value;
+                boolean request = Boolean.parseBoolean(changedValue);
                 if(request) team.lock();
                 else team.unlock();
                 break;

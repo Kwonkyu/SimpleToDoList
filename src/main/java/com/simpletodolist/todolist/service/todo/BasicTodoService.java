@@ -62,9 +62,10 @@ public class BasicTodoService implements TodoService{
     @Override
     public Response updateTodo(long todoId, TodoDTO.Update.UpdatableTodoInformation field, Object value) throws NoTodoFoundException {
         Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
+        String changedValue = String.valueOf(value);
         switch (field) {
             case LOCKED:
-                boolean lock = (boolean) value;
+                boolean lock = Boolean.parseBoolean(changedValue);
                 if(lock) {
                     todo.lock();
                 } else {
@@ -73,11 +74,12 @@ public class BasicTodoService implements TodoService{
                 break;
 
             case CONTENT:
-                todo.changeContent((String) value);
+                todo.changeContent(changedValue.length() > 1024 ? changedValue.substring(0, 1024) : changedValue);
                 break;
 
             case TITLE:
-                todo.changeTitle((String) value);
+                changedValue = (String) value;
+                todo.changeTitle(changedValue.length() > 64 ? changedValue.substring(0, 64) : changedValue);
                 break;
         }
 

@@ -16,7 +16,7 @@ public class EntityDescriptor {
         public static final FieldDescriptor teamLeaderUserId = fieldWithPath("teamLeaderUserId").description("팀장의 회원 아이디입니다.");
         public static final FieldDescriptor teamLeaderUsername = fieldWithPath("teamLeaderUsername").description("팀장의 회원 이름입니다.");
         public static final FieldDescriptor teamName = fieldWithPath("teamName").description("팀의 이름입니다.");
-        public static final FieldDescriptor todoLists = fieldWithPath("todoLists").description("팀의 할 일 리스트 목록입니다.");
+        public static final FieldDescriptor todoLists = subsectionWithPath("todoLists").description("팀의 할 일 리스트 목록입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("팀의 잠금 상태입니다.");
         public static final List<FieldDescriptor> teamDetails = List.of(
                 teamId, teamLeaderUserId, teamLeaderUsername, teamName, todoLists, locked);
@@ -56,7 +56,7 @@ public class EntityDescriptor {
         public static final FieldDescriptor id = fieldWithPath("id").description("할 일 리스트의 식별자입니다.");
         public static final FieldDescriptor ownerUserId = fieldWithPath("ownerUserId").description("할 일 리스트를 생성한 회원의 아이디입니다.");
         public static final FieldDescriptor name = fieldWithPath("name").description("할 일 리스트의 이름입니다.");
-        public static final FieldDescriptor todos = fieldWithPath("todos").description("할 일의 목록입니다.");
+        public static final FieldDescriptor todos = subsectionWithPath("todos").description("할 일의 목록입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("할 일 리스트의 잠금 상태입니다.");
         public static final List<FieldDescriptor> todoListInformation = List.of(
                 id, ownerUserId, name, todos, locked);

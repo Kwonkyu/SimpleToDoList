@@ -52,13 +52,14 @@ public class BasicTodoListService implements TodoListService{
     @Override
     public Response updateTodoList(long todoListId, TodoListDTO.UpdateRequest.UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException {
         TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
+        String changedValue = String.valueOf(value);
         switch (field) {
             case NAME:
-                todoList.changeName((String) value);
+                todoList.changeName(changedValue.length() > 64 ? changedValue.substring(0, 64) : changedValue);
                 break;
 
             case LOCKED:
-                boolean lock = (boolean) value;
+                boolean lock = Boolean.parseBoolean(changedValue);
                 if (lock) {
                     todoList.lock();
                 } else {

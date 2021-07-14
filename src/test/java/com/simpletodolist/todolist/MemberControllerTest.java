@@ -7,11 +7,16 @@ import com.simpletodolist.todolist.Snippets.EntityDescriptor;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
+import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.service.member.MemberService;
 import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.service.todo.TodoService;
+import com.simpletodolist.todolist.service.todolist.TodoListService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import com.simpletodolist.todolist.util.TeamTestMaster;
+import com.simpletodolist.todolist.util.TodoListTestMaster;
+import com.simpletodolist.todolist.util.TodoTestMaster;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,17 +58,25 @@ public class MemberControllerTest {
     @Autowired
     MemberService memberService;
     @Autowired
+    TodoService todoService;
+    @Autowired
+    TodoListService todoListService;
+    @Autowired
     TeamService teamService;
     @Autowired
     ObjectMapper objectMapper;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
+    TodoTestMaster todoTestMaster;
+    TodoListTestMaster todoListTestMaster;
 
     @BeforeAll
     public void init() {
         memberTestMaster = new MemberTestMaster(memberService);
         teamTestMaster = new TeamTestMaster(teamService);
+        todoTestMaster = new TodoTestMaster(todoService);
+        todoListTestMaster = new TodoListTestMaster(todoListService);
     }
 
 
@@ -74,9 +87,12 @@ public class MemberControllerTest {
         mockMvc.perform(get("/api/member"))
                 .andExpect(status().isUnauthorized()); // by spring security, token-less request is not authorized.
 
+        // generate dummy data for documentation.
         MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
         String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
+        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
 
         // normal request.
         mockMvc.perform(get("/api/member")

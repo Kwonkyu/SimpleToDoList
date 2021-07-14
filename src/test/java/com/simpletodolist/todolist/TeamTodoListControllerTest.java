@@ -90,6 +90,8 @@ public class TeamTodoListControllerTest {
         TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
 
         TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
+        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
+        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist", newTeam.getId()))
@@ -198,6 +200,7 @@ public class TeamTodoListControllerTest {
         TeamDTO.Response anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUserId());
 
         TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
+        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))

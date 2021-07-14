@@ -19,6 +19,8 @@ NOTE: 모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 
 == 할 일 리스트의 모든 할 일 조회
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
+
 할 일 리스트의 할 일을 조회하는 API 입니다.
 
 ====
@@ -43,9 +45,12 @@ include::{snippets}/TeamTodoController/getTodos/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/getTodos/response-fields.adoc[]
 
+지정된 할 일 리스트의 할 일 항목들이 배열로 반환됩니다. 개별 항목에 대한 설명은 <<_todo_information, 이곳>>을 참조하십시오.
 
 == 할 일 리스트의 특정 할 일 조회
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
 
 할 일 리스트에 속한 특정 할 일을 조회하는 API 입니다.
 
@@ -67,12 +72,16 @@ include::{snippets}/TeamTodoController/getTodo/request-headers.adoc[]
 .HTTP 응답
 include::{snippets}/TeamTodoController/getTodo/response-body.adoc[]
 
+[#_todo_information]
 .응답 파라미터
 include::{snippets}/TeamTodoController/getTodo/response-fields.adoc[]
 
+할 일의 식별자, 제목, 내용, 잠금 상태가 반환됩니다.
 
 == 할 일 추가.
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
 
 할 일 리스트에 할 일을 추가하는 API 입니다.
 
@@ -101,9 +110,12 @@ include::{snippets}/TeamTodoController/createTodo/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/createTodo/response-fields.adoc[]
 
+Authorization 헤더로 전송된 토큰의 사용자를 생성자로 하여 할 일을 생성합니다.
 
 == 할 일 수정
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
 
 할 일을 수정하는 API 입니다. **잠금 요청**은 작성자만 요청할 수 있으며 **잠금 상태**의 할 일은 작성자만 수정할 수 있습니다.
 
@@ -131,9 +143,12 @@ include::{snippets}/TeamTodoController/updateTodo/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/updateTodo/response-fields.adoc[]
 
+변경된 할 일 항목이 반환됩니다.
 
 == 할 일 삭제
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
 
 할 일을 삭제하는 API 입니다. **잠금 상태**의 할 일은 작성자만 삭제할 수 있습니다.
 

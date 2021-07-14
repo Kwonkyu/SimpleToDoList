@@ -18,6 +18,7 @@ import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,7 +45,6 @@ public class BasicMemberService implements MemberService{
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
-
 
     @Override
     @Transactional(readOnly = true)
@@ -83,13 +83,16 @@ public class BasicMemberService implements MemberService{
     @Override
     public Basic updateMember(String memberUserId, UpdateRequest.UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+        String changedValue = String.valueOf(value);
         switch(update) {
             case USERNAME:
-                member.changeUsername((String) value);
+                if(changedValue.length() > 32) changedValue = changedValue.substring(0, 32);
+                member.changeUsername(changedValue);
                 break;
 
             case PASSWORD:
-                member.changePassword(passwordEncoder.encode((String) value));
+                if(changedValue.length() > 64) changedValue = changedValue.substring(0, 64);
+                member.changePassword(passwordEncoder.encode(changedValue));
                 break;
         }
         return new Basic(member);
