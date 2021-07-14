@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.domain.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -93,6 +94,47 @@ public class TeamDTO {
 
         public enum SearchTeamField {
             NAME, LEADER
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class Basic {
+        @JsonProperty("id")
+        private long id;
+
+        @JsonProperty("teamLeaderUserId")
+        private String teamLeaderUserId;
+
+        @JsonProperty("teamLeaderUsername")
+        private String teamLeaderUsername;
+
+        @JsonProperty("teamName")
+        private String teamName;
+
+        @JsonProperty("locked")
+        private boolean locked;
+
+        public Basic(Team team) {
+            this.id = team.getId();
+            Member leader = team.getLeader();
+            this.teamLeaderUserId = leader.getUserId();
+            this.teamLeaderUsername = leader.getUsername();
+            this.teamName = team.getTeamName();
+            this.locked = team.isLocked();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class BasicWithJoined extends Basic {
+        @JsonProperty("joined")
+        private boolean joined;
+
+        public BasicWithJoined(Team team, boolean joined) {
+            super(team);
+            this.joined = joined;
         }
     }
 }

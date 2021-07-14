@@ -43,6 +43,7 @@ include::{snippets}/MemberController/readMemberInfo/response-body.adoc[HTTP Resp
 .응답 파라미터
 include::{snippets}/MemberController/readMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information API]
 
+가입한 팀의 정보는 팀을 식별하기 위한 정보만 포함됩니다.
 
 == 회원 정보 수정
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -70,10 +71,10 @@ include::{snippets}/MemberController/updateMemberInfo/response-body.adoc[HTTP Re
 .응답 파라미터
 include::{snippets}/MemberController/updateMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information Update API]
 
+회원 정보 수정 시 변경 가능한 항목들의 값만 반환됩니다.
 
 
-
-== 회원 삭제
+== 회원 탈퇴
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 
 회원 탈퇴 API 입니다.
@@ -118,8 +119,6 @@ include::{snippets}/MemberController/getMemberTeams/response-body.adoc[HTTP Resp
 .응답 파라미터
 include::{snippets}/MemberController/getMemberTeams/response-fields.adoc[HTTP Response Payload of Get Joined Teams API]
 
-// TODO: 각 팀의 파라미터 정보도 나중에 추가.
-
 
 == 팀 가입
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -147,6 +146,8 @@ include::{snippets}/MemberController/joinTeam/response-body.adoc[]
 
 .응답 파라미터
 include::{snippets}/MemberController/joinTeam/response-fields.adoc[]
+
+해당 팀에 속한 팀원들의 간략한 정보가 반환됩니다.
 
 
 == 팀 탈퇴

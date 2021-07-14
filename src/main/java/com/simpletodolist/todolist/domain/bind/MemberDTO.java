@@ -2,12 +2,14 @@ package com.simpletodolist.todolist.domain.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.TodoList;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -108,7 +110,42 @@ public class MemberDTO {
         private Object value;
 
         public enum UpdatableMemberInformation {
-            USERNAME, PASSWORD, LOCKED
+            USERNAME, PASSWORD
         }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class Basic {
+        @JsonProperty("userId")
+        String userId;
+
+        @JsonProperty("username")
+        String username;
+
+        @JsonProperty("locked")
+        boolean locked;
+
+        public Basic(Member member) {
+            this.userId = member.getUserId();
+            this.username = member.getUsername();
+            this.locked = member.isLocked();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class BasicWithTodoLists extends Basic{
+        @JsonProperty("todoLists")
+        List<TodoListDTO.IDName> todoLists;
+
+        public BasicWithTodoLists(Member member, List<TodoList> todoLists) {
+            super(member);
+            this.todoLists = todoLists.stream()
+                    .map(TodoListDTO.IDName::new)
+                    .collect(Collectors.toList());
+        }
+
     }
 }

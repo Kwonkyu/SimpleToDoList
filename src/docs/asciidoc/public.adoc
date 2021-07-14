@@ -31,10 +31,10 @@ include::{snippets}/PublicController/Login/request-fields.adoc[HTTP Request Payl
 
 === HTTP Response
 .HTTP 응답
-include::{snippets}/PublicController/Register/response-body.adoc[HTTP Response of Login API]
+include::{snippets}/PublicController/Login/response-body.adoc[HTTP Response of Login API]
 
 .응답 파라미터
-include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Login API]
+include::{snippets}/PublicController/Login/response-fields.adoc[HTTP Response Payload of Login API]
 
 
 == 회원가입

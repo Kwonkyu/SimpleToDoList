@@ -93,12 +93,55 @@ public class TeamMembersControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                            EntityDescriptor.Member.members)))
+                            EntityDescriptor.Team.members)))
                 .andReturn();
 
         // check result contains member.
         List<MemberDTO.Response> membersDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
         assertTrue(membersDTO.stream().anyMatch(dto -> dto.getUserId().equals(newMember.getUserId())));
+    }
+
+    @Test
+    @DisplayName("Get member of team")
+    public void getMember() throws Exception {
+        MemberDTO.Response newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+
+        // request without token
+        mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), newMember.getUserId()))
+                .andExpect(status().isUnauthorized());
+
+        // request not joined team.
+        mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), newMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, anotherToken))
+                .andExpect(status().isForbidden());
+
+        // request not joined member.
+        mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), anotherMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, newToken))
+                .andExpect(status().isForbidden());
+
+        // normal request.
+        mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), newMember.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, newToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
+                .andDo(document("TeamMembersController/getMember",
+                        commonRequestPreprocessor,
+                        commonResponsePreprocessor,
+                        pathParameters(
+                                RequestSnippets.teamIdPath,
+                                RequestSnippets.userIdPath
+                        ),
+                        requestHeaders(
+                                RequestSnippets.authorization
+                        ),
+                        responseFields(
+                                EntityDescriptor.Member.teamMemberInformation)))
+                .andReturn();
     }
 
     @Test
@@ -145,7 +188,7 @@ public class TeamMembersControllerTest {
                                 RequestSnippets.userIdPath
                         ),
                         responseFields(
-                                EntityDescriptor.Member.members)))
+                                EntityDescriptor.Team.members)))
                 .andReturn();
 
         // check result contains member.
@@ -198,7 +241,7 @@ public class TeamMembersControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.Member.members)))
+                                EntityDescriptor.Team.members)))
                 .andReturn();
 
         // check result contains member.

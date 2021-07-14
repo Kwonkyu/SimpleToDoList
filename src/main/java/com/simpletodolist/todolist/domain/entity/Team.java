@@ -43,6 +43,10 @@ public class Team {
     private boolean locked = false;
 
 
+    public List<Member> getMembers() {
+        return members.stream().map(MemberTeamAssociation::getMember).collect(Collectors.toList());
+    }
+
     public List<MemberDTO.Response> getMembersDTO(){
         return members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO.Response::new).collect(Collectors.toList());
     }

@@ -18,22 +18,27 @@ public class EntityDescriptor {
         public static final FieldDescriptor teamName = fieldWithPath("teamName").description("팀의 이름입니다.");
         public static final FieldDescriptor todoLists = fieldWithPath("todoLists").description("팀의 할 일 리스트 목록입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("팀의 잠금 상태입니다.");
+        public static final List<FieldDescriptor> teamDetails = List.of(
+                teamId, teamLeaderUserId, teamLeaderUsername, teamName, todoLists, locked);
         public static final List<FieldDescriptor> teamInformation = List.of(
-                teamId, teamName, teamLeaderUserId, teamLeaderUsername, todoLists, locked);
+                teamId, teamLeaderUserId, teamLeaderUsername, teamName, locked);
+        public static final FieldDescriptor members = subsectionWithPath("[]").description("회원의 목록입니다.");
     }
 
     public static class Member {
-        public static final FieldDescriptor members = subsectionWithPath("[]").description("회원의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("사용자의 식별값입니다.");
         public static final FieldDescriptor userId = fieldWithPath("userId").description("사용자의 아이디입니다.");
         public static final FieldDescriptor username = fieldWithPath("username").description("사용자의 이름입니다.");
         public static final FieldDescriptor password = fieldWithPath("password").description("사용자의 비밀번호입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("사용자의 잠금 상태입니다.");
         public static final FieldDescriptor teams = subsectionWithPath("teams").description("사용자가 가입한 팀의 정보입니다.");
+        public static final FieldDescriptor todoLists = fieldWithPath("todoLists").description("사용자가 작성한 할 일 리스트 목록입니다.");
         public static final List<FieldDescriptor> memberInformation = List.of(
-                id, userId, username, password, locked, teams);
+                id, userId, username, password, teams, locked);
         public static final List<FieldDescriptor> loginMemberInformation = List.of(
-                id, userId, username, password, locked, teams, ResponseSnippets.JWT.token);
+                id, userId, username, password, teams, locked, ResponseSnippets.JWT.token);
+        public static final List<FieldDescriptor> teamMemberInformation = List.of(
+                userId, username, locked, todoLists);
     }
 
     public static class Todo {

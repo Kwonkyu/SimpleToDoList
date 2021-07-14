@@ -26,7 +26,7 @@ public class TeamController {
 
 
     @GetMapping
-    public ResponseEntity<List<Response>> searchTeams(@Valid @RequestBody SearchRequest request,
+    public ResponseEntity<List<BasicWithJoined>> searchTeams(@Valid @RequestBody SearchRequest request,
                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         // TODO: jwt를 계속 파싱하는 것도 번거로운데 필터같은걸로 파싱해서 메서드로 전달해줄 수 있나?
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
@@ -50,7 +50,7 @@ public class TeamController {
     }
 
     @PatchMapping("/{teamId}")
-    public ResponseEntity<Response> updateTeam(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<Basic> updateTeam(@PathVariable(name = "teamId") long teamId,
                                               @Valid @RequestBody UpdateRequest dto,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));

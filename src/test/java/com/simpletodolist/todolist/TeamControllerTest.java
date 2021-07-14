@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
 import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
@@ -335,7 +334,7 @@ public class TeamControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.Team.teamInformation
+                                EntityDescriptor.Team.teamDetails
                         )));
     }
 
@@ -376,7 +375,7 @@ public class TeamControllerTest {
                                 RequestSnippets.Team.CreateTeam.teamName
                         ),
                         responseFields(
-                                EntityDescriptor.Team.teamInformation
+                                EntityDescriptor.Team.teamDetails
                         )));
     }
 

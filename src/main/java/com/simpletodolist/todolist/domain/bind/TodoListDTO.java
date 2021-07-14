@@ -71,4 +71,20 @@ public class TodoListDTO {
             NAME, LOCKED
         }
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class IDName {
+        @JsonProperty("id")
+        public long todoListId;
+
+        @JsonProperty("name")
+        public String todoListName;
+
+        public IDName(TodoList todoList) {
+            this.todoListId = todoList.getId();
+            this.todoListName = todoList.getName();
+        }
+    }
 }

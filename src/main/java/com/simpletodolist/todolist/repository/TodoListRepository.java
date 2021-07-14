@@ -12,6 +12,7 @@ public interface TodoListRepository extends JpaRepository<TodoList, Long> {
 
     List<TodoList> findAllByOwner(Member owner);
     List<TodoList> findAllByTeam(Team team);
+    List<TodoList> findAllByOwnerAndTeam(Member owner, Team team);
 
     Optional<TodoList> findByIdAndTeam(long id, Team team);
     Optional<TodoList> findByIdAndOwnerAndTeam(long id, Member owner, Team team);

@@ -1,12 +1,21 @@
 package com.simpletodolist.todolist.service.member;
 
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
+import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
+import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
+import com.simpletodolist.todolist.exception.member.LockedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
+import com.simpletodolist.todolist.exception.team.LockedTeamException;
+import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
+import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
+import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
 
@@ -29,6 +39,7 @@ import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
 public class BasicMemberService implements MemberService{
 
     private final MemberRepository memberRepository;
+    private final TeamRepository teamRepository;
     private final MemberTeamAssocRepository memberTeamAssocRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -42,12 +53,19 @@ public class BasicMemberService implements MemberService{
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Basic getMemberInformation(String memberUserId) throws NoMemberFoundException {
+        return new Basic(memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new));
+    }
+
+    @Override
     public LoginResponse loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
             Member member = (Member) authentication.getPrincipal();
+            if(member.isLocked()) throw new LockedMemberException();
             return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
         } catch (BadCredentialsException exception) {
             throw new AuthenticationFailedException();
@@ -63,7 +81,7 @@ public class BasicMemberService implements MemberService{
     }
 
     @Override
-    public Response updateMember(String memberUserId, UpdateRequest.UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
+    public Basic updateMember(String memberUserId, UpdateRequest.UpdatableMemberInformation update, Object value) throws NoMemberFoundException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         switch(update) {
             case USERNAME:
@@ -73,13 +91,8 @@ public class BasicMemberService implements MemberService{
             case PASSWORD:
                 member.changePassword(passwordEncoder.encode((String) value));
                 break;
-
-            case LOCKED:
-                boolean command = (boolean) value;
-                if(command) member.lock();
-                else member.unlock();
         }
-        return new Response(member);
+        return new Basic(member);
     }
 
     @Override
@@ -91,13 +104,37 @@ public class BasicMemberService implements MemberService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<TeamDTO.Response> getTeamsOfMember(String memberUserId) {
+    public List<TeamDTO.Basic> getTeamsOfMember(String memberUserId) {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return member.getTeamsDTO();
+        return member.getTeams().stream()
+                .map(MemberTeamAssociation::getTeam)
+                .map(TeamDTO.Basic::new)
+                .collect(Collectors.toList());
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return memberRepository.findByUserId(username).orElseThrow(NoMemberFoundException::new);
+    }
+
+    @Override
+    public List<MemberDTO.Basic> joinTeam(long teamId, String userId) throws NoTeamFoundException, LockedTeamException, DuplicatedTeamJoinException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        Member member = memberRepository.findByUserId(userId).orElseThrow(NoMemberFoundException::new);
+
+        if(memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new DuplicatedTeamJoinException();
+        if(team.isLocked()) throw new LockedTeamException();
+
+        memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
+        return team.getMembers().stream().map(MemberDTO.Basic::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public void withdrawTeam(long teamId, String userId) throws NoTeamFoundException, NotJoinedTeamException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        Member member = memberRepository.findByUserId(userId).orElseThrow(NoMemberFoundException::new);
+
+        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
+        else memberTeamAssocRepository.deleteByTeamAndMember(team, member);
     }
 }

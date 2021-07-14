@@ -1,9 +1,12 @@
 package com.simpletodolist.todolist.service.team;
 
-import com.simpletodolist.todolist.domain.bind.*;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
+import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
+import com.simpletodolist.todolist.domain.entity.TodoList;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
 import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
@@ -43,7 +46,7 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public List<TeamDTO.Response> searchTeams(SearchRequest.SearchTeamField field, Object value, String searcherUserId, boolean includeJoined) {
+    public List<TeamDTO.BasicWithJoined> searchTeams(SearchRequest.SearchTeamField field, Object value, String searcherUserId, boolean includeJoined) {
         List<Team> result;
         Member member = memberRepository.findByUserId(String.valueOf(searcherUserId)).orElseThrow(NoMemberFoundException::new);
 
@@ -67,7 +70,11 @@ public class BasicTeamService implements TeamService{
                 result = new ArrayList<>();
         }
 
-        return result.stream().map(TeamDTO.Response::new).collect(Collectors.toList());
+        return result.stream()
+                .map(team -> new TeamDTO.BasicWithJoined(
+                team, memberTeamAssocRepository.existsByTeamAndMember(team, member)))
+                .collect(Collectors.toList());
+
     }
 
     @Override
@@ -80,7 +87,7 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public Response updateTeam(long teamId, UpdateRequest.UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
+    public Basic updateTeam(long teamId, UpdateRequest.UpdatableTeamInformation field, Object value) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         switch (field) {
             case NAME:
@@ -93,26 +100,47 @@ public class BasicTeamService implements TeamService{
                 else team.unlock();
                 break;
         }
-        return new TeamDTO.Response(team);
+        return new TeamDTO.Basic(team);
     }
 
     @Override
     public void deleteTeam(long teamId) throws NoTeamFoundException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        team.getMembers().forEach(memberTeamAssocRepository::delete);
+        team.getMembers().forEach(member -> memberTeamAssocRepository.deleteByTeamAndMember(team, member));
         teamRepository.delete(team);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Response getTeamDetails(long teamId) {
-        return new TeamDTO.Response(teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new));
+        return new Response(teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MemberDTO.Response> getTeamMembers(long teamId) {
-        return teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new).getMembersDTO();
+    public Basic getTeamInformation(long teamId) throws NoTeamFoundException {
+        return new Basic(teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MemberDTO.BasicWithTodoLists> getTeamMembers(long teamId) {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        List<Member> members = team.getMembers();
+        return members.stream()
+                .map(member -> {
+                    List<TodoList> todoLists = todoListRepository.findAllByOwnerAndTeam(member, team);
+                    return new MemberDTO.BasicWithTodoLists(member, todoLists);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public MemberDTO.BasicWithTodoLists getTeamMemberInformation(long teamId, String userId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
+        Member member = memberRepository.findByUserId(userId).orElseThrow(NoMemberFoundException::new);
+        if (!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedMemberException();
+        return new MemberDTO.BasicWithTodoLists(member, todoListRepository.findAllByOwnerAndTeam(member, team));
     }
 
     @Override
@@ -122,27 +150,27 @@ public class BasicTeamService implements TeamService{
     }
 
     @Override
-    public List<MemberDTO.Response> joinMember(long teamId, String memberUserId) {
+    public List<MemberDTO.Basic> joinMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         if(memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new DuplicatedTeamJoinException();
 
         memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
-        return team.getMembersDTO();
+        return team.getMembers().stream().map(MemberDTO.Basic::new).collect(Collectors.toList());
     }
 
     @Override
-    public List<MemberDTO.Response> withdrawMember(long teamId, String memberUserId) {
+    public List<MemberDTO.Basic> withdrawMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new InvalidTeamWithdrawException();
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
         memberTeamAssocRepository.flush(); // TODO: note here. Why it doesn't work without flush? https://github.com/spring-projects/spring-data-jpa/issues/1100
-        return team.getMembersDTO();
+        return team.getMembers().stream().map(MemberDTO.Basic::new).collect(Collectors.toList());
     }
 
     @Override
-    public Response changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
+    public Basic changeLeader(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         // New leader should be one of member.
@@ -152,6 +180,6 @@ public class BasicTeamService implements TeamService{
                     messageSource.getMessage("unauthorized.leader.not.joined", null, Locale.KOREAN));
         }
         team.changeLeader(member);
-        return new Response(team);
+        return new Basic(team);
     }
 }
