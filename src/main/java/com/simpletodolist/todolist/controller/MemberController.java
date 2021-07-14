@@ -1,10 +1,7 @@
 package com.simpletodolist.todolist.controller;
 
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
-import com.simpletodolist.todolist.controller.bind.TeamsDTO;
-import com.simpletodolist.todolist.controller.bind.request.MemberInformationUpdateRequest;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
@@ -19,7 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Locale;
+
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
 
 @RestController
 @RequestMapping("/api/member")
@@ -34,7 +34,7 @@ public class MemberController {
 
 
     @GetMapping
-    public ResponseEntity<MemberDTO> memberInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<Response> memberInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         return ResponseEntity.ok(memberService.getMemberDetails(userIdFromClaims));
     }
@@ -42,8 +42,8 @@ public class MemberController {
 
 
     @PatchMapping
-    public ResponseEntity<MemberDTO> updateMemberInfo(@Valid @RequestBody MemberInformationUpdateRequest requestDTO,
-                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+    public ResponseEntity<Basic> updateMemberInfo(@Valid @RequestBody MemberDTO.UpdateRequest requestDTO,
+                                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.updateMember(userIdFromClaims, requestDTO.getField(), requestDTO.getValue()));
@@ -60,7 +60,7 @@ public class MemberController {
 
 
     @GetMapping("/teams")
-    public ResponseEntity<TeamsDTO> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+    public ResponseEntity<List<TeamDTO.Basic>> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.getTeamsOfMember(userIdFromClaims));
@@ -68,22 +68,21 @@ public class MemberController {
 
 
     @GetMapping("/teams/{teamId}")
-    public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TeamDTO.Basic> getTeamDetails(@PathVariable(name = "teamId") long teamId,
                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
-        return ResponseEntity.ok(teamService.getTeamDetails(teamId));
+        return ResponseEntity.ok(teamService.getTeamInformation(teamId));
     }
 
 
     @PutMapping("/teams/{teamId}")
-    public ResponseEntity<MembersDTO> joinTeam(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<List<MemberDTO.Basic>> joinTeam(@PathVariable(name = "teamId") long teamId,
                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        if (teamService.isTeamLocked(teamId)) throw new LockedTeamException();
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
         // Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
-        MembersDTO membersDTO = teamService.joinMember(teamId, userIdFromClaims);
-        return ResponseEntity.created(URIGenerator.joinTeam(teamId)).body(membersDTO);
+        List<Basic> response = memberService.joinTeam(teamId, userIdFromClaims);
+        return ResponseEntity.created(URIGenerator.joinTeam(teamId)).body(response);
     }
 
 
@@ -97,7 +96,7 @@ public class MemberController {
 //        if(teamsOfMember.getTeams().stream().noneMatch(teamDTO -> teamDTO.getId() == dto.getTeamId())) {
 //            throw new InvalidTeamWithdrawException();
 //        }
-        teamService.withdrawMember(teamId, userIdFromClaims);
+        memberService.withdrawTeam(teamId, userIdFromClaims);
     }
 
 }

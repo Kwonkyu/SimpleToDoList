@@ -23,7 +23,7 @@ public class Todo {
     private String title;
 
     @NonNull
-    @Column(name = "CONTENT")
+    @Column(name = "CONTENT", nullable = false, length = 1024)
     private String content;
 
     @NonNull

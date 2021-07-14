@@ -2,6 +2,8 @@
 = Simple To-do List Team API Documentation
 :toc:
 :icons: font
+:method-searchteam: GET
+:url-searchteam: /api/team
 :method-getteam: GET
 :url-getteam: /api/team/<teamId>
 :method-registerteam: POST
@@ -15,8 +17,41 @@ Simple To-do List 애플리케이션의 팀 API 문서입니다.
 
 NOTE: 모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 있습니다.
 
+== 팀 검색
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+팀을 검색하는 API 입니다. 팀의 이름이나 팀장의 ID로 검색할 수 있으며 가입한 팀을 제외하거나 포함할 수 있습니다.
+
+====
+{method-searchteam} {url-searchteam}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamController/searchTeam/http-request.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamController/searchTeam/request-headers.adoc[]
+
+.요청 파라미터
+include::{snippets}/TeamController/searchTeam/request-fields.adoc[]
+
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamController/searchTeam/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamController/searchTeam/response-fields.adoc[]
+
+
+탐색 조건에 부합하는 팀의 목록을 반환합니다. 팀 정보 조회 API 와는 달리 할 일 리스트 항목이 생략되며 가입된 팀인지를 나타내는 항목(joined)이 추가됩니다. 팀의 할 일 리스트는 팀에 가입한 팀원들만 조회할 수 있도록 하는 의도입니다.
+
+
 == 팀 정보 조회
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+IMPORTANT: 팀원만 수행할 수 있는 *제한된* API 입니다.
 
 팀의 정보를 조회하는 API 입니다.
 
@@ -39,9 +74,13 @@ include::{snippets}/TeamController/getTeam/request-headers.adoc[]
 .HTTP 응답
 include::{snippets}/TeamController/getTeam/response-body.adoc[]
 
+[#_team_information]
 .응답 파라미터
 include::{snippets}/TeamController/getTeam/response-fields.adoc[]
 
+팀의 식별자, 이름, 팀장의 아이디 및 이름, 할 일 리스트 목록, 잠금 상태 등이 반환됩니다. 검색 API 와는 달리 할 일 리스트 목록을 조회할 수 있습니다. 언급했듯이 *팀원이 아니라면* 인가되지 않습니다.
+
+* 할 일 리스트 응답 항목에 대한 문서는 <<todolist.adoc#_todolist_information, 이곳>>을 참조하십시오.
 
 == 팀 생성
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -68,6 +107,9 @@ include::{snippets}/TeamController/createTeam/response-body.adoc[]
 
 .응답 파라미터
 include::{snippets}/TeamController/createTeam/response-fields.adoc[]
+
+
+Authorization 헤더로 전송된 토큰의 사용자가 팀장이 되며 자동적으로 팀원에 포함됩니다.
 
 
 == 팀 수정
@@ -102,6 +144,7 @@ include::{snippets}/TeamController/updateTeam/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamController/updateTeam/response-fields.adoc[]
 
+요청에 부합하지 않는 할 일 리스트 항목은 생략되어 반환됩니다.
 
 == 팀 삭제
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.

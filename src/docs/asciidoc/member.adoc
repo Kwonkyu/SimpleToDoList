@@ -43,6 +43,15 @@ include::{snippets}/MemberController/readMemberInfo/response-body.adoc[HTTP Resp
 .응답 파라미터
 include::{snippets}/MemberController/readMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information API]
 
+팀(teams) 항목에는 팀의 식별자, 팀장의 아이디 및 이름, 팀의 이름, 잠금 상태 등 팀을 식별할 수 있는 값들과 팀의 할 일 리스트의 정보가 주어집니다. 할 일 리스트(todoLists) 항목에는 할 일 리스트의 식별자와 이름이 주어집니다.
+
+기본적인 회원의 정보와 현재 회원이 어떤 팀에 가입되었는지, 해당 팀에는 어떤 할 일 리스트들이 있는지 팀과 할 일 리스트를 식별할 수 있는 정보를 제공합니다.
+
+필요 시 팀의 할 일 리스트나 팀의 식별자를 이용하여 추가적인 API 를 활용할 수 있습니다.
+
+* 팀 응답 항목에 대한 문서는 <<team.adoc#_team_information, 이곳>>을 참조하십시오.
+* 할 일 리스트 응답 항목에 대한 문서는 <<todolist.adoc#_todolist_information, 이곳>>을 참조하십시오.
+* 할 일 응답 항목에 대한 문서는 <<todo.adoc#_todo_information, 이곳>>을 참조하십시오.
 
 == 회원 정보 수정
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -70,10 +79,10 @@ include::{snippets}/MemberController/updateMemberInfo/response-body.adoc[HTTP Re
 .응답 파라미터
 include::{snippets}/MemberController/updateMemberInfo/response-fields.adoc[HTTP Response Payload of Member Information Update API]
 
+회원 정보 수정 시 변경 가능한 항목들의 값만 반환됩니다.
 
 
-
-== 회원 삭제
+== 회원 탈퇴
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 
 회원 탈퇴 API 입니다.
@@ -118,7 +127,7 @@ include::{snippets}/MemberController/getMemberTeams/response-body.adoc[HTTP Resp
 .응답 파라미터
 include::{snippets}/MemberController/getMemberTeams/response-fields.adoc[HTTP Response Payload of Get Joined Teams API]
 
-// TODO: 각 팀의 파라미터 정보도 나중에 추가.
+현재 사용자가 가입된 팀의 목록을 간략하게 제공합니다. 위의 회원 정보 조회 API 와는 달리 팀의 할 일 리스트 정보는 포함되지 않으며 팀을 식별할 수 있는 정보만 주어집니다.
 
 
 == 팀 가입
@@ -147,6 +156,8 @@ include::{snippets}/MemberController/joinTeam/response-body.adoc[]
 
 .응답 파라미터
 include::{snippets}/MemberController/joinTeam/response-fields.adoc[]
+
+팀에 가입되었는지 확인할 수 있도록 가입된 팀의 팀원 목록이 반환되며 아이디, 이름, 잠금 상태 등 간략한 정보가 반환됩니다.
 
 
 == 팀 탈퇴

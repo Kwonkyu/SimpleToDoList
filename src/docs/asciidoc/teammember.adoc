@@ -4,6 +4,8 @@
 :icons: font
 :method-getmembers: GET
 :url-getmembers: /api/team/<teamId>/members
+:method-getmember: GET
+:url-getmember: /api/team/<teamId>/members/<userId>
 :method-joinmember: PUT
 :url-joinmember: /api/team/<teamId>/members/<userId>
 :method-quitmember: DELETE
@@ -15,7 +17,7 @@ Simple To-do List 애플리케이션의 팀원 API 문서입니다.
 
 NOTE: 모든 요청, 응답의 바디(페이로드)는 JSON 으로 구성되어 있습니다.
 
-== 팀의 회원 조회
+== 팀원 조회
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
 
 팀원 목록을 조회하는 API 입니다.
@@ -41,6 +43,38 @@ include::{snippets}/TeamMembersController/getMembers/response-body.adoc[]
 
 .응답 파라미터
 include::{snippets}/TeamMembersController/getMembers/response-fields.adoc[]
+
+회원을 식별하기 위한 정보와 회원이 현재 팀에 작성한 할 일 리스트 목록이 제공됩니다.
+
+== 팀의 회원 조회
+IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
+
+특정 팀원의 정보를 조회하는 API 입니다.
+
+====
+{method-getmember} {url-getmember}
+====
+
+=== HTTP Request
+.HTTP 요청
+include::{snippets}/TeamMembersController/getMember/http-request.adoc[]
+
+.요청 패스 파라미터
+include::{snippets}/TeamMembersController/getMember/path-parameters.adoc[]
+
+.요청 헤더
+include::{snippets}/TeamMembersController/getMember/request-headers.adoc[]
+
+
+=== HTTP Response
+.HTTP 응답
+include::{snippets}/TeamMembersController/getMember/response-body.adoc[]
+
+.응답 파라미터
+include::{snippets}/TeamMembersController/getMember/response-fields.adoc[]
+
+회원을 식별하기 위한 정보와 회원이 현재 팀에 작성한 할 일 리스트 목록이 제공됩니다.
+
 
 == 팀에 회원 추가
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.

@@ -1,7 +1,6 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.controller.bind.MemberDTO;
-import com.simpletodolist.todolist.controller.bind.MembersDTO;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -44,8 +43,12 @@ public class Team {
     private boolean locked = false;
 
 
-    public MembersDTO getMembersDTO(){
-        return new MembersDTO(members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO::new).collect(Collectors.toList()));
+    public List<Member> getMembers() {
+        return members.stream().map(MemberTeamAssociation::getMember).collect(Collectors.toList());
+    }
+
+    public List<MemberDTO.Response> getMembersDTO(){
+        return members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO.Response::new).collect(Collectors.toList());
     }
 
     public void changeTeamName(String teamName) {

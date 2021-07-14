@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.util;
 
-import com.simpletodolist.todolist.controller.bind.TeamDTO;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.service.team.TeamService;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class TeamTestMaster {
 
-    private final static Map<Long, TeamDTO> teams = new HashMap<>();
+    private final static Map<Long, TeamDTO.Response> teams = new HashMap<>();
 
     private final TeamService teamService;
 
@@ -21,18 +21,17 @@ public class TeamTestMaster {
         return UUID.randomUUID().toString().replaceAll("-", "").substring(0, length % 32);
     }
 
-    public TeamDTO createNewTeam(String userId) {
+    public TeamDTO.Response createNewTeam(String userId) {
         return createNewTeam(userId, randomString(31));
     }
-    public TeamDTO createNewTeam(String userId, String teamName) {
-        TeamDTO teamDTO = new TeamDTO();
-        teamDTO.setTeamName(teamName);
-        TeamDTO result = teamService.createTeam(userId, teamDTO);
+    public TeamDTO.Response createNewTeam(String userId, String teamName) {
+        TeamDTO.RegisterRequest teamDTO = TeamDTO.RegisterRequest.builder().teamName(teamName).build();
+        TeamDTO.Response result = teamService.createTeam(userId, teamDTO);
         teams.put(result.getId(), result);
         return result;
     }
 
-    public TeamDTO getTeamInfo(long teamId) {
+    public TeamDTO.Response getTeamInfo(long teamId) {
         return teams.get(teamId);
     }
 }

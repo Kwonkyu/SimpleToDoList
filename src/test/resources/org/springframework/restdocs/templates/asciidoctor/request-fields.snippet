@@ -1,0 +1,13 @@
+|===
+|이름|자료형|설명|제약사항|필수 여부
+
+{{#fields}}
+|{{#tableCellContent}}`+{{path}}+`{{/tableCellContent}}
+|{{#tableCellContent}}`+{{type}}+`{{/tableCellContent}}
+|{{#tableCellContent}}{{description}}{{/tableCellContent}}
+// https://github.com/hojinDev/restdocs-sample/
+|{{#tableCellContent}}{{#constraint}}{{.}}{{/constraint}}{{/tableCellContent}}
+|{{#tableCellContent}}{{^optional}}True{{/optional}}{{/tableCellContent}}
+
+{{/fields}}
+|===
