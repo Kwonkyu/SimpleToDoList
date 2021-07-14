@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.domain.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -20,19 +21,28 @@ public class TodoDTO {
     @AllArgsConstructor
     public static class Response {
         @JsonProperty("id")
-        public long id;
+        long id;
+
+        @JsonProperty("writerId")
+        String writerId;
+
+        @JsonProperty("writerName")
+        String writerName;
 
         @JsonProperty("title")
-        public String title;
+        String title;
 
         @JsonProperty("content")
-        public String content;
+        String content;
 
         @JsonProperty("locked")
-        public boolean locked;
+        boolean locked;
 
         public Response(Todo todo) {
             this.id = todo.getId();
+            Member writer = todo.getWriter();
+            this.writerId = writer.getUserId();
+            this.writerName = writer.getUsername();
             this.title = todo.getTitle();
             this.content = todo.getContent();
             this.locked = todo.isLocked();

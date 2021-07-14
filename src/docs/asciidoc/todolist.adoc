@@ -112,7 +112,7 @@ include::{snippets}/TeamTodoListController/getTodoList/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoListController/getTodoList/response-fields.adoc[]
 
-할 일 리스트의 식별자, 이 리스트를 생성한 사용자의 아이디, 할 일 리스트의 이름, 등록된 할 일, 잠금 상태 등이 반환됩니다. 할 일 리스트의 할 일들은 todos 필드에 배열로 반환됩니다.
+할 일 리스트의 식별자, 이 리스트를 생성한 사용자의 아이디 및 이름, 할 일 리스트의 이름, 등록된 할 일, 잠금 상태 등이 반환됩니다. 할 일 리스트의 할 일들은 todos 필드에 배열로 반환됩니다.
 
 * 할 일 응답 항목에 대한 문서는 <<todo.adoc#_todo_information, 이곳>>을 참조하십시오.
 

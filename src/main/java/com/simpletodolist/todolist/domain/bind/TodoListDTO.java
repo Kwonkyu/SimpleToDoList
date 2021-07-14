@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.domain.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.TodoList;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -22,23 +23,28 @@ public class TodoListDTO {
     @AllArgsConstructor
     public static class Response {
         @JsonProperty("id")
-        public long todoListId;
+        long todoListId;
 
         @JsonProperty("ownerUserId")
-        public String ownerUserId;
+        String ownerUserId;
+
+        @JsonProperty("ownerUsername")
+        String ownerUsername;
 
         @JsonProperty("name")
-        public String todoListName;
+        String todoListName;
 
         @JsonProperty("todos")
-        public List<TodoDTO.Response> todos;
+        List<TodoDTO.Response> todos;
 
         @JsonProperty("locked")
-        public boolean locked;
+        boolean locked;
 
         public Response(TodoList todoList) {
             this.todoListId = todoList.getId();
-            this.ownerUserId = todoList.getOwner().getUserId();
+            Member owner = todoList.getOwner();
+            this.ownerUserId = owner.getUserId();
+            this.ownerUsername = owner.getUsername();
             this.todoListName = todoList.getName();
             this.todos = todoList.getTodos().stream().map(TodoDTO.Response::new).collect(Collectors.toList());
             this.locked = todoList.isLocked();

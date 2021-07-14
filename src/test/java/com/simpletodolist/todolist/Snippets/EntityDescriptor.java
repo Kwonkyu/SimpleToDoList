@@ -45,20 +45,23 @@ public class EntityDescriptor {
         public static final FieldDescriptor todos = subsectionWithPath("[]").description("할 일의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("할 일의 식별자입니다.");
         public static final FieldDescriptor title = fieldWithPath("title").description("할 일의 제목입니다.");
+        public static final FieldDescriptor writerId = fieldWithPath("writerId").description("할 일의 작성자의 아이디입니다.");
+        public static final FieldDescriptor writerName = fieldWithPath("writerName").description("할 일의 작성자의 이름입니다.");
         public static final FieldDescriptor content = fieldWithPath("content").description("할 일의 내용입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("할 일의 잠금 상태입니다.");
         public static final List<FieldDescriptor> todoInformation = List.of(
-                id, title, content, locked);
+                id, writerId, writerName, title, content, locked);
     }
 
     public static class TodoList {
         public static final FieldDescriptor todoLists = subsectionWithPath("[]").description("할 일 리스트의 목록입니다.");
         public static final FieldDescriptor id = fieldWithPath("id").description("할 일 리스트의 식별자입니다.");
         public static final FieldDescriptor ownerUserId = fieldWithPath("ownerUserId").description("할 일 리스트를 생성한 회원의 아이디입니다.");
+        public static final FieldDescriptor ownerUsername = fieldWithPath("ownerUsername").description("할 일 리스트를 생성한 회원의 이름입니다.");
         public static final FieldDescriptor name = fieldWithPath("name").description("할 일 리스트의 이름입니다.");
         public static final FieldDescriptor todos = subsectionWithPath("todos").description("할 일의 목록입니다.");
         public static final FieldDescriptor locked = fieldWithPath("locked").description("할 일 리스트의 잠금 상태입니다.");
         public static final List<FieldDescriptor> todoListInformation = List.of(
-                id, ownerUserId, name, todos, locked);
+                id, ownerUserId, ownerUsername, name, todos, locked);
     }
 }
