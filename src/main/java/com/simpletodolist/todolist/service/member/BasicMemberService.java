@@ -7,7 +7,6 @@ import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
-import com.simpletodolist.todolist.exception.member.LockedMemberException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
@@ -18,6 +17,7 @@ import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -61,7 +61,7 @@ public class BasicMemberService implements MemberService{
                 new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
         Member member = (Member) authentication.getPrincipal();
-        if(member.isLocked()) throw new LockedMemberException();
+        if(member.isLocked()) throw new LockedException("Account is locked. Please contact account manager.");
         return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
     }
 

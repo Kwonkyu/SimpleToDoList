@@ -5,12 +5,11 @@ import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import com.simpletodolist.todolist.domain.entity.TodoList;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
 import com.simpletodolist.todolist.exception.team.NotTeamLeaderException;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.todo.NotWriterTodoException;
+import com.simpletodolist.todolist.exception.todo.NotTodoWriterException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 import com.simpletodolist.todolist.exception.todolist.NotTodoListOwnerException;
 import com.simpletodolist.todolist.repository.*;
@@ -44,7 +43,7 @@ public class BasicAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public void authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, LockedTeamException {
+    public void authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, NotJoinedTeamException {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         // TODO: 연관관계 엔티티를 찾나 repository에서 찾나 쿼리는 동일한가?
@@ -64,10 +63,10 @@ public class BasicAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public void authorizeTodoWriter(String memberUserId, long todoId) throws NoMemberFoundException, NoTodoFoundException, NotWriterTodoException {
+    public void authorizeTodoWriter(String memberUserId, long todoId) throws NoMemberFoundException, NoTodoFoundException, NotTodoWriterException {
         Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if (!todo.getWriter().equals(member)) throw new NotWriterTodoException();
+        if (!todo.getWriter().equals(member)) throw new NotTodoWriterException();
     }
 
     @Override
@@ -103,13 +102,13 @@ public class BasicAuthorizationService implements AuthorizationService {
     @Override
     public void fullAuthorization(String memberUserId, long teamId, long todoListId, long todoId)
             throws NoMemberFoundException, NoTeamFoundException, NoTodoListFoundException, NoTodoFoundException,
-            NotJoinedTeamException, NotWriterTodoException {
+            NotJoinedTeamException, NotTodoWriterException {
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
 
         TodoList todoList = todoListRepository.findByIdAndTeam(todoListId, team).orElseThrow(NoTodoListFoundException::new);
         Todo todo = todoRepository.findByIdAndTodoList(todoId, todoList).orElseThrow(NoTodoFoundException::new);
-        if(!validateTeamLeader(member, team) && !todo.getWriter().equals(member)) throw new NotWriterTodoException();
+        if(!validateTeamLeader(member, team) && !todo.getWriter().equals(member)) throw new NotTodoWriterException();
     }
 }

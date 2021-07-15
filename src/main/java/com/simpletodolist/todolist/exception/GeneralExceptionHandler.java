@@ -35,11 +35,4 @@ public class GeneralExceptionHandler {
         return new ExceptionResponseDTO("Parameter Value Constraint Not Matched.", "Check API requirements.");
     }
 
-    // TODO: 현재 spring security에서 permit하지 않아도 헤더를 확인해서 검증하고 있는데 옳은 방법인가?
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO missingRequestHeader(MissingRequestHeaderException exception) {
-        return new ExceptionResponseDTO("Requested Header Not Present", "Check API requirements");
-    }
 }

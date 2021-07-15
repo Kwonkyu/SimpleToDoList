@@ -2,7 +2,6 @@ package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -17,9 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 
-import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.Basic;
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.Response;
 
 @RestController
 @RequestMapping("/api/member")

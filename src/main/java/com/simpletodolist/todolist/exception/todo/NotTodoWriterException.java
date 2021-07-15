@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotWriterTodoException extends RuntimeException{
+public class NotTodoWriterException extends RuntimeException{
     public static final String DEFAULT_ERROR = "Not Writer of To-do.";
     public static final String DEFAULT_MESSAGE = "Only writer of to-do is allowed to request given action.";
 

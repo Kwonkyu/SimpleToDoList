@@ -2,7 +2,7 @@ package com.simpletodolist.todolist.exception;
 
 import com.simpletodolist.todolist.exception.todo.LockedTodoException;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.todo.NotWriterTodoException;
+import com.simpletodolist.todolist.exception.todo.NotTodoWriterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,10 +26,10 @@ public class TodoExceptionHandler {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
-    @ExceptionHandler(NotWriterTodoException.class)
+    @ExceptionHandler(NotTodoWriterException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
-    public ExceptionResponseDTO notWriterTodo(NotWriterTodoException exception) {
+    public ExceptionResponseDTO notWriterTodo(NotTodoWriterException exception) {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 }

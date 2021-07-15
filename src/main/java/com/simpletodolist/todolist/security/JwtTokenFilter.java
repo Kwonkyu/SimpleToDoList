@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -69,8 +70,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // get user identification from token and set to spring security context.
         try {
             UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
+            if(!userDetails.isAccountNonLocked()) throw new LockedException("Account is locked. Please contact account manager.");
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());
+                    userDetails, null, userDetails.getAuthorities());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);

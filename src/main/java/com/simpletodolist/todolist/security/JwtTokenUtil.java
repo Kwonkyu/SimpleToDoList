@@ -1,9 +1,13 @@
 package com.simpletodolist.todolist.security;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,8 @@ import java.util.Date;
 public class JwtTokenUtil {
 
     private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
+
 
     @Value("${JWT_SECRET}")
     private String JWT_SECRET;
@@ -33,10 +39,18 @@ public class JwtTokenUtil {
     }
 
     public String generateAccessToken(Member member) {
+        String token = "";
+        try {
+            token = objectMapper.writeValueAsString(new MemberDTO.Token(member));
+        } catch (JsonProcessingException exception) {
+            token = String.format(
+                    "{\"id\":%d, \"userId\":\"%s\", \"username\":\"%s\"}",
+                    member.getId(), member.getUserId(), member.getUsername());
+        }
+
         return Jwts.builder()
                 // Store authenticated member's user id, username to JWT.
-                // TODO: jsonify?
-                .setSubject(String.format("%s / %s / %s", member.getId(), member.getUserId(), member.getUsername()))
+                .setSubject(token)
                 // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
                 .setIssuer(JWT_ISSUER)
                 .setIssuedAt(new Date())
@@ -53,17 +67,18 @@ public class JwtTokenUtil {
     }
 
 
-    public long getIdFromClaims(Claims claims) { return Long.parseLong(claims.getSubject().split(" / ")[0]); }
-
-    public String getUserIdFromClaims(Claims claims) {
-        return claims.getSubject().split(" / ")[1];
+    public MemberDTO.Token getUserFromClaims(Claims claims) {
+        try {
+            return objectMapper.readValue(claims.getSubject(), MemberDTO.Token.class);
+        } catch (JsonProcessingException exception) {
+            throw new JwtException("JWT subject is malformed.");
+        }
     }
 
-    public String getUsernameFromClaims(Claims claims) {
-        return claims.getSubject().split(" / ")[2];
-    }
+    public long getIdFromClaims(Claims claims) { return getUserFromClaims(claims).getId(); }
 
-    public Date getExpirationDateFromClaims(Claims claims) {
-        return claims.getExpiration();
-    }
+    public String getUserIdFromClaims(Claims claims) { return getUserFromClaims(claims).getUserId(); }
+
+    public String getUsernameFromClaims(Claims claims) { return getUserFromClaims(claims).getUsername(); }
+
 }
