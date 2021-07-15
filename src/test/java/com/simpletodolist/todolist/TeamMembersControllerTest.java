@@ -71,7 +71,7 @@ public class TeamMembersControllerTest {
 
         // request without token
         mockMvc.perform(get("/api/team/{teamId}/members", newTeam.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not joined team.
         mockMvc.perform(get("/api/team/{teamId}/members", newTeam.getId())
@@ -112,7 +112,7 @@ public class TeamMembersControllerTest {
 
         // request without token
         mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), newMember.getUserId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not joined team.
         mockMvc.perform(get("/api/team/{teamId}/members/{userId}", newTeam.getId(), newMember.getUserId())
@@ -159,7 +159,7 @@ public class TeamMembersControllerTest {
 
         // request without token
         mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request by not joined member
         mockMvc.perform(put("/api/team/{teamId}/members/{userId}", newTeam.getId(), joiningMember.getUserId())
@@ -211,7 +211,7 @@ public class TeamMembersControllerTest {
 
         // request without token
         mockMvc.perform(delete("/api/team/{teamId}/members/{userId}", newTeam.getId(), anotherMember.getUserId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // withdraw not joined member.
         mockMvc.perform(delete("/api/team/{teamId}/members/{userId}", newTeam.getId(), anotherMember.getUserId())
@@ -265,7 +265,7 @@ public class TeamMembersControllerTest {
 
         // request without token
         mockMvc.perform(put("/api/team/{teamId}/leader/{userId}", newTeam.getId(), anotherMember.getUserId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // try making not existing member as leader.
         mockMvc.perform(put("/api/team/{teamId}/leader/{userId}", newTeam.getId(), "notexist")

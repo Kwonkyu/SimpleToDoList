@@ -2,7 +2,6 @@ package com.simpletodolist.todolist.service.member;
 
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
@@ -38,9 +37,8 @@ public interface MemberService extends UserDetailsService {
      * @param memberUserId Member's user id.
      * @param rawPassword Member's raw password.
      * @return LoginDTO object filled with logged in member's information and token.
-     * @throws AuthenticationFailedException When password does not matched.
      */
-    LoginResponse loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException;
+    LoginResponse loginMember(String memberUserId, String rawPassword);
 
     /**
      * Register new member.

@@ -3,7 +3,6 @@ package com.simpletodolist.todolist.service.team;
 import com.simpletodolist.todolist.domain.bind.*;
 import com.simpletodolist.todolist.exception.member.NotJoinedMemberException;
 import com.simpletodolist.todolist.exception.team.DuplicatedMemberJoinException;
-import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 
@@ -117,7 +116,7 @@ public interface TeamService {
      * @param memberUserId Member to withdraw.
      * @return MembersDTO object filled with team member's information.
      */
-    List<MemberDTO.Basic> withdrawMember(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, InvalidTeamWithdrawException;
+    List<MemberDTO.Basic> withdrawMember(long teamId, String memberUserId) throws NoTeamFoundException, NoMemberFoundException, NotJoinedMemberException;
 
     /**
      * Change leader of team.

@@ -2,7 +2,6 @@ package com.simpletodolist.todolist.controller;
 
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import com.simpletodolist.todolist.exception.team.LockedTeamException;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import com.simpletodolist.todolist.service.authorization.AuthorizationService;
 import com.simpletodolist.todolist.service.member.MemberService;
@@ -17,9 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 
-import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.Basic;
+import static com.simpletodolist.todolist.domain.bind.MemberDTO.Response;
 
 @RestController
 @RequestMapping("/api/member")
@@ -45,7 +44,6 @@ public class MemberController {
     public ResponseEntity<Basic> updateMemberInfo(@Valid @RequestBody MemberDTO.UpdateRequest requestDTO,
                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.updateMember(userIdFromClaims, requestDTO.getField(), requestDTO.getValue()));
     }
 
@@ -54,7 +52,6 @@ public class MemberController {
     @ResponseStatus(HttpStatus.OK)
     public void withdrawMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         memberService.withdrawMember(userIdFromClaims);
     }
 
@@ -62,7 +59,6 @@ public class MemberController {
     @GetMapping("/teams")
     public ResponseEntity<List<TeamDTO.Basic>> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.getTeamsOfMember(userIdFromClaims));
     }
 

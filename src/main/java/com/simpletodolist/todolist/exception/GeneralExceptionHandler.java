@@ -1,8 +1,7 @@
 package com.simpletodolist.todolist.exception;
 
-import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
-import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,19 +13,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @ControllerAdvice
 public class GeneralExceptionHandler {
 
-    @ExceptionHandler(AuthenticationFailedException.class)
+    @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
-    public ExceptionResponseDTO authenticationFailed(AuthenticationFailedException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ExceptionResponseDTO authenticationFailed(AuthenticationException exception) {
+        return new ExceptionResponseDTO("Authentication Failed", exception.getMessage());
     }
 
-    @ExceptionHandler(AuthorizationFailedException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ResponseBody
-    public ExceptionResponseDTO authorizationFailed(AuthorizationFailedException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
-    }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -42,11 +35,4 @@ public class GeneralExceptionHandler {
         return new ExceptionResponseDTO("Parameter Value Constraint Not Matched.", "Check API requirements.");
     }
 
-    // TODO: 현재 spring security에서 permit하지 않아도 헤더를 확인해서 검증하고 있는데 옳은 방법인가?
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO missingRequestHeader(MissingRequestHeaderException exception) {
-        return new ExceptionResponseDTO("Requested Header Not Present", "Check API requirements");
-    }
 }

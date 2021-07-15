@@ -2,6 +2,7 @@ package com.simpletodolist.todolist.exception;
 
 import com.simpletodolist.todolist.exception.member.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -31,13 +32,6 @@ public class MemberExceptionHandler {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
-    @ExceptionHandler(InvalidTeamWithdrawException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO invalidTeamWithdraw(InvalidTeamWithdrawException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
-    }
-
     @ExceptionHandler(NotJoinedMemberException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
@@ -45,10 +39,10 @@ public class MemberExceptionHandler {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
-    @ExceptionHandler(LockedMemberException.class)
+    @ExceptionHandler(LockedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
-    public ExceptionResponseDTO lockedMember(LockedMemberException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ExceptionResponseDTO lockedMember(LockedException exception) {
+        return new ExceptionResponseDTO("Locked Account", exception.getMessage());
     }
 }

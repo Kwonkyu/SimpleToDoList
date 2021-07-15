@@ -136,6 +136,26 @@ public class MemberDTO {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    public static class Token {
+        @JsonProperty("id")
+        long id;
+
+        @JsonProperty("userId")
+        String userId;
+
+        @JsonProperty("username")
+        String username;
+
+        public Token(Member member) {
+            this.id = member.getId();
+            this.userId = member.getUserId();
+            this.username = member.getUsername();
+        }
+    }
+
+    @Getter
+    @Setter
     public static class BasicWithTodoLists extends Basic{
         @JsonProperty("todoLists")
         List<TodoListDTO.IDName> todoLists;

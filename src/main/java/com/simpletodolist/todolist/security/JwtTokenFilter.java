@@ -1,13 +1,16 @@
 package com.simpletodolist.todolist.security;
 
-import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.simpletodolist.todolist.exception.ExceptionResponseDTO;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,6 +31,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
     private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
 
 
     private boolean validateAuthorizationHeader(String header) {
@@ -36,40 +40,48 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
+    // https://www.baeldung.com/spring-exclude-filter
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().startsWith("/api/public");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if(!validateAuthorizationHeader(header)) {
-//            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Malformed / Blank Authorization Header Found.");
-            // https://github.com/spring-projects/spring-security/issues/4368
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
+                    "Authorization Header Not Valid", "Please check your request header."));
             return;
         }
 
         Claims claims;
         try {
             claims = jwtTokenUtil.validateBearerJWT(header);
-        } catch (AuthenticationFailedException exception) {
-            try {
-                filterChain.doFilter(request, response);
-            } catch (AccessDeniedException ex) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage());
-            } // maybe handle with filter: https://samtao.tistory.com/48
+        } catch (JwtException exception) {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
+                    "Bad JWT Value", String.format("%s. Please check your authorization header.", exception.getLocalizedMessage())));
             return;
         }
 
         // get user identification from token and set to spring security context.
-        // TODO: this throw exception cannot be handled by exception handlers.
-        // 여기서 NoMemberFoundException이 발생한다는 것은 토큰에 있는 사용자가 실제론 존재하지 않는 상황인 것.
         try {
             UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
+            if(!userDetails.isAccountNonLocked()) throw new LockedException("Account is locked. Please contact account manager.");
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails == null ? List.of() : userDetails.getAuthorities());
+                    userDetails, null, userDetails.getAuthorities());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
             filterChain.doFilter(request, response);
         } catch (NoMemberFoundException e) {
-            response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
+                    e.getError(), e.getMessage()));
         }
     }
 

@@ -5,7 +5,7 @@ import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
 import com.simpletodolist.todolist.exception.team.NotTeamLeaderException;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.todo.NotWriterTodoException;
+import com.simpletodolist.todolist.exception.todo.NotTodoWriterException;
 import com.simpletodolist.todolist.exception.todolist.LockedTodoListException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
 import com.simpletodolist.todolist.exception.todolist.NotTodoListOwnerException;
@@ -51,9 +51,9 @@ public interface AuthorizationService {
      * @param todoId To-do's id.
      * @throws NoMemberFoundException when member with given id not found.
      * @throws NoTodoFoundException when to-do with given id not found.
-     * @throws NotWriterTodoException when to-do is locked and member is not writer.
+     * @throws NotTodoWriterException when to-do is locked and member is not writer.
      */
-    void authorizeTodoWriter(String memberUserId, long todoId) throws NoMemberFoundException, NoTodoFoundException, NotWriterTodoException;
+    void authorizeTodoWriter(String memberUserId, long todoId) throws NoMemberFoundException, NoTodoFoundException, NotTodoWriterException;
 
     /**
      * Check if team contains to-do list.
@@ -116,11 +116,11 @@ public interface AuthorizationService {
      * @throws NoTodoFoundException when to-do with given id not found.
      * @throws NotJoinedTeamException when member is not joined team.
      * @throws LockedTodoListException when to-do list is locked and member is not owner.
-     * @throws NotWriterTodoException when to-do is locked and member is not writer.
+     * @throws NotTodoWriterException when to-do is locked and member is not writer.
      */
     void fullAuthorization(String memberUserId, long teamId, long todoListId, long todoId)
             throws NoMemberFoundException, NoTeamFoundException, NoTodoListFoundException, NoTodoFoundException,
-            NotJoinedTeamException, LockedTodoListException, NotWriterTodoException;
+            NotJoinedTeamException, LockedTodoListException, NotTodoWriterException;
 
 
 }

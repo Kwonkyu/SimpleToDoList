@@ -85,7 +85,7 @@ public class MemberControllerTest {
     public void getUserInfo() throws Exception {
         // request without token
         mockMvc.perform(get("/api/member"))
-                .andExpect(status().isUnauthorized()); // by spring security, token-less request is not authorized.
+                .andExpect(status().isBadRequest()); // by spring security, token-less request is not authorized.
 
         // generate dummy data for documentation.
         MemberDTO.Response newMember = memberTestMaster.createNewMember();
@@ -117,7 +117,7 @@ public class MemberControllerTest {
     public void updateInformation() throws Exception{
         // request without token
         mockMvc.perform(patch("/api/member"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
@@ -156,7 +156,7 @@ public class MemberControllerTest {
     public void deleteUser() throws Exception {
         // request without token
         mockMvc.perform(delete("/api/member"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         MemberDTO.Response newMember = memberTestMaster.createNewMember();
         String requestToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
@@ -187,7 +187,7 @@ public class MemberControllerTest {
 
         // request without token
         mockMvc.perform(get("/api/member/teams"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // normal request.
         MvcResult mvcResult = mockMvc.perform(get("/api/member/teams")
@@ -222,7 +222,7 @@ public class MemberControllerTest {
 
         // request without token
         mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
 
         // try to join already joined team.
@@ -283,7 +283,7 @@ public class MemberControllerTest {
 
         // request without token.
         mockMvc.perform(delete("/api/member/teams/{teamId}", newTeam.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // withdraw from not joined team.
         mockMvc.perform(delete("/api/member/teams/{teamId}", anotherTeam.getId())
