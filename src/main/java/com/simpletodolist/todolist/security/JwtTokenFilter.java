@@ -42,7 +42,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     // https://www.baeldung.com/spring-exclude-filter
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().startsWith("/api/public");
+        // TODO: is it good practice?
+        return request.getRequestURI().startsWith("/api/public")
+                || request.getRequestURI().startsWith("/docs")
+                || request.getRequestURI().equals("/");
     }
 
     @Override
