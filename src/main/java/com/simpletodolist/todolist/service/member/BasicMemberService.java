@@ -5,7 +5,6 @@ import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
-import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
 import com.simpletodolist.todolist.exception.member.LockedMemberException;
@@ -18,9 +17,7 @@ import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,17 +56,13 @@ public class BasicMemberService implements MemberService{
     }
 
     @Override
-    public LoginResponse loginMember(String memberUserId, String rawPassword) throws AuthenticationFailedException {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
+    public LoginResponse loginMember(String memberUserId, String rawPassword) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
-            Member member = (Member) authentication.getPrincipal();
-            if(member.isLocked()) throw new LockedMemberException();
-            return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
-        } catch (BadCredentialsException exception) {
-            throw new AuthenticationFailedException();
-        }
+        Member member = (Member) authentication.getPrincipal();
+        if(member.isLocked()) throw new LockedMemberException();
+        return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
     }
 
     @Override

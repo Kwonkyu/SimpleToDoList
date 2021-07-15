@@ -1,11 +1,11 @@
 package com.simpletodolist.todolist.security;
 
 import com.simpletodolist.todolist.domain.entity.Member;
-import com.simpletodolist.todolist.exception.general.AuthenticationFailedException;
-import com.simpletodolist.todolist.exception.general.AuthorizationFailedException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -49,31 +49,7 @@ public class JwtTokenUtil {
 
 
     public Claims validateBearerJWT(String token) {
-        try {
-            return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token.substring(TokenType.BEARER.name().length()+1)).getBody();
-        } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
-            throw new AuthenticationFailedException("JWT Validation Failed", ex.getLocalizedMessage());
-        }
-    }
-
-
-    public void validateRequestedUserIdWithJwt(String requestedUserId, String token) {
-        validateRequestedUserIdWithJwt(requestedUserId, token, AuthorizationFailedException.DEFAULT_MESSAGE);
-    }
-    /**
-     * Validate if requested user id is equal with authenticated user id.
-     * @param requestedUserId Requested user id.
-     * @param token Authenticated JWT.
-     * @param message AuthorizationFailedException's message when authorization failed.
-     * @throws AuthorizationFailedException when requested user id not matched with authenticated user id.
-     */
-
-    public void validateRequestedUserIdWithJwt(String requestedUserId, String token, String message) throws AuthorizationFailedException {
-        Claims claims = validateBearerJWT(token);
-        String tokenUserId = getUserIdFromClaims(claims);
-        if(!tokenUserId.equals(requestedUserId)) {
-            throw new AuthorizationFailedException(AuthorizationFailedException.DEFAULT_ERROR, message);
-        }
+        return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token.substring(TokenType.BEARER.name().length()+1)).getBody();
     }
 
 

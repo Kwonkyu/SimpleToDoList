@@ -95,7 +95,7 @@ public class TeamTodoListControllerTest {
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist", newTeam.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not exist team's to-do lists.
         mockMvc.perform(get("/api/team/{teamId}/todolist", 123456789)
@@ -142,7 +142,7 @@ public class TeamTodoListControllerTest {
         String todoListName = "todoListName";
 
         // request without token.
-        mockMvc.perform(post("/api/team/{teamId}/todolist", newTeam.getId())).andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/team/{teamId}/todolist", newTeam.getId())).andExpect(status().isBadRequest());
 
         // add to-do list to not exist team.
         mockMvc.perform(post("/api/team/{teamId}/todolist", 123456789L)
@@ -204,7 +204,7 @@ public class TeamTodoListControllerTest {
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // get to-do list of not exist team.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())
@@ -268,7 +268,7 @@ public class TeamTodoListControllerTest {
 
         // request without token.
         mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
 
         String requestContent = objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
@@ -394,7 +394,7 @@ public class TeamTodoListControllerTest {
 
         // request without token.
         mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // delete to-do list of not exist team.
         mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())

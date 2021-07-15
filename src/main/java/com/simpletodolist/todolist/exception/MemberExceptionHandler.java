@@ -31,13 +31,6 @@ public class MemberExceptionHandler {
         return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
     }
 
-    @ExceptionHandler(InvalidTeamWithdrawException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO invalidTeamWithdraw(InvalidTeamWithdrawException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
-    }
-
     @ExceptionHandler(NotJoinedMemberException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody

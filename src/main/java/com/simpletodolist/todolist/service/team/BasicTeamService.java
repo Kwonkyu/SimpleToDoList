@@ -8,7 +8,6 @@ import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.TodoList;
 import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
-import com.simpletodolist.todolist.exception.member.InvalidTeamWithdrawException;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.member.NotJoinedMemberException;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
@@ -164,7 +163,7 @@ public class BasicTeamService implements TeamService{
     public List<MemberDTO.Basic> withdrawMember(long teamId, String memberUserId) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
         Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new InvalidTeamWithdrawException();
+        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedMemberException();
         memberTeamAssocRepository.deleteByTeamAndMember(team, member);
         memberTeamAssocRepository.flush(); // TODO: note here. Why it doesn't work without flush? https://github.com/spring-projects/spring-data-jpa/issues/1100
         return team.getMembers().stream().map(MemberDTO.Basic::new).collect(Collectors.toList());

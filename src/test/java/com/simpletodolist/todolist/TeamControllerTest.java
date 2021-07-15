@@ -320,7 +320,7 @@ public class TeamControllerTest {
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}", newTeam.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(get("/api/team/{teamId}", 123456789)
@@ -353,7 +353,7 @@ public class TeamControllerTest {
         String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
 
         // request without token.
-        mockMvc.perform(post("/api/team")).andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/team")).andExpect(status().isBadRequest());
 
         // request without mandatory values.
         mockMvc.perform(post("/api/team")
@@ -398,7 +398,7 @@ public class TeamControllerTest {
         String updatedTeamName = "updatedTeam";
 
         // request without token.
-        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())).andExpect(status().isBadRequest());
 
         // request without mandatory values.
         mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
@@ -454,7 +454,7 @@ public class TeamControllerTest {
         TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
 
         // request without token.
-        mockMvc.perform(delete("/api/team/{teamId}", newTeam.getId())).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/team/{teamId}", newTeam.getId())).andExpect(status().isBadRequest());
 
         // request without authorization.
         mockMvc.perform(delete("/api/team/{teamId}", newTeam.getId())

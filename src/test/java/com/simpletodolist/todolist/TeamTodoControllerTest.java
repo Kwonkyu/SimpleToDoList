@@ -90,7 +90,7 @@ public class TeamTodoControllerTest {
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}/todo", newTeam.getId(), newTodoList.getTodoListId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}/todo", 123456789, newTodoList.getTodoListId())
@@ -139,7 +139,7 @@ public class TeamTodoControllerTest {
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", 123456789, newTodoList.getTodoListId(), newTodo.getId())
@@ -203,7 +203,7 @@ public class TeamTodoControllerTest {
 
         // request without token.
         mockMvc.perform(post("/api/team/{teamId}/todolist/{todoListId}/todo", newTeam.getId(), newTodoList.getTodoListId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(post("/api/team/{teamId}/todolist/{todoListId}/todo", 123456789, newTodoList.getTodoListId())
@@ -284,7 +284,7 @@ public class TeamTodoControllerTest {
 
         // request without token.
         mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", 123456789, newTodoList.getTodoListId(), newTodo.getId())
@@ -429,7 +429,7 @@ public class TeamTodoControllerTest {
 
         // request without token.
         mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", newTeam.getId(), newTodoList.getTodoListId(), newTodo.getId()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         // request not existing team.
         mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}/todo/{todoId}", 123456789, newTodoList.getTodoListId(), newTodo.getId())

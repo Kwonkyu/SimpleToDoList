@@ -45,7 +45,6 @@ public class MemberController {
     public ResponseEntity<Basic> updateMemberInfo(@Valid @RequestBody MemberDTO.UpdateRequest requestDTO,
                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.updateMember(userIdFromClaims, requestDTO.getField(), requestDTO.getValue()));
     }
 
@@ -54,7 +53,6 @@ public class MemberController {
     @ResponseStatus(HttpStatus.OK)
     public void withdrawMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         memberService.withdrawMember(userIdFromClaims);
     }
 
@@ -62,7 +60,6 @@ public class MemberController {
     @GetMapping("/teams")
     public ResponseEntity<List<TeamDTO.Basic>> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        jwtTokenUtil.validateRequestedUserIdWithJwt(userIdFromClaims, jwt, messageSource.getMessage("unauthorized.member", null, Locale.KOREAN));
         return ResponseEntity.ok(memberService.getTeamsOfMember(userIdFromClaims));
     }
 
