@@ -78,7 +78,7 @@ public class Member implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return !locked;
+        return true;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class Member implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !locked;
+        return true;
     }
 
     @Override

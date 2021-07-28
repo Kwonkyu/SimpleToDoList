@@ -61,7 +61,6 @@ public class BasicMemberService implements MemberService{
                 new UsernamePasswordAuthenticationToken(memberUserId, rawPassword));
 
         Member member = (Member) authentication.getPrincipal();
-        if(member.isLocked()) throw new LockedException("Account is locked. Please contact account manager.");
         return new LoginResponse(member, jwtTokenUtil.generateAccessToken(member.getUserId()));
     }
 

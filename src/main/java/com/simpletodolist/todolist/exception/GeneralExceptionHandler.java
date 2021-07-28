@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -20,6 +21,12 @@ public class GeneralExceptionHandler {
         return new ExceptionResponseDTO("Authentication Failed", exception.getMessage());
     }
 
+    @ExceptionHandler(LockedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public ExceptionResponseDTO locked(LockedException exception) {
+        return new ExceptionResponseDTO("Locked Account", "Account is locked. Please contact account manager.");
+    }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
