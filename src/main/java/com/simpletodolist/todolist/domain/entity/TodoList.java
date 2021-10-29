@@ -1,6 +1,7 @@
 package com.simpletodolist.todolist.domain.entity;
 
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -9,43 +10,46 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class TodoList {
-
-    public static final String NO_TODOLIST_FOUND = "No TodoList Found";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TODOLIST_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
-    @Column(name = "NAME", nullable = false, length = 64)
+    @Column(name = "name", nullable = false, length = 64)
     private String name;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @JoinColumn(name = "team_id")
     private Team team;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id")
     private Member owner;
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked = false;
 
     @OneToMany(mappedBy = "todoList")
     private final List<Todo> todos = new ArrayList<>();
 
 
-    public void changeName(String name){
+    @Builder
+    public TodoList(String name, Team team, Member owner, boolean locked) {
+        changeName(name);
+        changeTeam(team);
+        changeOwner(owner);
+        this.locked = locked;
+    }
+
+    public void changeName(@NonNull String name){
+        if(name.isBlank()) throw new IllegalArgumentException("Changed name cannot be blank.");
         this.name = name;
     }
 
-    public void changeOwner(Member member) {
+    public void changeTeam(@NonNull Team team) { this.team = team; }
+
+    public void changeOwner(@NonNull Member member) {
         owner = member;
     }
 

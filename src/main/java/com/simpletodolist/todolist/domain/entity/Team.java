@@ -1,7 +1,7 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,26 +11,17 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class Team {
-
-    public static final String NO_TEAM_FOUND = "No Team Found.";
-    public static final String DUPLICATED_TEAM_FOUND = "Already Existing Team.";
-    public static final String DUPLICATED_MEMBER_JOINED = "Already Joined Member.";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TEAM_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
     @OneToOne
-    @JoinColumn(name = "LEADER_ID")
+    @JoinColumn(name = "leader_id")
     private Member leader;
 
-    @NonNull
-    @Column(name = "NAME", nullable = false, length = 64)
+    @Column(name = "name", nullable = false, length = 64)
     private String teamName;
 
     @OneToMany(mappedBy = "team")
@@ -39,23 +30,27 @@ public class Team {
     @OneToMany(mappedBy = "team")
     private final List<TodoList> todoLists = new ArrayList<>();
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked = false;
 
+
+    @Builder
+    public Team(Member leader, String teamName, boolean locked) {
+        this.leader = leader;
+        changeTeamName(teamName);
+        this.locked = locked;
+    }
 
     public List<Member> getMembers() {
         return members.stream().map(MemberTeamAssociation::getMember).collect(Collectors.toList());
     }
 
-    public List<MemberDTO.Response> getMembersDTO(){
-        return members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO.Response::new).collect(Collectors.toList());
-    }
-
-    public void changeTeamName(String teamName) {
+    public void changeTeamName(@NonNull String teamName) {
+        if(teamName.isBlank()) throw new IllegalArgumentException("Changed team name cannot be blank.");
         this.teamName = teamName;
     }
 
-    public void changeLeader(Member member) {
+    public void changeLeader(@NonNull Member member) {
         leader = member;
     }
 
