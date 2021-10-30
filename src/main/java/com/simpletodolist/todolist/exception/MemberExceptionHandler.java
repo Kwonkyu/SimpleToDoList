@@ -1,48 +1,40 @@
 package com.simpletodolist.todolist.exception;
 
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.member.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class MemberExceptionHandler {
-
     @ExceptionHandler(NoMemberFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ResponseBody
-    public ExceptionResponseDTO noMemberFound(NoMemberFoundException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> noMemberFound(NoMemberFoundException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedMemberException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO duplicatedMember(DuplicatedMemberException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> duplicatedMember(DuplicatedMemberException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 
     @ExceptionHandler(DuplicatedTeamJoinException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ExceptionResponseDTO duplicatedTeamJoin(DuplicatedTeamJoinException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> duplicatedTeamJoin(DuplicatedTeamJoinException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 
-    @ExceptionHandler(NotJoinedMemberException.class)
+    @ExceptionHandler(NotJoinedTeamException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ResponseBody
-    public ExceptionResponseDTO notJoinedMember(NotJoinedMemberException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> notJoinedMember(NotJoinedTeamException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 
     @ExceptionHandler(LockedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ResponseBody
-    public ExceptionResponseDTO lockedMember(LockedException exception) {
-        return new ExceptionResponseDTO("Locked Account", exception.getMessage());
+    public ApiResponse<Object> lockedMember(LockedException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 }
