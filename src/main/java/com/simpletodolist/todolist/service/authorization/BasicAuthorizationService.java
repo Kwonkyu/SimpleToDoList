@@ -4,111 +4,74 @@ import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import com.simpletodolist.todolist.domain.entity.TodoList;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
-import com.simpletodolist.todolist.exception.team.NotJoinedTeamException;
-import com.simpletodolist.todolist.exception.team.NotTeamLeaderException;
+import com.simpletodolist.todolist.exception.member.NotJoinedTeamException;
+import com.simpletodolist.todolist.exception.team.TeamAccessException;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.todo.NotTodoWriterException;
+import com.simpletodolist.todolist.exception.todo.TodoAccessException;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.exception.todolist.NotTodoListOwnerException;
-import com.simpletodolist.todolist.repository.*;
+import com.simpletodolist.todolist.exception.todolist.TodoListAccessException;
+import com.simpletodolist.todolist.util.EntityFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class BasicAuthorizationService implements AuthorizationService {
+public class BasicAuthorizationService {
+    private final EntityFinder entityFinder;
 
-    private final MemberRepository memberRepository;
-    private final TeamRepository teamRepository;
-    private final TodoListRepository todoListRepository;
-    private final TodoRepository todoRepository;
-    private final MemberTeamAssocRepository memberTeamAssocRepository;
-
-
-    private boolean validateTeamLeader(String memberUserId, long teamId) {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        return validateTeamLeader(memberUserId, team);
+    public void authorizeTeamLeader(long teamId, String username) {
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
+        if(!team.getLeader().equals(member)) {
+            throw new TeamAccessException(team);
+        }
     }
 
-    private boolean validateTeamLeader(String memberUserId, Team team) {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        return validateTeamLeader(member, team);
+    public void authorizeTeamMember(long teamId, String username) {
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
+        authorizeTeamMember(team, member);
     }
 
-    private boolean validateTeamLeader(Member member, Team team) {
-        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
-        return team.getLeader().equals(member);
+    public void authorizeTeamMember(Team team, Member member) {
+        if(!team.isMemberIncluded(member)) {
+            throw new NotJoinedTeamException(member, team);
+        }
     }
 
-    @Override
-    public void authorizeTeamMember(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, NotJoinedTeamException {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        // TODO: 연관관계 엔티티를 찾나 repository에서 찾나 쿼리는 동일한가?
-        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
+    public void authorizeTodoList(long teamId, String username, long todoListId) {
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
+        authorizeTeamMember(team, member);
+
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if (!team.getTodoLists().contains(todoList)) {
+            throw new NoTodoListFoundException(todoListId);
+        }
     }
 
-    @Override
-    public void authorizeTeamLeader(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, NotTeamLeaderException {
-        if(!validateTeamLeader(memberUserId, teamId)) throw new NotTeamLeaderException();
+    public void authorizeTodoListUpdate(long teamId, String username, long todoListId) {
+        authorizeTodoList(teamId, username, todoListId);
+
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if(todoList.isLocked() && !todoList.getOwner().getUsername().equals(username)) {
+            throw new TodoListAccessException(todoList);
+        }
     }
 
-    @Override
-    public void authorizeTodoListOwner(String memberUserId, long todoListId) throws NoMemberFoundException, NoTodoListFoundException, NotTodoListOwnerException {
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if (!todoList.getOwner().equals(member)) throw new NotTodoListOwnerException();
+    public void authorizeTodo(long teamId, String username, long todoListId, long todoId) {
+        authorizeTodoList(teamId, username, todoListId);
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if(todoList.getTodos().stream().noneMatch(todo -> todo.getId() == todoId)) {
+            throw new NoTodoFoundException(todoId);
+        }
     }
 
-    @Override
-    public void authorizeTodoWriter(String memberUserId, long todoId) throws NoMemberFoundException, NoTodoFoundException, NotTodoWriterException {
-        Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        if (!todo.getWriter().equals(member)) throw new NotTodoWriterException();
-    }
-
-    @Override
-    public void validateTeamContainsTodoList(long teamId, long todoListId) throws NoTeamFoundException, NoTodoListFoundException {
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        if(!todoList.getTeam().equals(team)) throw new NoTodoListFoundException(); // not in team 같은 정보를 노출할 필요는 없을듯.
-    }
-
-    @Override
-    public void validateTodoListContainsTodo(long todoListId, long todoId) throws NoTodoListFoundException, NoTodoFoundException {
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
-        Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
-        if(!todo.getTodoList().equals(todoList)) throw new NoTodoFoundException();
-    }
-
-    @Override
-    public void fullAuthorization(String memberUserId, long teamId) throws NoMemberFoundException, NoTeamFoundException, NotJoinedTeamException, NotTeamLeaderException {
-        if(!validateTeamLeader(memberUserId, teamId)) throw new NotTeamLeaderException();
-    }
-
-    @Override
-    public void fullAuthorization(String memberUserId, long teamId, long todoListId)
-            throws NoMemberFoundException, NoTeamFoundException, NoTodoListFoundException, NotJoinedTeamException, NotTodoListOwnerException {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
-
-        TodoList todoList = todoListRepository.findByIdAndTeam(todoListId, team).orElseThrow(NoTodoListFoundException::new);
-        if(!validateTeamLeader(member, team) && !todoList.getOwner().equals(member)) throw new NotTodoListOwnerException();
-    }
-
-    @Override
-    public void fullAuthorization(String memberUserId, long teamId, long todoListId, long todoId)
-            throws NoMemberFoundException, NoTeamFoundException, NoTodoListFoundException, NoTodoFoundException,
-            NotJoinedTeamException, NotTodoWriterException {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        if(!memberTeamAssocRepository.existsByTeamAndMember(team, member)) throw new NotJoinedTeamException();
-
-        TodoList todoList = todoListRepository.findByIdAndTeam(todoListId, team).orElseThrow(NoTodoListFoundException::new);
-        Todo todo = todoRepository.findByIdAndTodoList(todoId, todoList).orElseThrow(NoTodoFoundException::new);
-        if(!validateTeamLeader(member, team) && !todo.getWriter().equals(member)) throw new NotTodoWriterException();
+    public void authorizeTodoUpdate(long teamId, String username, long todoListId, long todoId) {
+        authorizeTodo(teamId, username, todoListId, todoId);
+        Todo todo = entityFinder.findTodoById(todoId);
+        if(todo.isLocked() && !todo.getWriter().getUsername().equals(username)) {
+            throw new TodoAccessException(entityFinder.findMemberByUsername(username), todo);
+        }
     }
 }

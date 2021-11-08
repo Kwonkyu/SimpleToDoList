@@ -6,7 +6,6 @@ import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.TodoList;
 import com.simpletodolist.todolist.exception.team.TeamAccessException;
-import com.simpletodolist.todolist.exception.todolist.TodoListAccessException;
 import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
 import com.simpletodolist.todolist.util.EntityFinder;
@@ -54,32 +53,16 @@ public class BasicTodoListService {
         return new TodoListDTO(todoListRepository.save(todoList));
     }
 
-    private void authorizeTodoListOwner(TodoList todoList, Member member) {
-        if (!todoList.getOwner().equals(member)) {
-            throw new TodoListAccessException(todoList);
-        }
-    }
-
-    public TodoListDTO updateTodoList(long todoListId, String username, TodoListInformationRequest request) {
+    public TodoListDTO updateTodoList(long todoListId, TodoListInformationRequest request) {
         TodoList todoList = entityFinder.findTodoListById(todoListId);
-        if (todoList.isLocked()) {
-            Member member = entityFinder.findMemberByUsername(username);
-            authorizeTodoListOwner(todoList, member);
-        }
-
         todoList.changeName(request.getTodoListName());
         if (request.isLocked()) todoList.lock();
         else todoList.unlock();
         return new TodoListDTO(todoList);
     }
 
-    public void deleteTodoList(long todoListId, String username) {
+    public void deleteTodoList(long todoListId) {
         TodoList todoList = entityFinder.findTodoListById(todoListId);
-        if (todoList.isLocked()) {
-            Member member = entityFinder.findMemberByUsername(username);
-            authorizeTodoListOwner(todoList, member);
-        }
-
         todoList.getTodos().forEach(todoRepository::delete);
         todoListRepository.delete(todoList);
     }

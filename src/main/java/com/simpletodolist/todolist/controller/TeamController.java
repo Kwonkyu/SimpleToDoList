@@ -35,16 +35,16 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,
                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTeamMember(teamId, username);
         return ResponseEntity.ok(teamService.readTeam(teamId));
     }
 
     @PostMapping
     public ResponseEntity<TeamDTO> registerTeam(@Valid @RequestBody TeamInformationRequest request,
                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        TeamDTO team = teamService.createTeam(userIdFromClaims, request);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        TeamDTO team = teamService.createTeam(username, request);
         return ResponseEntity.created(URIGenerator.createTeam(team.getId())).body(team);
     }
 
@@ -53,7 +53,7 @@ public class TeamController {
                                               @Valid @RequestBody TeamInformationRequest request,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamLeader(username, teamId);
+        authorizationService.authorizeTeamLeader(teamId, username);
         return ResponseEntity.ok(teamService.updateTeam(teamId, request));
     }
 
@@ -62,7 +62,7 @@ public class TeamController {
     public void removeTeam(@PathVariable(name = "teamId") long teamId,
                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamLeader(username, teamId);
+        authorizationService.authorizeTeamLeader(teamId, username);
         teamService.deleteTeam(teamId);
     }
 }

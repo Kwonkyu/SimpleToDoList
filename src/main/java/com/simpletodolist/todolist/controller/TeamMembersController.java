@@ -26,7 +26,7 @@ public class TeamMembersController {
     public ResponseEntity<List<MemberDTO>> getTeamMembers(@PathVariable(name = "teamId") long teamId,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamMember(username, teamId);
+        authorizationService.authorizeTeamMember(teamId, username);
         return ResponseEntity.ok(teamService.getMembers(teamId));
     }
 
@@ -36,7 +36,7 @@ public class TeamMembersController {
                                                              @PathVariable(name = "userId") String userId,
                                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamLeader(username, teamId);
+        authorizationService.authorizeTeamLeader(teamId, username);
         return ResponseEntity.created(URIGenerator.inviteMemberToteam(userId, teamId))
                 .body(teamService.joinMember(teamId, userId));
     }
@@ -45,8 +45,8 @@ public class TeamMembersController {
     public ResponseEntity<List<MemberDTO>> withdrawMember(@PathVariable(name = "teamId") long teamId,
                                                           @PathVariable(name = "userId") String userId,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTeamLeader(teamId, username);
         return ResponseEntity.ok(teamService.withdrawMember(teamId, userId));
     }
 
@@ -54,8 +54,8 @@ public class TeamMembersController {
     public ResponseEntity<TeamDTO> changeTeamLeaderStatus(@PathVariable(name = "teamId") long teamId,
                                                           @PathVariable(name = "memberUserId") String memberUserId,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTeamLeader(teamId, username);
         return ResponseEntity.ok(teamService.changeLeader(teamId, memberUserId));
     }
 }

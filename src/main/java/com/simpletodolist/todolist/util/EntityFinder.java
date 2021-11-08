@@ -12,13 +12,13 @@ import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EntityFinder {
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
