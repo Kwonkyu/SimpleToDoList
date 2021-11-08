@@ -4,11 +4,11 @@ import lombok.*;
 import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class Todo {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -21,11 +21,11 @@ public class Todo {
     private String content;
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member writer;
 
     @ManyToOne
-    @JoinColumn(name = "todolist_id")
+    @JoinColumn(name = "todolist_id", referencedColumnName = "id")
     private TodoList todoList;
 
     @Column(name = "locked")
@@ -57,9 +57,20 @@ public class Todo {
 
     public void changeWriter(@NonNull Member writer) { this.writer = writer; }
 
-    public void toggleLock() { locked = !locked; }
-
     public void lock() { locked = true; }
 
     public void unlock() { locked = false; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Todo todo = (Todo) o;
+        return id == todo.id && locked == todo.locked && title.equals(todo.title) && content.equals(todo.content) && writer.equals(todo.writer) && todoList.equals(todo.todoList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, content, writer, todoList, locked);
+    }
 }

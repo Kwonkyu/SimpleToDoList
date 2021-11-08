@@ -1,9 +1,10 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.controller.bind.todo.TodoInformationRequest;
 import com.simpletodolist.todolist.domain.bind.TodoDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
-import com.simpletodolist.todolist.service.authorization.AuthorizationService;
-import com.simpletodolist.todolist.service.todo.TodoService;
+import com.simpletodolist.todolist.service.authorization.BasicAuthorizationService;
+import com.simpletodolist.todolist.service.todo.BasicTodoService;
 import com.simpletodolist.todolist.util.URIGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -13,79 +14,56 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-import static com.simpletodolist.todolist.domain.bind.TodoDTO.Response;
 
 @RestController
 @RequestMapping("/api/team/{teamId}/todolist/{todoListId}")
 @RequiredArgsConstructor
 public class TeamTodoController {
-
-    private final TodoService todoService;
-    private final AuthorizationService authorizationService;
+    private final BasicTodoService todoService;
+    private final BasicAuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
 
 
-    private void authorizeUntilTodoList(String memberUserId, long teamId, long todoListId) {
-        authorizationService.authorizeTeamMember(memberUserId, teamId);
-        authorizationService.validateTeamContainsTodoList(teamId, todoListId);
-    }
-
     @GetMapping("/todo")
-    public ResponseEntity<List<Response>> readTodos(@PathVariable(name = "teamId") long teamId,
-                                                    @PathVariable(name = "todoListId") long todoListId,
-                                                    @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizeUntilTodoList(memberUserId, teamId, todoListId);
+    public ResponseEntity<List<TodoDTO>> readTodos(@PathVariable(name = "teamId") long teamId,
+                                                   @PathVariable(name = "todoListId") long todoListId,
+                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTodoList(teamId, username, todoListId);
         return ResponseEntity.ok(todoService.readTodosOfTodoList(todoListId));
     }
 
-
     @GetMapping("/todo/{todoId}")
-    public ResponseEntity<Response> readTodo(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TodoDTO> readTodo(@PathVariable(name = "teamId") long teamId,
                                             @PathVariable(name = "todoListId") long todoListId,
                                             @PathVariable(name = "todoId") long todoId,
                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizeUntilTodoList(memberUserId, teamId, todoListId);
-        authorizationService.validateTodoListContainsTodo(todoListId, todoId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTodo(teamId, username, todoListId, todoId);
         return ResponseEntity.ok(todoService.readTodo(todoId));
     }
 
-
     @PostMapping("/todo")
-    public ResponseEntity<Response> createTodo(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TodoDTO> createTodo(@PathVariable(name = "teamId") long teamId,
                                               @PathVariable(name = "todoListId") long todoListId,
-                                              @RequestBody @Valid TodoDTO.Create todoDTO,
+                                              @RequestBody @Valid TodoInformationRequest request,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizeUntilTodoList(memberUserId, teamId, todoListId);
-        Response todo = todoService.createTodo(memberUserId, todoListId, todoDTO);
-        return ResponseEntity.created(URIGenerator.createTodo(teamId, todoListId, todo.getId())).body(todo);
-    }
-
-    private void authorizeTodo(String memberUserId, long teamId, long todoListId, long todoId) {
-        if(todoService.isTodoLocked(todoId)) {
-            authorizationService.fullAuthorization(memberUserId, teamId, todoListId, todoId);
-        } // TODO: 함수형 인터페이스로.. 필요한 인증을 조합해서 전달하는 방식으로 구현할 수 있지 않을까? 아니면 인증 레벨을 분리하거나.
-        else {
-            authorizeUntilTodoList(memberUserId, teamId, todoListId);
-            authorizationService.validateTodoListContainsTodo(todoListId, todoId);
-        }
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTodoList(teamId, username, todoListId);
+        TodoDTO todo = todoService.createTodo(username, todoListId, request);
+        return ResponseEntity.created(URIGenerator.createTodo(teamId, todoListId, todo.getId()))
+                .body(todo);
     }
 
     @PatchMapping("/todo/{todoId}")
-    public ResponseEntity<Response> updateTodo(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TodoDTO> updateTodo(@PathVariable(name = "teamId") long teamId,
                                               @PathVariable(name = "todoListId") long todoListId,
                                               @PathVariable(name = "todoId") long todoId,
-                                              @Valid @RequestBody TodoDTO.Update dto,
+                                              @Valid @RequestBody TodoInformationRequest request,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        if(dto.getField().equals(TodoDTO.Update.UpdatableTodoInformation.LOCKED)) {
-            authorizationService.fullAuthorization(memberUserId, teamId, todoListId, todoId);
-        } else {
-            authorizeTodo(memberUserId, teamId, todoListId, todoId);
-        }
-        return ResponseEntity.ok(todoService.updateTodo(todoId, dto.getField(), dto.getValue()));
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTodoUpdate(teamId, username, todoListId, todoId);
+        return ResponseEntity.ok(todoService.updateTodo(todoId, request));
     }
 
     @DeleteMapping("/todo/{todoId}")
@@ -93,8 +71,8 @@ public class TeamTodoController {
                            @PathVariable(name = "todoListId") long todoListId,
                            @PathVariable(name = "todoId") long todoId,
                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        String memberUserId = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizeTodo(memberUserId, teamId, todoListId, todoId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTodoUpdate(teamId, username, todoListId, todoId);
         todoService.deleteTodo(todoId);
     }
 }
