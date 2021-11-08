@@ -1,8 +1,11 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.controller.bind.team.TeamInformationRequest;
+import com.simpletodolist.todolist.controller.bind.team.TeamSearchRequest;
+import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
-import com.simpletodolist.todolist.service.authorization.AuthorizationService;
-import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.service.authorization.BasicAuthorizationService;
+import com.simpletodolist.todolist.service.team.BasicTeamService;
 import com.simpletodolist.todolist.util.URIGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -13,59 +16,53 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-import static com.simpletodolist.todolist.domain.bind.TeamDTO.*;
-
 @RestController
 @RequestMapping("/api/team")
 @RequiredArgsConstructor
 public class TeamController {
-
-    private final TeamService teamService;
-    private final AuthorizationService authorizationService;
+    private final BasicTeamService teamService;
+    private final BasicAuthorizationService authorizationService;
     private final JwtTokenUtil jwtTokenUtil;
 
 
     @GetMapping
-    public ResponseEntity<List<BasicWithJoined>> searchTeams(@Valid @RequestBody SearchRequest request,
-                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        // TODO: jwt를 계속 파싱하는 것도 번거로운데 필터같은걸로 파싱해서 메서드로 전달해줄 수 있나?
-        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        return ResponseEntity.ok(teamService.searchTeams(request.getSearchTeamField(), request.getSearchValue(), userIdFromClaims, request.isIncludeJoined()));
+    public ResponseEntity<List<TeamDTO>> searchTeams(@Valid @RequestBody TeamSearchRequest request,
+                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        return ResponseEntity.ok(teamService.searchTeams(request, username));
     }
 
     @GetMapping("/{teamId}")
-    public ResponseEntity<Response> getTeamDetails(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,
                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
+        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamMember(userIdFromClaims, teamId);
-        return ResponseEntity.ok(teamService.getTeamDetails(teamId));
+        return ResponseEntity.ok(teamService.readTeam(teamId));
     }
 
     @PostMapping
-    public ResponseEntity<Response> registerTeam(@Valid @RequestBody RegisterRequest teamDTO,
+    public ResponseEntity<TeamDTO> registerTeam(@Valid @RequestBody TeamInformationRequest request,
                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        Response team = teamService.createTeam(userIdFromClaims, teamDTO);
+        String userIdFromClaims = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        TeamDTO team = teamService.createTeam(userIdFromClaims, request);
         return ResponseEntity.created(URIGenerator.createTeam(team.getId())).body(team);
     }
 
     @PatchMapping("/{teamId}")
-    public ResponseEntity<Basic> updateTeam(@PathVariable(name = "teamId") long teamId,
-                                              @Valid @RequestBody UpdateRequest dto,
+    public ResponseEntity<TeamDTO> updateTeam(@PathVariable(name = "teamId") long teamId,
+                                              @Valid @RequestBody TeamInformationRequest request,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
-        return ResponseEntity.ok(teamService.updateTeam(teamId, dto.getField(), dto.getValue()));
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTeamLeader(username, teamId);
+        return ResponseEntity.ok(teamService.updateTeam(teamId, request));
     }
 
     @DeleteMapping("/{teamId}")
     @ResponseStatus(HttpStatus.OK)
     public void removeTeam(@PathVariable(name = "teamId") long teamId,
                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
-        String userIdFromClaims = jwtTokenUtil.getUserIdFromClaims(jwtTokenUtil.validateBearerJWT(jwt));
-        authorizationService.authorizeTeamLeader(userIdFromClaims, teamId);
+        String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
+        authorizationService.authorizeTeamLeader(username, teamId);
         teamService.deleteTeam(teamId);
     }
-
-
 }
