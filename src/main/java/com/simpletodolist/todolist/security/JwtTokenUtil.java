@@ -19,66 +19,47 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenUtil {
-
     private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
 
-
     @Value("${JWT_SECRET}")
-    private String JWT_SECRET;
-    private String JWT_ISSUER = "SimpleTodoList";
+    private String jwtSecret;
 
     private enum TokenType {
         BEARER
     }
 
 
-    public String generateAccessToken(String memberUserId) {
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
+    public String generateAccessToken(String username) throws JsonProcessingException {
+        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
         return generateAccessToken(member);
     }
 
-    public String generateAccessToken(Member member) {
-        String token = "";
-        try {
-            token = objectMapper.writeValueAsString(new MemberDTO.Token(member));
-        } catch (JsonProcessingException exception) {
-            token = String.format(
-                    "{\"id\":%d, \"userId\":\"%s\", \"username\":\"%s\"}",
-                    member.getId(), member.getUserId(), member.getUsername());
-        }
-
+    public String generateAccessToken(Member member) throws JsonProcessingException {
+        String jwtIssuer = "SimpleTodoList";
         return Jwts.builder()
-                // Store authenticated member's user id, username to JWT.
-                .setSubject(token)
-                // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
-                .setIssuer(JWT_ISSUER)
-                .setIssuedAt(new Date())
-                // Expiration date of generated JWT is 1 day.
-                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
-                // Signing algorithm is HS256.
-                .signWith(SignatureAlgorithm.HS256, JWT_SECRET)
+                .setSubject(objectMapper.writeValueAsString(new MemberDTO(member))) // Store authenticated member's user id, username to JWT.
+                .setIssuer(jwtIssuer) // Made by JWT_ISSUER, which is "SimpleTodoList" at now.
+                .setIssuedAt(new Date()) // Issued at today.
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // Expiration date of generated JWT is 1 day.
+                .signWith(SignatureAlgorithm.HS256, jwtSecret) // Signing algorithm is HS256.
                 .compact(); // build JWT.
     }
 
-
-    public Claims validateBearerJWT(String token) {
-        return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token.substring(TokenType.BEARER.name().length()+1)).getBody();
+    public Claims parseBearerJWTSubject(String token) {
+        return Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token.substring(TokenType.BEARER.name().length()+1))
+                .getBody();
     }
 
-
-    public MemberDTO.Token getUserFromClaims(Claims claims) {
+    private MemberDTO getUser(Claims claims) {
         try {
-            return objectMapper.readValue(claims.getSubject(), MemberDTO.Token.class);
+            return objectMapper.readValue(claims.getSubject(), MemberDTO.class);
         } catch (JsonProcessingException exception) {
             throw new JwtException("JWT subject is malformed.");
         }
     }
 
-    public long getIdFromClaims(Claims claims) { return getUserFromClaims(claims).getId(); }
-
-    public String getUserIdFromClaims(Claims claims) { return getUserFromClaims(claims).getUserId(); }
-
-    public String getUsernameFromClaims(Claims claims) { return getUserFromClaims(claims).getUsername(); }
-
+    public String getUsername(Claims claims) { return getUser(claims).getUsername(); }
 }
