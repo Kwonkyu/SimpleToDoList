@@ -5,14 +5,11 @@ import com.simpletodolist.todolist.controller.bind.team.TeamSearchRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
-import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import com.simpletodolist.todolist.repository.MemberTeamAssocRepository;
 import com.simpletodolist.todolist.repository.TeamRepository;
 import com.simpletodolist.todolist.repository.TodoListRepository;
+import com.simpletodolist.todolist.util.EntityFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,16 +25,12 @@ public class BasicTeamService {
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
     private final TodoListRepository todoListRepository;
-    private final MemberTeamAssocRepository memberTeamAssocRepository;
+    private final EntityFinder entityFinder;
 
-
-    private Team findTeamById(long teamId) {
-        return teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-    }
 
     @Transactional(readOnly = true)
     public TeamDTO readTeam(long teamId) {
-        return new TeamDTO(findTeamById(teamId));
+        return new TeamDTO(entityFinder.findTeamById(teamId));
     }
 
     @Transactional(readOnly = true)
@@ -45,8 +38,7 @@ public class BasicTeamService {
         List<Team> result;
         switch (request.getSearchTeamField()) {
             case LEADER:
-                Member leader = memberRepository.findByUsername(request.getSearchValue()).orElseThrow(() ->
-                        new NoMemberFoundException(request.getSearchValue()));
+                Member leader = entityFinder.findMemberByUsername(request.getSearchValue());
                 result = teamRepository.findAllByLeader(leader);
                 break;
 
@@ -60,30 +52,34 @@ public class BasicTeamService {
 
         Stream<Team> stream = result.stream();
         if(request.isIncludeJoined()) {
-            return stream.map(TeamDTO::new).collect(Collectors.toList());
+            return stream
+                    .map(TeamDTO::new)
+                    .collect(Collectors.toList());
         } else {
-            Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
-            return stream.filter(team -> !team.getMembersReadOnly().contains(member)).map(TeamDTO::new).collect(Collectors.toList());
+            Member member = entityFinder.findMemberByUsername(username);
+            return stream
+                    .filter(team -> !team.getMembersReadOnly().contains(member))
+                    .map(TeamDTO::new)
+                    .collect(Collectors.toList());
         }
     }
 
     @Transactional(readOnly = true)
     public List<MemberDTO> getMembers(long teamId) {
-        return findTeamById(teamId).getMembersReadOnly().stream()
+        return entityFinder.findTeamById(teamId).getMembersReadOnly().stream()
                 .map(MemberDTO::new)
                 .collect(Collectors.toList());
     }
 
     public TeamDTO createTeam(String username, TeamInformationRequest request) {
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Member member = entityFinder.findMemberByUsername(username);
         Team team = new Team(member, request.getTeamName(), false);
-        teamRepository.save(team);
-        memberTeamAssocRepository.save(new MemberTeamAssociation(member, team));
-        return new TeamDTO(team);
+        team.addMember(member);
+        return new TeamDTO(teamRepository.save(team));
     }
 
     public TeamDTO updateTeam(long teamId, TeamInformationRequest request) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
+        Team team = entityFinder.findTeamById(teamId);
         team.changeTeamName(request.getTeamName());
         if (request.isLocked()) {
             team.lock();
@@ -94,15 +90,15 @@ public class BasicTeamService {
     }
 
     public void deleteTeam(long teamId) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
+        Team team = entityFinder.findTeamById(teamId);
         team.getMembersReadOnly().forEach(memberRepository::delete);
         team.getTodoLists().forEach(todoListRepository::delete);
         teamRepository.delete(team);
     }
 
     public List<MemberDTO> joinMember(long teamId, String username) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
         team.addMember(member);
         return team.getMembersReadOnly().stream()
                 .map(MemberDTO::new)
@@ -110,15 +106,15 @@ public class BasicTeamService {
     }
 
     public List<MemberDTO> withdrawMember(long teamId, String username) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
         team.removeMember(member); // 당연한 거 아냐? 세션에 남아있는걸.
         return team.getMembersReadOnly().stream().map(MemberDTO::new).collect(Collectors.toList());
     }
 
     public TeamDTO changeLeader(long teamId, String username) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
         team.changeLeader(member);
         return new TeamDTO(team);
     }

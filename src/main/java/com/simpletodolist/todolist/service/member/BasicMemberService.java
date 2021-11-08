@@ -8,11 +8,9 @@ import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
 import com.simpletodolist.todolist.exception.team.TeamAccessException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import com.simpletodolist.todolist.repository.TeamRepository;
+import com.simpletodolist.todolist.util.EntityFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,15 +28,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class BasicMemberService implements UserDetailsService {
-    private final MemberRepository memberRepository;
-    private final TeamRepository teamRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final MemberRepository memberRepository;
+    private final EntityFinder entityFinder;
 
 
     @Transactional(readOnly = true)
     public MemberDTO getMemberDetails(String username) {
-        return new MemberDTO(memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username)));
+        return new MemberDTO(entityFinder.findMemberByUsername(username));
     }
 
     @Transactional(readOnly = true)
@@ -67,22 +65,24 @@ public class BasicMemberService implements UserDetailsService {
     }
 
     public MemberDTO updateMember(String username, MemberUpdateRequest request) {
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Member member = entityFinder.findMemberByUsername(username);
         member.changeAlias(request.getAlias());
         member.changePassword(passwordEncoder.encode(request.getPassword()));
         return new MemberDTO(member);
     }
 
     public void withdrawMember(String username) {
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
-        List<Team> joinedTeams = member.getTeams().stream().map(MemberTeamAssociation::getTeam).collect(Collectors.toList());
+        Member member = entityFinder.findMemberByUsername(username);
+        List<Team> joinedTeams = member.getTeams().stream()
+                .map(MemberTeamAssociation::getTeam)
+                .collect(Collectors.toList());
         joinedTeams.forEach(team -> team.removeMember(member));
         memberRepository.delete(member);
     }
 
     @Transactional(readOnly = true)
     public List<TeamDTO> getJoinedTeams(String username) {
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Member member = entityFinder.findMemberByUsername(username);
         return member.getTeamsReadOnly().stream()
                 .map(TeamDTO::new)
                 .collect(Collectors.toList());
@@ -90,12 +90,12 @@ public class BasicMemberService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        return memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        return entityFinder.findMemberByUsername(username);
     }
 
     public TeamDTO joinTeam(long teamId, String username) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
 
         if (team.isLocked()) {
             throw new TeamAccessException(team);
@@ -106,8 +106,8 @@ public class BasicMemberService implements UserDetailsService {
     }
 
     public void withdrawTeam(long teamId, String username) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
-        Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
         team.removeMember(member);
     }
 }
