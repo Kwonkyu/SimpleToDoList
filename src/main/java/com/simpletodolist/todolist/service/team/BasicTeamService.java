@@ -31,9 +31,13 @@ public class BasicTeamService {
     private final MemberTeamAssocRepository memberTeamAssocRepository;
 
 
+    private Team findTeamById(long teamId) {
+        return teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId));
+    }
+
     @Transactional(readOnly = true)
     public TeamDTO readTeam(long teamId) {
-        return new TeamDTO(teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId)));
+        return new TeamDTO(findTeamById(teamId));
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +65,13 @@ public class BasicTeamService {
             Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
             return stream.filter(team -> !team.getMembersReadOnly().contains(member)).map(TeamDTO::new).collect(Collectors.toList());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemberDTO> getMembers(long teamId) {
+        return findTeamById(teamId).getMembersReadOnly().stream()
+                .map(MemberDTO::new)
+                .collect(Collectors.toList());
     }
 
     public TeamDTO createTeam(String username, TeamInformationRequest request) {

@@ -1,7 +1,6 @@
 package com.simpletodolist.todolist.domain.bind;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import lombok.*;
 
@@ -13,8 +12,8 @@ public class TeamDTO {
     @JsonProperty("id")
     private final long id;
 
-    @JsonProperty("username")
-    private final String username;
+    @JsonProperty("leaderUsername")
+    private final String leaderUsername;
 
     @JsonProperty("alias")
     private final String alias;
@@ -31,7 +30,7 @@ public class TeamDTO {
 
     public TeamDTO(Team team) {
         this.id = team.getId();
-        this.username = team.getLeader().getUsername();
+        this.leaderUsername = team.getLeader().getUsername();
         this.alias = team.getLeader().getAlias();
         this.teamName = team.getTeamName();
         this.locked = team.isLocked();
