@@ -1,82 +1,86 @@
 package com.simpletodolist.todolist.service.todolist;
 
+import com.simpletodolist.todolist.controller.bind.todolist.TodoListInformationRequest;
 import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.domain.entity.TodoList;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
-import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.repository.MemberRepository;
-import com.simpletodolist.todolist.repository.TeamRepository;
+import com.simpletodolist.todolist.exception.team.TeamAccessException;
+import com.simpletodolist.todolist.exception.todolist.TodoListAccessException;
 import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
+import com.simpletodolist.todolist.util.EntityFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.simpletodolist.todolist.domain.bind.TodoListDTO.RegisterRequest;
-import static com.simpletodolist.todolist.domain.bind.TodoListDTO.Response;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BasicTodoListService implements TodoListService{
-
-    private final MemberRepository memberRepository;
+public class BasicTodoListService {
     private final TodoRepository todoRepository;
     private final TodoListRepository todoListRepository;
-    private final TeamRepository teamRepository;
+    private final EntityFinder entityFinder;
 
 
-    @Override
-    public boolean isTodoListLocked(long todoListId) throws NoTodoListFoundException {
-        return todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new).isLocked();
-    }
-
-    @Override
     @Transactional(readOnly = true)
-    public Response getTodoListDetail(long todoListId) throws NoTodoListFoundException {
-        return new Response(todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new));
+    public TodoListDTO getTodoListDetail(long todoListId) {
+        return new TodoListDTO(entityFinder.findTodoListById(todoListId));
     }
 
-    @Override
-    public Response createTodoList(long teamId, String memberUserId, RegisterRequest todoListDTO) {
-        Team team = teamRepository.findById(teamId).orElseThrow(NoTeamFoundException::new);
-        Member member = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        TodoList todoList = new TodoList(todoListDTO.getTodoListName(), team, member);
-        todoListRepository.save(todoList);
-        return new Response(todoList);
+    @Transactional(readOnly = true)
+    public List<TodoListDTO> listTodoList(long teamId) {
+        Team team = entityFinder.findTeamById(teamId);
+        return team.getTodoLists().stream()
+                .map(TodoListDTO::new)
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public Response updateTodoList(long todoListId, TodoListDTO.UpdateRequest.UpdatableTodoListInformation field, Object value) throws NoTodoListFoundException {
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
-        String changedValue = String.valueOf(value);
-        switch (field) {
-            case NAME:
-                todoList.changeName(changedValue.length() > 64 ? changedValue.substring(0, 64) : changedValue);
-                break;
-
-            case LOCKED:
-                boolean lock = Boolean.parseBoolean(changedValue);
-                if (lock) {
-                    todoList.lock();
-                } else {
-                    todoList.unlock();
-                }
-                break;
+    public TodoListDTO createTodoList(long teamId, String username, TodoListInformationRequest request) {
+        Team team = entityFinder.findTeamById(teamId);
+        Member member = entityFinder.findMemberByUsername(username);
+        if (!team.isMemberIncluded(member)) {
+            throw new TeamAccessException(team);
         }
 
-        return new Response(todoList);
+        TodoList todoList = TodoList.builder()
+                .team(team)
+                .locked(request.isLocked())
+                .name(request.getTodoListName())
+                .owner(member).build();
+        return new TodoListDTO(todoListRepository.save(todoList));
     }
 
-    @Override
-    public void deleteTodoList(long todoListId) throws NoTodoListFoundException {
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
+    private void authorizeTodoListOwner(TodoList todoList, Member member) {
+        if (!todoList.getOwner().equals(member)) {
+            throw new TodoListAccessException(todoList);
+        }
+    }
+
+    public TodoListDTO updateTodoList(long todoListId, String username, TodoListInformationRequest request) {
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if (todoList.isLocked()) {
+            Member member = entityFinder.findMemberByUsername(username);
+            authorizeTodoListOwner(todoList, member);
+        }
+
+        todoList.changeName(request.getTodoListName());
+        if (request.isLocked()) todoList.lock();
+        else todoList.unlock();
+        return new TodoListDTO(todoList);
+    }
+
+    public void deleteTodoList(long todoListId, String username) {
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if (todoList.isLocked()) {
+            Member member = entityFinder.findMemberByUsername(username);
+            authorizeTodoListOwner(todoList, member);
+        }
+
         todoList.getTodos().forEach(todoRepository::delete);
         todoListRepository.delete(todoList);
     }
-
-
 }
