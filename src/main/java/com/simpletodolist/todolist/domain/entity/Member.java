@@ -12,14 +12,13 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class Member implements UserDetails {
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
@@ -33,7 +32,7 @@ public class Member implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<MemberTeamAssociation> teams = new ArrayList<>();
 
     @Column(name = "locked")
@@ -45,14 +44,17 @@ public class Member implements UserDetails {
                   @NonNull String alias,
                   @NonNull String password,
                   boolean locked) {
-        if(username.isBlank()) throw new IllegalArgumentException("Username should not be blank.");
+        if(username.isBlank()) {
+            throw new IllegalArgumentException("Username should not be blank.");
+        }
+
         this.username = username;
         changeAlias(alias);
         changePassword(password);
         this.locked = locked;
     }
 
-    public List<Team> getTeams(){
+    public List<Team> getTeamsReadOnly(){
         return teams.stream().map(MemberTeamAssociation::getTeam).collect(Collectors.toList());
     }
 
@@ -98,4 +100,20 @@ public class Member implements UserDetails {
         return !locked;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Member member = (Member) o;
+        return id == member.id &&
+                locked == member.locked &&
+                username.equals(member.username) &&
+                alias.equals(member.alias) &&
+                password.equals(member.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, alias, password, locked);
+    }
 }

@@ -31,10 +31,12 @@ public class BasicTeamService {
     private final MemberTeamAssocRepository memberTeamAssocRepository;
 
 
+    @Transactional(readOnly = true)
     public TeamDTO readTeam(long teamId) {
         return new TeamDTO(teamRepository.findById(teamId).orElseThrow(() -> new NoTeamFoundException(teamId)));
     }
 
+    @Transactional(readOnly = true)
     public List<TeamDTO> searchTeams(TeamSearchRequest request, String username) {
         List<Team> result;
         switch (request.getSearchTeamField()) {
