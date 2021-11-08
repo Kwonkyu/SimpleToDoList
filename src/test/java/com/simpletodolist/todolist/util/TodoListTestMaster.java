@@ -1,21 +1,19 @@
 package com.simpletodolist.todolist.util;
 
+import com.simpletodolist.todolist.controller.bind.todolist.TodoListInformationRequest;
 import com.simpletodolist.todolist.domain.bind.TodoListDTO;
-import com.simpletodolist.todolist.service.todolist.TodoListService;
+import com.simpletodolist.todolist.service.todolist.BasicTodoListService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.simpletodolist.todolist.domain.bind.TodoListDTO.*;
-
 public class TodoListTestMaster {
+    private final BasicTodoListService todoListService;
 
-    private final static Map<Long, Response> todolists = new HashMap<>();
+    private final static Map<Long, TodoListDTO> todolists = new HashMap<>();
 
-    private final TodoListService todoListService;
-
-    public TodoListTestMaster(TodoListService todoListService) {
+    public TodoListTestMaster(BasicTodoListService todoListService) {
         this.todoListService = todoListService;
     }
 
@@ -23,17 +21,20 @@ public class TodoListTestMaster {
         return UUID.randomUUID().toString().replaceAll("-", "").substring(0, length % 32);
     }
 
-    public Response createNewTodoList(String userId, long teamId) {
+    public TodoListDTO createNewTodoList(String userId, long teamId) {
         return createNewTodoList(userId, teamId, randomString(31));
     }
-    public Response createNewTodoList(String userId, long teamId, String todoListName) {
-        RegisterRequest todoListDTO = RegisterRequest.builder().todoListName(todoListName).build();
-        Response result = todoListService.createTodoList(teamId, userId, todoListDTO);
-        todolists.put(result.getTodoListId(), result);
+
+    public TodoListDTO createNewTodoList(String userId, long teamId, String todoListName) {
+        TodoListInformationRequest request = new TodoListInformationRequest();
+        request.setTodoListName(todoListName);
+        request.setLocked(false);
+        TodoListDTO result = todoListService.createTodoList(teamId, userId, request);
+        todolists.put(result.getId(), result);
         return result;
     }
 
-    public Response getTodoListInfo(long todoListId) {
+    public TodoListDTO getTodoListInfo(long todoListId) {
         return todolists.get(todoListId);
     }
 }
