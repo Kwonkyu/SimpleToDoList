@@ -63,6 +63,19 @@ public class BasicAuthorizationService {
         }
     }
 
+    public void authorizeTodoListLock(long teamId, String username, long todoListId) {
+        authorizeTodoList(teamId, username, todoListId);
+        Team team = entityFinder.findTeamById(teamId);
+        if (team.getLeader().getUsername().equals(username)) {
+            return;
+        }
+
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        if(!todoList.getOwner().getUsername().equals(username)) {
+            throw new TodoListAccessException(todoList);
+        }
+    }
+
     public void authorizeTodo(long teamId, String username, long todoListId, long todoId) {
         authorizeTodoList(teamId, username, todoListId);
         TodoList todoList = entityFinder.findTodoListById(todoListId);
@@ -80,6 +93,19 @@ public class BasicAuthorizationService {
         }
 
         if(todo.isLocked() && !todo.getWriter().getUsername().equals(username)) {
+            throw new TodoAccessException(entityFinder.findMemberByUsername(username), todo);
+        }
+    }
+
+    public void authorizeTodoLock(long teamId, String username, long todoListId, long todoId) {
+        authorizeTodo(teamId, username, todoListId, todoId);
+        Todo todo = entityFinder.findTodoById(todoId);
+        Team team = entityFinder.findTeamById(teamId);
+        if (team.getLeader().getUsername().equals(username)) {
+            return;
+        }
+
+        if(todo.getWriter().getUsername().equals(username)) {
             throw new TodoAccessException(entityFinder.findMemberByUsername(username), todo);
         }
     }

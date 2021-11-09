@@ -26,7 +26,7 @@ public class TeamTodoListController {
 
     @GetMapping("/todolist")
     public ResponseEntity<ApiResponse<List<TodoListDTO>>> getTeamTodoLists(@PathVariable(name = "teamId") long teamId,
-                                                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+                                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamMember(teamId, username);
         return ResponseEntity.ok(ApiResponse.success(todoListService.listTodoList(teamId)));
@@ -34,8 +34,8 @@ public class TeamTodoListController {
 
     @PostMapping("/todolist")
     public ResponseEntity<ApiResponse<TodoListDTO>> createTodoListOnTeam(@PathVariable(name = "teamId") long teamId,
-                                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                                            @RequestBody @Valid TodoListInformationRequest request){
+                                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                                                         @RequestBody @Valid TodoListInformationRequest request) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamMember(teamId, username);
         TodoListDTO createdTodoList = todoListService.createTodoList(teamId, username, request);
@@ -45,8 +45,8 @@ public class TeamTodoListController {
 
     @GetMapping("/todolist/{todoListId}")
     public ResponseEntity<ApiResponse<TodoListDTO>> getTodoList(@PathVariable(name = "teamId") long teamId,
-                                                   @PathVariable(name = "todoListId") long todoListId,
-                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+                                                                @PathVariable(name = "todoListId") long todoListId,
+                                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTodoList(teamId, username, todoListId);
         return ResponseEntity.ok(ApiResponse.success(todoListService.getTodoListDetail(todoListId)));
@@ -54,11 +54,15 @@ public class TeamTodoListController {
 
     @PatchMapping("/todolist/{todoListId}")
     public ResponseEntity<ApiResponse<TodoListDTO>> updateTodoList(@PathVariable(name = "teamId") long teamId,
-                                                      @PathVariable(name = "todoListId") long todoListId,
-                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
-                                                      @Valid @RequestBody TodoListInformationRequest request) {
+                                                                   @PathVariable(name = "todoListId") long todoListId,
+                                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                                                   @Valid @RequestBody TodoListInformationRequest request) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTodoListUpdate(teamId, username, todoListId);
+        if (request.isLocked()) {
+            authorizationService.authorizeTodoListLock(teamId, username, todoListId);
+        } else {
+            authorizationService.authorizeTodoListUpdate(teamId, username, todoListId);
+        }
         return ResponseEntity.ok(ApiResponse.success(todoListService.updateTodoList(todoListId, request)));
     }
 

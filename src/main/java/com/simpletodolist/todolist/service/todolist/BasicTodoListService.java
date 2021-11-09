@@ -64,6 +64,7 @@ public class BasicTodoListService {
     public void deleteTodoList(long todoListId) {
         TodoList todoList = entityFinder.findTodoListById(todoListId);
         todoList.getTodos().forEach(todoRepository::delete);
+        todoList.getTeam().getTodoLists().remove(todoList);
         todoListRepository.delete(todoList);
     }
 }

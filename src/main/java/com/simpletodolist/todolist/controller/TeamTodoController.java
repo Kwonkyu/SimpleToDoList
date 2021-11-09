@@ -63,7 +63,11 @@ public class TeamTodoController {
                                                            @Valid @RequestBody TodoInformationRequest request,
                                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        authorizationService.authorizeTodoUpdate(teamId, username, todoListId, todoId);
+        if (request.isLocked()) {
+            authorizationService.authorizeTodoLock(teamId, username, todoListId, todoId);
+        } else {
+            authorizationService.authorizeTodoUpdate(teamId, username, todoListId, todoId);
+        }
         return ResponseEntity.ok(ApiResponse.success(todoService.updateTodo(todoId, request)));
     }
 
