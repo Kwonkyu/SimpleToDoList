@@ -1,15 +1,16 @@
 package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.EntityResponseSnippets;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
+import com.simpletodolist.todolist.Snippets.ResponseSnippets;
+import com.simpletodolist.todolist.controller.bind.member.MemberInformationRequest;
+import com.simpletodolist.todolist.controller.bind.member.MemberLoginRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
-import com.simpletodolist.todolist.service.member.MemberService;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,12 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
 import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,27 +32,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs // default output directory is build/generated-snippets
 @ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PublicControllerTest {
-
+@Transactional
+class PublicControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    MemberService memberService;
+    BasicMemberService memberService;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
 
     MemberTestMaster memberTestMaster;
 
-    @BeforeAll
-    public void init() {
-        memberTestMaster = new MemberTestMaster(memberService);
+    @BeforeEach
+    void init() {
+        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
     }
 
     @Test
     @DisplayName("Login Account")
-    public void loginTest() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
+    void loginTest() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
 
         // not available http methods.
         mockMvc.perform(get("/api/public/login"))
@@ -64,32 +66,40 @@ public class PublicControllerTest {
                 .andExpect(status().isMethodNotAllowed());
 
         // normal http request.
+        MemberLoginRequest request = new MemberLoginRequest();
+        request.setUsername(newMember.getUsername());
+        request.setPassword(newMember.getPassword());
+
         mockMvc.perform(
                 post("/api/public/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(MemberDTO.LoginRequest.builder()
-                                .userId(newMember.getUserId())
-                                .password(newMember.getPassword())
-                                .build())))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isString())
-                .andExpect(jsonPath("$.userId").value(newMember.getUserId()))
-                .andExpect(jsonPath("$.username").value(newMember.getUsername()))
+                .andExpect(jsonPath("$.message").isString())
+                .andExpect(jsonPath("$.result.username").value(newMember.getUsername()))
+                .andExpect(jsonPath("$.result.alias").value(newMember.getAlias()))
                 .andDo(document("PublicController/Login",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
                         requestFields(
-                                RequestSnippets.Member.LoginUser.userId,
-                                RequestSnippets.Member.LoginUser.password),
+                                RequestSnippets.Member.username,
+                                RequestSnippets.Member.password),
                         responseFields(
-                                EntityDescriptor.Member.loginMemberInformation)));
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.token,
+                                EntityResponseSnippets.Member.id,
+                                EntityResponseSnippets.Member.username,
+                                EntityResponseSnippets.Member.alias,
+                                EntityResponseSnippets.Member.password,
+                                EntityResponseSnippets.Member.locked)));
     }
 
     @Test
     @DisplayName("Register Account")
-    public void registerTest() throws Exception {
-        String testUserId = "testUserId";
+    void registerTest() throws Exception {
         String testUsername = "testUsername";
+        String testAlias = "testAlias";
         String testPassword = "testPassword";
 
         // not available http methods.
@@ -103,26 +113,33 @@ public class PublicControllerTest {
                 .andExpect(status().isMethodNotAllowed());
 
         // normal http request.
+        MemberInformationRequest request = new MemberInformationRequest();
+        request.setUsername(testUsername);
+        request.setAlias(testAlias);
+        request.setPassword(testPassword);
+
         mockMvc.perform(post("/api/public/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(MemberDTO.RegisterRequest.builder()
-                        .userId(testUserId)
-                        .username(testUsername)
-                        .password(testPassword)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(testUserId))
-                .andExpect(jsonPath("$.username").value(testUsername))
+                .andExpect(jsonPath("$.result.username").value(testUsername))
+                .andExpect(jsonPath("$.result.alias").value(testAlias))
                 .andDo(document("PublicController/Register",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
                         requestFields(
-                                RequestSnippets.Member.CreateUser.userId,
-                                RequestSnippets.Member.CreateUser.username,
-                                RequestSnippets.Member.CreateUser.password
+                                RequestSnippets.Member.username,
+                                RequestSnippets.Member.alias,
+                                RequestSnippets.Member.password
                         ),
                         responseFields(
-                                EntityDescriptor.Member.memberInformation
-                        )));
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.Member.id,
+                                EntityResponseSnippets.Member.username,
+                                EntityResponseSnippets.Member.alias,
+                                EntityResponseSnippets.Member.password,
+                                EntityResponseSnippets.Member.locked)));
     }
 }
