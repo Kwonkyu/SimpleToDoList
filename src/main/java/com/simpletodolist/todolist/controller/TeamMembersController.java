@@ -52,11 +52,11 @@ public class TeamMembersController {
     }
 
     @PutMapping("/leader/{username}")
-    public ResponseEntity<TeamDTO> changeTeamLeaderStatus(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<ApiResponse<TeamDTO>> changeTeamLeaderStatus(@PathVariable(name = "teamId") long teamId,
                                                           @PathVariable(name = "username") String targetUsername,
                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamLeader(teamId, username);
-        return ResponseEntity.ok(teamService.changeLeader(teamId, targetUsername));
+        return ResponseEntity.ok(ApiResponse.success(teamService.changeLeader(teamId, targetUsername)));
     }
 }
