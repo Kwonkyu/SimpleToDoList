@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.controller.bind.member.MemberUpdateRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
@@ -23,17 +24,17 @@ public class MemberController {
 
 
     @GetMapping
-    public ResponseEntity<MemberDTO> memberInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<ApiResponse<MemberDTO>> memberInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        return ResponseEntity.ok(memberService.getMemberDetails(username));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMemberDetails(username)));
     }
 
     @PatchMapping
-    public ResponseEntity<MemberDTO> updateMemberInfo(
+    public ResponseEntity<ApiResponse<MemberDTO>> updateMemberInfo(
             @Valid @RequestBody MemberUpdateRequest request,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        return ResponseEntity.ok(memberService.updateMember(username, request));
+        return ResponseEntity.ok(ApiResponse.success(memberService.updateMember(username, request)));
     }
 
     @DeleteMapping
@@ -44,18 +45,18 @@ public class MemberController {
     }
 
     @GetMapping("/teams")
-    public ResponseEntity<List<TeamDTO>> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+    public ResponseEntity<ApiResponse<List<TeamDTO>>> getTeamsOfMember(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        return ResponseEntity.ok(memberService.getJoinedTeams(username));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getJoinedTeams(username)));
     }
 
     @PutMapping("/teams/{teamId}")
-    public ResponseEntity<TeamDTO> joinTeam(@PathVariable(name = "teamId") long teamId,
+    public ResponseEntity<ApiResponse<TeamDTO>> joinTeam(@PathVariable(name = "teamId") long teamId,
                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         // Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
         TeamDTO teamDTO = memberService.joinTeam(teamId, username);
-        return ResponseEntity.ok(teamDTO);
+        return ResponseEntity.ok(ApiResponse.success(teamDTO));
     }
 
     @DeleteMapping("/teams/{teamId}")

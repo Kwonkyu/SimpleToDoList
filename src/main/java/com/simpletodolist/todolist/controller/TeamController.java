@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.controller;
 
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.controller.bind.team.TeamInformationRequest;
 import com.simpletodolist.todolist.controller.bind.team.TeamSearchRequest;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
@@ -26,41 +27,42 @@ public class TeamController {
 
 
     @GetMapping
-    public ResponseEntity<List<TeamDTO>> searchTeams(@Valid @RequestBody TeamSearchRequest request,
-                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+    public ResponseEntity<ApiResponse<List<TeamDTO>>> searchTeams(@Valid @RequestBody TeamSearchRequest request,
+                                                                  @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
-        return ResponseEntity.ok(teamService.searchTeams(request, username));
+        return ResponseEntity.ok(ApiResponse.success(teamService.searchTeams(request, username)));
     }
 
     @GetMapping("/{teamId}")
-    public ResponseEntity<TeamDTO> getTeamDetails(@PathVariable(name = "teamId") long teamId,
-                                                  @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<ApiResponse<TeamDTO>> getTeamDetails(@PathVariable(name = "teamId") long teamId,
+                                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamMember(teamId, username);
-        return ResponseEntity.ok(teamService.readTeam(teamId));
+        return ResponseEntity.ok(ApiResponse.success(teamService.readTeam(teamId)));
     }
 
     @PostMapping
-    public ResponseEntity<TeamDTO> registerTeam(@Valid @RequestBody TeamInformationRequest request,
-                                                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<ApiResponse<TeamDTO>> registerTeam(@Valid @RequestBody TeamInformationRequest request,
+                                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         TeamDTO team = teamService.createTeam(username, request);
-        return ResponseEntity.created(URIGenerator.createTeam(team.getId())).body(team);
+        return ResponseEntity.created(URIGenerator.createTeam(team.getId()))
+                .body(ApiResponse.success(team));
     }
 
     @PatchMapping("/{teamId}")
-    public ResponseEntity<TeamDTO> updateTeam(@PathVariable(name = "teamId") long teamId,
-                                              @Valid @RequestBody TeamInformationRequest request,
-                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+    public ResponseEntity<ApiResponse<TeamDTO>> updateTeam(@PathVariable(name = "teamId") long teamId,
+                                                           @Valid @RequestBody TeamInformationRequest request,
+                                                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamLeader(teamId, username);
-        return ResponseEntity.ok(teamService.updateTeam(teamId, request));
+        return ResponseEntity.ok(ApiResponse.success(teamService.updateTeam(teamId, request)));
     }
 
     @DeleteMapping("/{teamId}")
     @ResponseStatus(HttpStatus.OK)
     public void removeTeam(@PathVariable(name = "teamId") long teamId,
-                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt){
+                           @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(jwt));
         authorizationService.authorizeTeamLeader(teamId, username);
         teamService.deleteTeam(teamId);

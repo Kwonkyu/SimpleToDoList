@@ -38,7 +38,7 @@ public class PublicController {
      * @return Created member's DTO.
      */
     @PostMapping("/register")
-    public ResponseEntity<MemberDTO> registerMember(@Valid @RequestBody MemberInformationRequest request) {
-        return ResponseEntity.ok(memberService.registerMember(request));
+    public ResponseEntity<ApiResponse<MemberDTO>> registerMember(@Valid @RequestBody MemberInformationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(memberService.registerMember(request)));
     }
 }
