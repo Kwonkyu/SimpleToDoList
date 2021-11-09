@@ -30,7 +30,7 @@ public class Team {
     @OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<MemberTeamAssociation> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<TodoList> todoLists = new ArrayList<>();
 
     @Column(name = "locked")
