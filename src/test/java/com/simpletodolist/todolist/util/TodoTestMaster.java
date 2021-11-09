@@ -20,15 +20,15 @@ public class TodoTestMaster {
         return UUID.randomUUID().toString().replaceAll("-", "").substring(0, length % 32);
     }
 
-    public TodoDTO createNewTodo(String userId, long teamId, long todoListId) {
-        return createNewTodoList(userId, teamId, todoListId, randomString(16), randomString(32) + randomString(32));
+    public TodoDTO createNewTodo(String userId, long teamId, long todoListId, boolean locked) {
+        return createNewTodo(userId, todoListId, randomString(16), randomString(32) + randomString(32), locked);
     }
 
-    public TodoDTO createNewTodoList(String userId, long teamId, long todoListId, String title, String content) {
+    public TodoDTO createNewTodo(String userId, long todoListId, String title, String content, boolean locked) {
         TodoInformationRequest request = new TodoInformationRequest();
         request.setContent(content);
         request.setTitle(title);
-        request.setLocked(false);
+        request.setLocked(locked);
 
         TodoDTO result = todoService.createTodo(userId, todoListId, request);
         todos.put(result.getId(), result);

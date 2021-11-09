@@ -53,7 +53,7 @@ public class RequestSnippets {
                 .attributes(key("constraint").value("64 글자를 초과할 수 없습니다."));
         public static final FieldDescriptor content = fieldWithPath("content").description("할 일의 내용입니다.")
                 .attributes(key("constraint").value("1024 글자를 초과할 수 없습니다."));
-        public static final FieldDescriptor locked = fieldWithPath("content").description("할 일의 잠금 상태입니다.")
+        public static final FieldDescriptor locked = fieldWithPath("locked").description("할 일의 잠금 상태입니다.")
                 .attributes(key("constraint").value("불리언 값입니다."));
     }
 

@@ -52,7 +52,9 @@ public class Todo {
     }
 
     public void changeTodoList(@NonNull TodoList todoList) {
+        if(this.todoList != null) this.todoList.getTodos().remove(this);
         this.todoList = todoList;
+        this.todoList.getTodos().add(this);
     }
 
     public void changeWriter(@NonNull Member writer) { this.writer = writer; }

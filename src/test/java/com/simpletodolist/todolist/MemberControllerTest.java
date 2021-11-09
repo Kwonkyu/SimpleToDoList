@@ -97,7 +97,7 @@ class MemberControllerTest {
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
         TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
-        todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId());
+        todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId(), false);
 
         // normal request.
         mockMvc.perform(get("/api/member")

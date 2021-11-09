@@ -38,8 +38,12 @@ public class BasicTodoService {
     public TodoDTO createTodo(String username, long todoListId, TodoInformationRequest request) {
         Member writer = entityFinder.findMemberByUsername(username);
         TodoList todoList = entityFinder.findTodoListById(todoListId);
-        Todo newTodo = new Todo(request.getTitle(), request.getContent(), writer, todoList, false);
-        todoList.getTodos().add(newTodo);
+        Todo newTodo = Todo.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .writer(writer)
+                .todoList(todoList)
+                .locked(request.isLocked()).build();
         return new TodoDTO(todoRepository.save(newTodo));
     }
 

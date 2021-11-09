@@ -52,6 +52,10 @@ public class BasicAuthorizationService {
 
     public void authorizeTodoListUpdate(long teamId, String username, long todoListId) {
         authorizeTodoList(teamId, username, todoListId);
+        Team team = entityFinder.findTeamById(teamId);
+        if (team.getLeader().getUsername().equals(username)) {
+            return;
+        }
 
         TodoList todoList = entityFinder.findTodoListById(todoListId);
         if(todoList.isLocked() && !todoList.getOwner().getUsername().equals(username)) {
@@ -70,6 +74,11 @@ public class BasicAuthorizationService {
     public void authorizeTodoUpdate(long teamId, String username, long todoListId, long todoId) {
         authorizeTodo(teamId, username, todoListId, todoId);
         Todo todo = entityFinder.findTodoById(todoId);
+        Team team = entityFinder.findTeamById(teamId);
+        if (team.getLeader().getUsername().equals(username)) {
+            return;
+        }
+
         if(todo.isLocked() && !todo.getWriter().getUsername().equals(username)) {
             throw new TodoAccessException(entityFinder.findMemberByUsername(username), todo);
         }

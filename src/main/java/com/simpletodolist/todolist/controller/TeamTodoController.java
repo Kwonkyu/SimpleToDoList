@@ -56,7 +56,7 @@ public class TeamTodoController {
                 .body(ApiResponse.success(todo));
     }
 
-    @PatchMapping("/todo/{todoId}")
+    @PutMapping("/todo/{todoId}")
     public ResponseEntity<ApiResponse<TodoDTO>> updateTodo(@PathVariable(name = "teamId") long teamId,
                                                            @PathVariable(name = "todoListId") long todoListId,
                                                            @PathVariable(name = "todoId") long todoId,
