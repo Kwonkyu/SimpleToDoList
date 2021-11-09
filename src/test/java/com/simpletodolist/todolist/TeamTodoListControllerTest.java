@@ -297,33 +297,33 @@ class TeamTodoListControllerTest {
         todoListService.updateTodoList(lockedTodoList.getId(), request);
 
         // request without token.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId()))
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId()))
                 .andExpect(status().isBadRequest());
 
         request.setTodoListName("NA");
         // update to-do list of not exist team.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
 
         // update not exist to-do list.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), 123456789)
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), 123456789)
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
 
         // update to-do list of not joined team.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, notJoinedToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // update locked to-do list by not owner.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -331,7 +331,7 @@ class TeamTodoListControllerTest {
 
         // update locked to-do list by owner.
         request.setTodoListName("UNLOCKED");
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -340,7 +340,7 @@ class TeamTodoListControllerTest {
 
         // update locked to-do list by team leader.
         request.setLocked(false);
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -350,7 +350,7 @@ class TeamTodoListControllerTest {
 
         // only owner can lock to-do list.
         request.setLocked(true);
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -360,7 +360,7 @@ class TeamTodoListControllerTest {
         request.setTodoListName("UPDATED_BY_ANOTHER");
         request.setLocked(false);
         // TODO: decouple tests.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
+        mockMvc.perform(put("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken) // if it's not locked everyone can update it.
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))

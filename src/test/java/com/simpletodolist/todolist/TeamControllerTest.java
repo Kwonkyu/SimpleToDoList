@@ -514,10 +514,10 @@ class TeamControllerTest {
         String updatedTeamName = "updatedTeam";
 
         // request without token.
-        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())).andExpect(status().isBadRequest());
+        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())).andExpect(status().isBadRequest());
 
         // request without mandatory values.
-        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
+        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -527,14 +527,14 @@ class TeamControllerTest {
         request.setTeamName(updatedTeamName);
         request.setLocked(newTeam.isLocked());
 
-        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
+        mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        MvcResult mvcResult = mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
+        MvcResult mvcResult = mockMvc.perform(put("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))

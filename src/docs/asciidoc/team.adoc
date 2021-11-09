@@ -8,7 +8,7 @@
 :url-getteam: /api/team/<teamId>
 :method-registerteam: POST
 :url-registerteam: /api/team
-:method-updateteam: PATCH
+:method-updateteam: PUT
 :url-updateteam: /api/team/<teamId>
 :method-deleteteam: DELETE
 :url-deleteteam: /api/team/<teamId>
@@ -44,9 +44,7 @@ include::{snippets}/TeamController/searchTeam/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamController/searchTeam/response-fields.adoc[]
 
-
-탐색 조건에 부합하는 팀의 목록을 반환합니다. 팀 정보 조회 API 와는 달리 할 일 리스트 항목이 생략되며 가입된 팀인지를 나타내는 항목(joined)이 추가됩니다. 팀의 할 일 리스트는 팀에 가입한 팀원들만 조회할 수 있도록 하는 의도입니다.
-
+탐색 조건에 부합하는 팀의 목록을 반환합니다.
 
 == 팀 정보 조회
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -78,7 +76,7 @@ include::{snippets}/TeamController/getTeam/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamController/getTeam/response-fields.adoc[]
 
-팀의 식별자, 이름, 팀장의 아이디 및 이름, 할 일 리스트 목록, 잠금 상태 등이 반환됩니다. 검색 API 와는 달리 할 일 리스트 목록을 조회할 수 있습니다. 언급했듯이 *팀원이 아니라면* 인가되지 않습니다.
+팀의 정보와 할 일 리스트 목록, 할 일 리스트에 포함된 할 일 항목 등을 조회할 수 있습니다. 언급했듯이 *팀원이 아니라면* 인가되지 않습니다.
 
 * 할 일 리스트 응답 항목에 대한 문서는 <<todolist.adoc#_todolist_information, 이곳>>을 참조하십시오.
 
@@ -143,8 +141,6 @@ include::{snippets}/TeamController/updateTeam/response-body.adoc[]
 
 .응답 파라미터
 include::{snippets}/TeamController/updateTeam/response-fields.adoc[]
-
-요청에 부합하지 않는 할 일 리스트 항목은 생략되어 반환됩니다.
 
 == 팀 삭제
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.

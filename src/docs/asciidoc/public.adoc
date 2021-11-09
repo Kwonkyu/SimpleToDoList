@@ -62,3 +62,4 @@ include::{snippets}/PublicController/Register/response-body.adoc[HTTP Response o
 .응답 파라미터
 include::{snippets}/PublicController/Register/response-fields.adoc[HTTP Response Payload of Register API]
 
+가입된 회원의 정보를 간략하게 제공합니다.

@@ -76,7 +76,7 @@ include::{snippets}/TeamTodoController/getTodo/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/getTodo/response-fields.adoc[]
 
-할 일의 식별자, 제목, 내용, 잠금 상태가 반환됩니다.
+특정 할 일의 식별자, 제목, 내용, 잠금 상태가 반환됩니다.
 
 == 할 일 추가.
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -110,7 +110,7 @@ include::{snippets}/TeamTodoController/createTodo/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/createTodo/response-fields.adoc[]
 
-Authorization 헤더로 전송된 토큰의 사용자를 생성자로 하여 할 일을 생성합니다.
+추가된 할 일에 대한 정보를 반환합니다.
 
 == 할 일 수정
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -143,7 +143,7 @@ include::{snippets}/TeamTodoController/updateTodo/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamTodoController/updateTodo/response-fields.adoc[]
 
-변경된 할 일 항목이 반환됩니다.
+갱신된 할 일 항목이 반환됩니다.
 
 == 할 일 삭제
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.

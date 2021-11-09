@@ -5,13 +5,13 @@
 :method-getmembers: GET
 :url-getmembers: /api/team/<teamId>/members
 :method-getmember: GET
-:url-getmember: /api/team/<teamId>/members/<userId>
+:url-getmember: /api/team/<teamId>/members/<username>
 :method-joinmember: PUT
-:url-joinmember: /api/team/<teamId>/members/<userId>
+:url-joinmember: /api/team/<teamId>/members/<username>
 :method-quitmember: DELETE
-:url-quitmember: /api/team/<teamId>/members/<userId>
+:url-quitmember: /api/team/<teamId>/members/<username>
 :method-changeleader: PUT
-:url-changeleader: /api/team/<teamId>/leader/<userId>
+:url-changeleader: /api/team/<teamId>/leader/<username>
 
 Simple To-do List 애플리케이션의 팀원 API 문서입니다.
 
@@ -44,7 +44,7 @@ include::{snippets}/TeamMembersController/getMembers/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamMembersController/getMembers/response-fields.adoc[]
 
-회원을 식별하기 위한 정보와 회원이 현재 팀에 작성한 할 일 리스트 목록이 제공됩니다.
+팀원 목록이 제공됩니다.
 
 == 팀에 회원 추가
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -76,6 +76,7 @@ include::{snippets}/TeamMembersController/joinMember/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamMembersController/joinMember/response-fields.adoc[]
 
+추가된 팀원을 포함한 목록이 반환됩니다.
 
 == 팀에서 회원 삭제
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -106,6 +107,7 @@ include::{snippets}/TeamMembersController/deleteMember/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamMembersController/deleteMember/response-fields.adoc[]
 
+탈퇴된 회원을 제외한 팀원 목록이 반환됩니다.
 
 == 팀장 변경
 IMPORTANT: 인증 토큰이 필요한 *제한된* API 입니다.
@@ -136,5 +138,5 @@ include::{snippets}/TeamMembersController/changeLeader/response-body.adoc[]
 .응답 파라미터
 include::{snippets}/TeamMembersController/changeLeader/response-fields.adoc[]
 
-
+팀장이 변경된 팀의 정보가 반환됩니다.
 

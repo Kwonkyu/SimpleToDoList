@@ -50,7 +50,7 @@ public class TeamController {
                 .body(ApiResponse.success(team));
     }
 
-    @PatchMapping("/{teamId}")
+    @PutMapping("/{teamId}")
     public ResponseEntity<ApiResponse<TeamDTO>> updateTeam(@PathVariable(name = "teamId") long teamId,
                                                            @Valid @RequestBody TeamInformationRequest request,
                                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {

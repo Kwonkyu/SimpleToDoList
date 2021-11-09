@@ -17,7 +17,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/api/team/{teamId}/todolist/{todoListId}")
+@RequestMapping("/api/team/{teamId}/todolist/{todoListId}/todo")
 @RequiredArgsConstructor
 public class TeamTodoController {
     private final BasicTodoService todoService;
@@ -25,7 +25,7 @@ public class TeamTodoController {
     private final JwtTokenUtil jwtTokenUtil;
 
 
-    @GetMapping("/todo")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<TodoDTO>>> readTodos(@PathVariable(name = "teamId") long teamId,
                                                                 @PathVariable(name = "todoListId") long todoListId,
                                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
@@ -34,7 +34,7 @@ public class TeamTodoController {
         return ResponseEntity.ok(ApiResponse.success(todoService.readTodosOfTodoList(todoListId)));
     }
 
-    @GetMapping("/todo/{todoId}")
+    @GetMapping("/{todoId}")
     public ResponseEntity<ApiResponse<TodoDTO>> readTodo(@PathVariable(name = "teamId") long teamId,
                                                          @PathVariable(name = "todoListId") long todoListId,
                                                          @PathVariable(name = "todoId") long todoId,
@@ -44,7 +44,7 @@ public class TeamTodoController {
         return ResponseEntity.ok(ApiResponse.success(todoService.readTodo(todoId)));
     }
 
-    @PostMapping("/todo")
+    @PostMapping
     public ResponseEntity<ApiResponse<TodoDTO>> createTodo(@PathVariable(name = "teamId") long teamId,
                                                            @PathVariable(name = "todoListId") long todoListId,
                                                            @RequestBody @Valid TodoInformationRequest request,
@@ -56,7 +56,7 @@ public class TeamTodoController {
                 .body(ApiResponse.success(todo));
     }
 
-    @PutMapping("/todo/{todoId}")
+    @PutMapping("/{todoId}")
     public ResponseEntity<ApiResponse<TodoDTO>> updateTodo(@PathVariable(name = "teamId") long teamId,
                                                            @PathVariable(name = "todoListId") long todoListId,
                                                            @PathVariable(name = "todoId") long todoId,
@@ -71,7 +71,7 @@ public class TeamTodoController {
         return ResponseEntity.ok(ApiResponse.success(todoService.updateTodo(todoId, request)));
     }
 
-    @DeleteMapping("/todo/{todoId}")
+    @DeleteMapping("/{todoId}")
     public void deleteTodo(@PathVariable(name = "teamId") long teamId,
                            @PathVariable(name = "todoListId") long todoListId,
                            @PathVariable(name = "todoId") long todoId,
