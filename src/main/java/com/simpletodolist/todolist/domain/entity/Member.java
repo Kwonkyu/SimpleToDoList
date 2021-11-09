@@ -1,7 +1,10 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -9,58 +12,59 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class Member implements UserDetails {
-
-    public static final String NO_MEMBER_FOUND = "No Member Found.";
-    public static final String NOT_JOINED_TEAM = "Not Joined Team.";
-    public static final String DUPLICATED_TEAM_JOINED = "Already Joined Team.";
-    public static final String DUPLICATED_MEMBER_FOUND = "Already Existing Member.";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
-    @Column(name = "USERID", nullable = false, length = 32)
-    private String userId;
-
-    @NonNull
-    @Column(name = "USERNAME", nullable = false, length = 32)
+    @Column(name = "username", nullable = false, length = 32)
     private String username;
 
-    @NonNull
-    @Column(name = "PASSWORD", nullable = false)
+    @Column(name = "alias", nullable = false, length = 32)
+    private String alias;
+
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "member")
-    private List<MemberTeamAssociation> teams = new ArrayList<>();
+    @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private final List<MemberTeamAssociation> teams = new ArrayList<>();
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked;
 
-    // TODO: 1+N check.
-    public List<TeamDTO.Response> getTeamsDTO(){
-        return teams.stream().map(MemberTeamAssociation::getTeam).map(TeamDTO.Response::new).collect(Collectors.toList());
-    }
 
+    @Builder
+    public Member(@NonNull String username,
+                  @NonNull String alias,
+                  @NonNull String password,
+                  boolean locked) {
+        if(username.isBlank()) {
+            throw new IllegalArgumentException("Username should not be blank.");
+        }
 
-    public void changeUserId(String userId){
-        this.userId = userId;
-    }
-
-    public void changeUsername(String username){
         this.username = username;
+        changeAlias(alias);
+        changePassword(password);
+        this.locked = locked;
     }
 
-    public void changePassword(String password){
+    public List<Team> getTeamsReadOnly(){
+        return teams.stream().map(MemberTeamAssociation::getTeam).collect(Collectors.toList());
+    }
+
+    public void changeAlias(@NonNull String alias) {
+        if(alias.isBlank()) throw new IllegalArgumentException("Updated alias should not be blank.");
+        this.alias = alias;
+    }
+
+    public void changePassword(@NonNull String password){
+        if(password.isBlank()) throw new IllegalArgumentException("Updated password should not be blank.");
         this.password = password;
     }
 
@@ -73,12 +77,12 @@ public class Member implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return !locked;
+        return true;
     }
 
     @Override
@@ -88,7 +92,7 @@ public class Member implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !locked;
+        return true;
     }
 
     @Override
@@ -96,4 +100,20 @@ public class Member implements UserDetails {
         return !locked;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Member member = (Member) o;
+        return id == member.id &&
+                locked == member.locked &&
+                username.equals(member.username) &&
+                alias.equals(member.alias) &&
+                password.equals(member.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, alias, password, locked);
+    }
 }

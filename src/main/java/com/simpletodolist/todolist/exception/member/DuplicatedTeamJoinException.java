@@ -1,13 +1,12 @@
 package com.simpletodolist.todolist.exception.member;
 
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.Team;
 import lombok.*;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class DuplicatedTeamJoinException extends RuntimeException{
-    private String error = Member.DUPLICATED_TEAM_JOINED;
-    private String message = "Try join different team.";
+    public DuplicatedTeamJoinException(Member member, Team team) {
+        super(String.format("Member %s already joined team %s.", member.getAlias(), team.getTeamName()));
+    }
 }

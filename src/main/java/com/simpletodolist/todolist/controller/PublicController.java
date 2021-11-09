@@ -1,44 +1,44 @@
 package com.simpletodolist.todolist.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
+import com.simpletodolist.todolist.controller.bind.member.MemberLoginRequest;
+import com.simpletodolist.todolist.controller.bind.member.MemberInformationRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
-import com.simpletodolist.todolist.service.member.MemberService;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.member.BasicMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
-import static com.simpletodolist.todolist.domain.bind.MemberDTO.*;
+import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/public")
 public class PublicController {
-
-    private final MemberService memberService;
-
+    private final BasicMemberService memberService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
-     * Login member account with user id and password.
-     * @param loginRequest MemberDTO.LoginRequest object containing user id and password.
-     * @return MemberDTO object filled with logged in member's information.
+     * Login member account with username and password.
+     * @param request Object containing username and password.
+     * @return Logged-in member's DTO.
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
-        return ResponseEntity.ok(memberService.loginMember(loginRequest.getUserId(), loginRequest.getPassword()));
+    public ResponseEntity<ApiResponse<MemberDTO>> login(@RequestBody @Valid MemberLoginRequest request) throws JsonProcessingException {
+        MemberDTO memberDTO = memberService.authenticateMember(request.getUsername(), request.getPassword());
+        String token = jwtTokenUtil.generateAccessToken(request.getUsername());
+        return ResponseEntity.ok(ApiResponse.success(memberDTO, token));
     }
-
 
     /**
      * Register new user.
-     * @param registerRequest Registering user's information.
-     * @return 200 OK with body filled with registered user info.
+     * @param request Registering user's information.
+     * @return Created member's DTO.
      */
     @PostMapping("/register")
-    public ResponseEntity<Response> registerMember(@Valid @RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.ok(memberService.registerMember(registerRequest));
+    public ResponseEntity<ApiResponse<MemberDTO>> registerMember(@Valid @RequestBody MemberInformationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(memberService.registerMember(request)));
     }
 }

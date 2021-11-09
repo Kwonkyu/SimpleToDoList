@@ -1,52 +1,78 @@
 package com.simpletodolist.todolist.domain.entity;
 
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class Todo {
-
-    public static final String NO_TODO_FOUND = "No Todo Found.";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TODO_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
-    @Column(name = "TITLE", nullable = false, length = 64)
+    @Column(name = "title", nullable = false, length = 64)
     private String title;
 
-    @NonNull
-    @Column(name = "CONTENT", nullable = false, length = 1024)
+    @Column(name = "content", nullable = false, length = 1024)
     private String content;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member writer;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "TODOLIST_ID")
+    @JoinColumn(name = "todolist_id", referencedColumnName = "id")
     private TodoList todoList;
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked;
 
 
-    public void changeTitle(String title){ this.title = title; }
-    public void changeContent(String content){
+    @Builder
+    public Todo(String title, String content, Member writer, TodoList todoList, boolean locked) {
+        changeTitle(title);
+        changeContent(content);
+        changeWriter(writer);
+        changeTodoList(todoList);
+        this.locked = locked;
+    }
+
+    public void changeTitle(@NonNull String title){
+        if(title.isBlank()) throw new IllegalArgumentException("Changed title cannot be blank.");
+        this.title = title;
+    }
+
+    public void changeContent(@NonNull String content){
+        if(title.isBlank()) throw new IllegalArgumentException("Changed content cannot be blank.");
         this.content = content;
     }
-    public void changeWriter(Member writer) { this.writer = writer; }
 
-    public void toggleLock() { locked = !locked; }
+    public void changeTodoList(@NonNull TodoList todoList) {
+        if(this.todoList != null) this.todoList.getTodos().remove(this);
+        this.todoList = todoList;
+        this.todoList.getTodos().add(this);
+    }
+
+    public void changeWriter(@NonNull Member writer) { this.writer = writer; }
+
     public void lock() { locked = true; }
+
     public void unlock() { locked = false; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Todo todo = (Todo) o;
+        return id == todo.id && locked == todo.locked && title.equals(todo.title) && content.equals(todo.content) && writer.equals(todo.writer) && todoList.equals(todo.todoList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, content, writer, todoList, locked);
+    }
 }

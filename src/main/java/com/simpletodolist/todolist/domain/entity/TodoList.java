@@ -1,56 +1,60 @@
 package com.simpletodolist.todolist.domain.entity;
 
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class TodoList {
-
-    public static final String NO_TODOLIST_FOUND = "No TodoList Found";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TODOLIST_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
-    @Column(name = "NAME", nullable = false, length = 64)
+    @Column(name = "name", nullable = false, length = 64)
     private String name;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @JoinColumn(name = "team_id")
     private Team team;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id")
     private Member owner;
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked = false;
 
-    @OneToMany(mappedBy = "todoList")
+    @OneToMany(mappedBy = "todoList", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<Todo> todos = new ArrayList<>();
 
 
-    public void changeName(String name){
+    @Builder
+    public TodoList(String name, Team team, Member owner, boolean locked) {
+        changeName(name);
+        changeTeam(team);
+        changeOwner(owner);
+        this.locked = locked;
+    }
+
+    public void changeName(@NonNull String name){
+        if(name.isBlank()) throw new IllegalArgumentException("Changed name cannot be blank.");
         this.name = name;
     }
 
-    public void changeOwner(Member member) {
-        owner = member;
+    public void changeTeam(@NonNull Team team) {
+        if(this.team != null) team.getTodoLists().remove(this);
+        this.team = team;
+        team.getTodoLists().add(this);
     }
 
-    public void toggleLock(){
-        locked = !locked;
+    public void changeOwner(@NonNull Member member) {
+        owner = member;
     }
 
     public void unlock() {
@@ -59,5 +63,22 @@ public class TodoList {
 
     public void lock() {
         locked = true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TodoList todoList = (TodoList) o;
+        return id == todoList.id &&
+                locked == todoList.locked &&
+                name.equals(todoList.name) &&
+                team.equals(todoList.team) &&
+                owner.equals(todoList.owner);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, team, owner, locked);
     }
 }

@@ -1,61 +1,90 @@
 package com.simpletodolist.todolist.domain.entity;
 
-import com.simpletodolist.todolist.domain.bind.MemberDTO;
+import com.simpletodolist.todolist.exception.member.DuplicatedTeamJoinException;
+import com.simpletodolist.todolist.exception.member.NotJoinedTeamException;
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
-@EqualsAndHashCode(of = {"id"})
+@Table(name = "team")
 public class Team {
-
-    public static final String NO_TEAM_FOUND = "No Team Found.";
-    public static final String DUPLICATED_TEAM_FOUND = "Already Existing Team.";
-    public static final String DUPLICATED_MEMBER_JOINED = "Already Joined Member.";
-
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TEAM_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
     @OneToOne
-    @JoinColumn(name = "LEADER_ID")
+    @JoinColumn(name = "leader_id")
     private Member leader;
 
-    @NonNull
-    @Column(name = "NAME", nullable = false, length = 64)
+    @Column(name = "name", nullable = false, length = 64)
     private String teamName;
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<MemberTeamAssociation> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private final List<TodoList> todoLists = new ArrayList<>();
 
-    @Column(name = "LOCKED")
+    @Column(name = "locked")
     private boolean locked = false;
 
 
-    public List<Member> getMembers() {
+    @Builder
+    public Team(Member leader, String teamName, boolean locked) {
+        this.leader = leader;
+        changeTeamName(teamName);
+        this.locked = locked;
+    }
+
+    public boolean isMemberIncluded(Member member) {
+        return members.stream()
+                .anyMatch(teamAssociation -> teamAssociation.getMember().equals(member));
+    }
+
+    public void addMember(Member member) {
+        if(isMemberIncluded(member)) {
+            throw new DuplicatedTeamJoinException(member, this);
+        }
+
+        MemberTeamAssociation assoc = MemberTeamAssociation.builder()
+                .team(this)
+                .member(member).build();
+        this.members.add(assoc);
+        member.getTeams().add(assoc);
+    }
+
+    public void removeMember(Member member) {
+        MemberTeamAssociation association = members.stream()
+                .filter(assoc -> assoc.getMember().equals(member))
+                .findAny().orElseThrow(() -> {
+                    throw new NotJoinedTeamException(member, this);
+                });
+        this.members.remove(association);
+        member.getTeams().remove(association);
+    }
+
+    public List<Member> getMembersReadOnly() {
         return members.stream().map(MemberTeamAssociation::getMember).collect(Collectors.toList());
     }
 
-    public List<MemberDTO.Response> getMembersDTO(){
-        return members.stream().map(MemberTeamAssociation::getMember).map(MemberDTO.Response::new).collect(Collectors.toList());
-    }
-
-    public void changeTeamName(String teamName) {
+    public void changeTeamName(@NonNull String teamName) {
+        if(teamName.isBlank()) throw new IllegalArgumentException("Changed team name cannot be blank.");
         this.teamName = teamName;
     }
 
-    public void changeLeader(Member member) {
+    public void changeLeader(@NonNull Member member) {
+        if (!isMemberIncluded(member)) {
+            throw new NotJoinedTeamException(member, this);
+        }
+
         leader = member;
     }
 
@@ -64,4 +93,17 @@ public class Team {
     public void lock() { locked = true; }
 
     public void unlock() { locked = false; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Team team = (Team) o;
+        return id == team.id && locked == team.locked && leader.equals(team.leader) && teamName.equals(team.teamName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, leader, teamName, locked);
+    }
 }

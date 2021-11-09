@@ -3,24 +3,26 @@ package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.EntityResponseSnippets;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
+import com.simpletodolist.todolist.Snippets.ResponseSnippets;
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
+import com.simpletodolist.todolist.controller.bind.todolist.TodoListInformationRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.service.member.MemberService;
-import com.simpletodolist.todolist.service.team.TeamService;
-import com.simpletodolist.todolist.service.todo.TodoService;
-import com.simpletodolist.todolist.service.todolist.TodoListService;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.member.BasicMemberService;
+import com.simpletodolist.todolist.service.team.BasicTeamService;
+import com.simpletodolist.todolist.service.todo.BasicTodoService;
+import com.simpletodolist.todolist.service.todolist.BasicTodoListService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import com.simpletodolist.todolist.util.TeamTestMaster;
 import com.simpletodolist.todolist.util.TodoListTestMaster;
 import com.simpletodolist.todolist.util.TodoTestMaster;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import com.simpletodolist.todolist.util.container.TestTodoListDTO;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -50,30 +52,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
 @ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TeamTodoListControllerTest {
-
+class TeamTodoListControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    MemberService memberService;
+    BasicMemberService memberService;
     @Autowired
-    TeamService teamService;
+    BasicTeamService teamService;
     @Autowired
-    TodoListService todoListService;
+    BasicTodoListService todoListService;
     @Autowired
-    TodoService todoService;
+    BasicTodoService todoService;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
     TodoListTestMaster todoListTestMaster;
     TodoTestMaster todoTestMaster;
 
-    @BeforeAll
-    public void init() {
-        memberTestMaster = new MemberTestMaster(memberService);
+    @BeforeEach
+    void init() {
+        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
         teamTestMaster = new TeamTestMaster(teamService);
         todoListTestMaster = new TodoListTestMaster(todoListService);
         todoTestMaster = new TodoTestMaster(todoService);
@@ -81,17 +83,17 @@ public class TeamTodoListControllerTest {
 
     @Test
     @DisplayName("Get to-do lists of team.")
-    public void getTodoLists() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+    void getTodoLists() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
 
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
-        TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
-        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
-        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
+        TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
+        todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId(), false);
+        todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId(), false);
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}/todolist", newTeam.getId()))
@@ -111,7 +113,7 @@ public class TeamTodoListControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/api/team/{teamId}/todolist", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.result").isArray())
                 .andDo(document("TeamTodoListController/getTodolists",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -122,24 +124,29 @@ public class TeamTodoListControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.TodoList.todoLists)))
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.TodoList.todoLists)))
                 .andReturn();
 
         // check to-do list is in team.
-        List<TodoListDTO.Response> todoListsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
-        assertTrue(todoListsDTO.stream().anyMatch(dto -> dto.getTodoListId() == newTodoList.getTodoListId()));
+        ApiResponse<List<TestTodoListDTO>> todoListsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        assertTrue(todoListsDTO.getResult().stream().anyMatch(dto -> dto.getId() == newTodoList.getId()));
     }
 
     @Test
     @DisplayName("Create new to-do list.")
-    public void createTodolist() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+    void createTodolist() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
 
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
-        String todoListName = "todoListName";
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
+        TodoListInformationRequest request = new TodoListInformationRequest();
+        request.setTodoListName("todoListName");
+        request.setLocked(false);
 
         // request without token.
         mockMvc.perform(post("/api/team/{teamId}/todolist", newTeam.getId())).andExpect(status().isBadRequest());
@@ -148,26 +155,26 @@ public class TeamTodoListControllerTest {
         mockMvc.perform(post("/api/team/{teamId}/todolist", 123456789L)
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TodoListDTO.RegisterRequest.builder().todoListName(todoListName).build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
 
         // add to-do list to not joined team.
         mockMvc.perform(post("/api/team/{teamId}/todolist", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TodoListDTO.RegisterRequest.builder().todoListName(todoListName).build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // normal request.
         mockMvc.perform(post("/api/team/{teamId}/todolist", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TodoListDTO.RegisterRequest.builder().todoListName(todoListName).build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.name").value(todoListName))
-                .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
+                .andExpect(jsonPath("$.result.id").isNotEmpty())
+                .andExpect(jsonPath("$.result.name").value(request.getTodoListName()))
+                .andExpect(jsonPath("$.result.username").value(newMember.getUsername()))
                 .andDo(document("TeamTodoListController/createTodoList",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -178,36 +185,46 @@ public class TeamTodoListControllerTest {
                                 RequestSnippets.authorization
                         ),
                         requestFields(
-                                RequestSnippets.TodoList.CreateTodoList.todoListName
+                                RequestSnippets.TodoList.todoListName,
+                                RequestSnippets.TodoList.locked
                         ),
                         responseFields(
-                                EntityDescriptor.TodoList.todoListInformation
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.TodoList.id,
+                                EntityResponseSnippets.TodoList.username,
+                                EntityResponseSnippets.TodoList.alias,
+                                EntityResponseSnippets.TodoList.name,
+                                EntityResponseSnippets.TodoList.todos,
+                                EntityResponseSnippets.TodoList.locked
                         )));
 
         // check to-do list is created.
-        assertTrue(teamService.getTeamTodoLists(newTeam.getId()).stream()
-                .anyMatch(dto -> dto.getTodoListName().equals(todoListName)));
+        List<TodoListDTO> todoLists = teamService.readTeam(newTeam.getId()).getTodoLists();
+        assertTrue(todoLists.stream()
+                .anyMatch(list -> list.getName().equals(request.getTodoListName())));
     }
 
     @Test
     @DisplayName("Get specific to-do list.")
-    public void getSpecificTodoList() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
+    void getSpecificTodoList() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
 
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
-        TeamDTO.Response anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUserId());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
+        TeamDTO anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUsername());
 
-        TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
-        todoTestMaster.createNewTodo(newMember.getUserId(), newTeam.getId(), newTodoList.getTodoListId());
+        TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
+        todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId(), false);
 
         // request without token.
-        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
+        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId()))
                 .andExpect(status().isBadRequest());
 
         // get to-do list of not exist team.
-        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())
+        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isNotFound());
 
@@ -217,17 +234,17 @@ public class TeamTodoListControllerTest {
                 .andExpect(status().isNotFound());
 
         // get to-do list of not joined team.
-        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", anotherTeam.getId(), newTodoList.getTodoListId())
+        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", anotherTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
+        mockMvc.perform(get("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.name").value(newTodoList.getTodoListName()))
-                .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
+                .andExpect(jsonPath("$.result.id").isNotEmpty())
+                .andExpect(jsonPath("$.result.name").value(newTodoList.getName()))
+                .andExpect(jsonPath("$.result.username").value(newMember.getUsername()))
                 .andDo(document("TeamTodoListController/getTodoList",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -239,116 +256,118 @@ public class TeamTodoListControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.TodoList.todoListInformation
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.TodoList.id,
+                                EntityResponseSnippets.TodoList.username,
+                                EntityResponseSnippets.TodoList.alias,
+                                EntityResponseSnippets.TodoList.name,
+                                EntityResponseSnippets.TodoList.todos,
+                                EntityResponseSnippets.TodoList.locked
                         )));
     }
 
     @Test
     @DisplayName("Update to-do list.")
-    public void updateTodoList() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+    void updateTodoList() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
 
-        MemberDTO.Response lockMember = memberTestMaster.createNewMember();
-        String lockToken = memberTestMaster.getRequestToken(lockMember.getUserId(), lockMember.getPassword());
+        MemberDTO lockMember = memberTestMaster.createNewMember();
+        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername(), lockMember.getPassword());
 
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
 
-        MemberDTO.Response notJoinedMember = memberTestMaster.createNewMember();
-        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUserId(), notJoinedMember.getPassword());
+        MemberDTO notJoinedMember = memberTestMaster.createNewMember();
+        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername(), notJoinedMember.getPassword());
 
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
-        teamService.joinMember(newTeam.getId(), lockMember.getUserId());
-        teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
+        teamService.joinMember(newTeam.getId(), lockMember.getUsername());
+        teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
-        TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
-        TodoListDTO.Response lockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUserId(), newTeam.getId());
-        todoListService.updateTodoList(lockedTodoList.getTodoListId(), TodoListDTO.UpdateRequest.UpdatableTodoListInformation.LOCKED, true);
+        TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
+        TodoListDTO lockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUsername(), newTeam.getId());
+
+        TodoListInformationRequest request = new TodoListInformationRequest();
+        request.setTodoListName(lockedTodoList.getName());
+        request.setLocked(true);
+
+        todoListService.updateTodoList(lockedTodoList.getId(), request);
 
         // request without token.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId()))
                 .andExpect(status().isBadRequest());
 
-
-        String requestContent = objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.NAME)
-                .value("na")
-                .build());
+        request.setTodoListName("NA");
         // update to-do list of not exist team.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
 
         // update not exist to-do list.
         mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), 123456789)
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
 
         // update to-do list of not joined team.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, notJoinedToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // update locked to-do list by not owner.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // update locked to-do list by owner.
-        String unlocked = "unlocked";
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        request.setTodoListName("UNLOCKED");
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.NAME)
-                        .value(unlocked)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(unlocked));
+                .andExpect(jsonPath("$.result.name").value(request.getTodoListName()));
 
         // update locked to-do list by team leader.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        request.setLocked(false);
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.LOCKED)
-                        .value(false)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ownerUserId").value(lockMember.getUserId()))
-                .andExpect(jsonPath("$.locked").value(false));
+                .andExpect(jsonPath("$.result.username").value(lockMember.getUsername()))
+                .andExpect(jsonPath("$.result.locked").value(false));
 
         // only owner can lock to-do list.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        request.setLocked(true);
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.LOCKED)
-                        .value(true)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
+        request.setTodoListName("UPDATED_BY_ANOTHER");
+        request.setLocked(false);
+        // TODO: decouple tests.
+        mockMvc.perform(patch("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken) // if it's not locked everyone can update it.
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.NAME)
-                        .value("Updated by owner.")
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.name").value("Updated by owner."))
-                .andExpect(jsonPath("$.ownerUserId").value(newMember.getUserId()))
+                .andExpect(jsonPath("$.result.id").isNotEmpty())
+                .andExpect(jsonPath("$.result.name").value(request.getTodoListName()))
+                .andExpect(jsonPath("$.result.username").value(newMember.getUsername()))
                 .andDo(document("TeamTodoListController/updateTodoList",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -360,44 +379,56 @@ public class TeamTodoListControllerTest {
                                 RequestSnippets.authorization
                         ),
                         requestFields(
-                                RequestSnippets.TodoList.UpdateTodoList.field,
-                                RequestSnippets.TodoList.UpdateTodoList.value
+                                RequestSnippets.TodoList.todoListName,
+                                RequestSnippets.TodoList.locked
                         ),
                         responseFields(
-                                EntityDescriptor.TodoList.todoListInformation
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.TodoList.id,
+                                EntityResponseSnippets.TodoList.username,
+                                EntityResponseSnippets.TodoList.alias,
+                                EntityResponseSnippets.TodoList.name,
+                                EntityResponseSnippets.TodoList.todos,
+                                EntityResponseSnippets.TodoList.locked
                         )));
     }
 
     @Test
     @DisplayName("Delete to-do list")
-    public void deleteTodolist() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+    void deleteTodolist() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
 
-        MemberDTO.Response lockMember = memberTestMaster.createNewMember();
-        String lockToken = memberTestMaster.getRequestToken(lockMember.getUserId(), lockMember.getPassword());
+        MemberDTO lockMember = memberTestMaster.createNewMember();
+        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername(), lockMember.getPassword());
 
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
 
-        MemberDTO.Response notJoinedMember = memberTestMaster.createNewMember();
-        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUserId(), notJoinedMember.getPassword());
+        MemberDTO notJoinedMember = memberTestMaster.createNewMember();
+        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername(), notJoinedMember.getPassword());
 
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
-        teamService.joinMember(newTeam.getId(), lockMember.getUserId());
-        teamService.joinMember(newTeam.getId(), anotherMember.getUserId());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
+        teamService.joinMember(newTeam.getId(), lockMember.getUsername());
+        teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
-        TodoListDTO.Response newTodoList = todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
-        TodoListDTO.Response lockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUserId(), newTeam.getId());
-        todoListService.updateTodoList(lockedTodoList.getTodoListId(), TodoListDTO.UpdateRequest.UpdatableTodoListInformation.LOCKED, true);
+        TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
+        TodoListDTO lockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUsername(), newTeam.getId());
+
+        TodoListInformationRequest request = new TodoListInformationRequest();
+        request.setTodoListName(lockedTodoList.getName());
+        request.setLocked(true);
+        todoListService.updateTodoList(lockedTodoList.getId(), request);
 
 
         // request without token.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId()))
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId()))
                 .andExpect(status().isBadRequest());
 
         // delete to-do list of not exist team.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", 123456789, newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken))
                 .andExpect(status().isNotFound());
 
@@ -407,34 +438,38 @@ public class TeamTodoListControllerTest {
                 .andExpect(status().isNotFound());
 
         // delete to-do list of not joined team.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, notJoinedToken))
                 .andExpect(status().isForbidden());
 
         // delete locked to-do list by not owner.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken))
                 .andExpect(status().isForbidden());
 
         // delete locked to-do list by owner.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), lockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, lockToken))
                 .andExpect(status().isOk());
 
-        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(lockedTodoList.getTodoListId()));
+        long id = lockedTodoList.getId();
+        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(id));
 
         // delete locked to-do list overridden by leader.
-        TodoListDTO.Response anotherLockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUserId(), newTeam.getId());
-        todoListService.updateTodoList(anotherLockedTodoList.getTodoListId(), TodoListDTO.UpdateRequest.UpdatableTodoListInformation.LOCKED, true);
+        TodoListDTO anotherLockedTodoList = todoListTestMaster.createNewTodoList(lockMember.getUsername(), newTeam.getId());
+        request.setTodoListName(anotherLockedTodoList.getName());
+        request.setLocked(true);
+        todoListService.updateTodoList(anotherLockedTodoList.getId(), request);
 
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), anotherLockedTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), anotherLockedTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk());
 
-        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(anotherLockedTodoList.getTodoListId()));
+        long lockedId = anotherLockedTodoList.getId();
+        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(lockedId));
 
         // normal request.
-        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getTodoListId())
+        mockMvc.perform(delete("/api/team/{teamId}/todolist/{todoListId}", newTeam.getId(), newTodoList.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)) // if it's not locked, every can remove it.
                 .andExpect(status().isOk())
                 .andDo(document("TeamTodoListController/deleteTodoList",
@@ -447,7 +482,7 @@ public class TeamTodoListControllerTest {
                         requestHeaders(
                                 RequestSnippets.authorization)));
 
-        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(newTodoList.getTodoListId()));
-
+        long newId = newTodoList.getId();
+        assertThrows(NoTodoListFoundException.class, () -> todoListService.getTodoListDetail(newId));
     }
 }

@@ -1,7 +1,7 @@
 package com.simpletodolist.todolist.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.exception.ExceptionResponseDTO;
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
@@ -23,12 +23,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
-
     private final JwtTokenUtil jwtTokenUtil;
     private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
@@ -41,8 +39,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     @Override
     // https://www.baeldung.com/spring-exclude-filter
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        // TODO: is it good practice?
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getRequestURI().startsWith("/api/public")
                 || request.getRequestURI().startsWith("/docs")
                 || request.getRequestURI().equals("/");
@@ -51,28 +48,28 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(!validateAuthorizationHeader(header)) {
+        if(!validateAuthorizationHeader(header)) { // if request has no 'authorization' header
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
-                    "Authorization Header Not Valid", "Please check your request header."));
+            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail("Please check your request header."));
             return;
         }
 
         Claims claims;
         try {
-            claims = jwtTokenUtil.validateBearerJWT(header);
+            claims = jwtTokenUtil.parseBearerJWTSubject(header);
         } catch (JwtException exception) {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
-                    "Bad JWT Value", String.format("%s. Please check your authorization header.", exception.getLocalizedMessage())));
+            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail(String.format(
+                    "%s. Please check your authorization header.", exception.getLocalizedMessage())));
             return;
         }
 
         // get user identification from token and set to spring security context.
         try {
-            UserDetails userDetails = memberRepository.findByUserId(jwtTokenUtil.getUserIdFromClaims(claims)).orElseThrow(NoMemberFoundException::new);
+            String username = jwtTokenUtil.getUsername(claims);
+            UserDetails userDetails = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
             if(!userDetails.isAccountNonLocked()) throw new LockedException("Account is locked. Please contact account manager.");
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
@@ -80,14 +77,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
             filterChain.doFilter(request, response);
-        } catch (NoMemberFoundException e) {
+        } catch (RuntimeException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), new ExceptionResponseDTO(
-                    e.getError(), e.getMessage()));
+            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail(e.getLocalizedMessage()));
         }
     }
-
-
-
 }

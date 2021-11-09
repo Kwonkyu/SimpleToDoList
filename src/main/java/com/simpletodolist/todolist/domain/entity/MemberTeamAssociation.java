@@ -1,31 +1,45 @@
 package com.simpletodolist.todolist.domain.entity;
 
 import lombok.*;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
-@EqualsAndHashCode(of = {"id"})
 public class MemberTeamAssociation {
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_TEAM_ASSOC_ID")
+    @Column(name = "id")
     private long id;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id")
     private Member member;
 
-    @NonNull
     @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @JoinColumn(name = "team_id")
     private Team team;
 
 
+    @Builder
+    public MemberTeamAssociation(@NonNull Member member,
+                                 @NonNull Team team) {
+        this.member = member;
+        this.team = team;
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MemberTeamAssociation that = (MemberTeamAssociation) o;
+        return id == that.id && member.equals(that.member) && team.equals(that.team);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, member, team);
+    }
 }

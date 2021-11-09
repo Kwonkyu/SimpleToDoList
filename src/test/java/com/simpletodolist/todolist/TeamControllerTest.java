@@ -3,21 +3,24 @@ package com.simpletodolist.todolist;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.simpletodolist.todolist.Snippets.EntityDescriptor;
+import com.simpletodolist.todolist.Snippets.EntityResponseSnippets;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
+import com.simpletodolist.todolist.Snippets.ResponseSnippets;
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
+import com.simpletodolist.todolist.controller.bind.team.TeamInformationRequest;
+import com.simpletodolist.todolist.controller.bind.team.TeamSearchRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
-import com.simpletodolist.todolist.service.member.MemberService;
-import com.simpletodolist.todolist.service.team.TeamService;
-import com.simpletodolist.todolist.service.todolist.TodoListService;
+import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.member.BasicMemberService;
+import com.simpletodolist.todolist.service.team.BasicTeamService;
+import com.simpletodolist.todolist.service.todolist.BasicTodoListService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import com.simpletodolist.todolist.util.TeamTestMaster;
 import com.simpletodolist.todolist.util.TodoListTestMaster;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import com.simpletodolist.todolist.util.container.TestTeamDTO;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -46,59 +50,59 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
 @ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TeamControllerTest {
-
+@Transactional
+class TeamControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    MemberService memberService;
+    BasicMemberService memberService;
     @Autowired
-    TodoListService todoListService;
+    BasicTodoListService todoListService;
     @Autowired
-    TeamService teamService;
+    BasicTeamService teamService;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
     TodoListTestMaster todoListTestMaster;
 
 
-    @BeforeAll
-    public void init() {
-        memberTestMaster = new MemberTestMaster(memberService);
+    @BeforeEach
+    void init() {
+        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
         teamTestMaster = new TeamTestMaster(teamService);
         todoListTestMaster = new TodoListTestMaster(todoListService);
     }
 
 
     @Test
-    @DisplayName("Search Teams")
-    public void searchTeams() throws Exception {
+    @DisplayName("Search teams / except joined teams")
+    void searchTeamsExceptJoinedTeams() throws Exception {
         String keyword = "FIND_ME";
-        MemberDTO.Response member1_3 = memberTestMaster.createNewMember();
-        TeamDTO.Response team1 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello World" + keyword);
-        TeamDTO.Response team2 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Cruel World" + keyword);
-        TeamDTO.Response team3 = teamTestMaster.createNewTeam(member1_3.getUserId(), "Hello Cruel" + keyword);
-        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUserId(), member1_3.getPassword());
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
 
-        MemberDTO.Response member4_5 = memberTestMaster.createNewMember();
-        TeamDTO.Response team4 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Reloaded" + keyword);
-        TeamDTO.Response team5 = teamTestMaster.createNewTeam(member4_5.getUserId(), "Matrix: Revolution" + keyword);
-        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUserId(), member4_5.getPassword());
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
 
-        String requestContent = objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                .searchValue(keyword)
-                .includeJoined(false)
-                .build());
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
+        request.setSearchValue(keyword);
+        request.setIncludeJoined(false);
 
         // search teams except joined teams.
         MvcResult mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andDo(document("TeamController/searchTeam",
                         commonRequestPreprocessor,
@@ -110,213 +114,303 @@ public class TeamControllerTest {
                         requestHeaders(
                                 RequestSnippets.authorization),
                         responseFields(
-                                EntityDescriptor.Team.teams
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.Team.teams
                         )))
                 .andReturn();
 
-        List<TeamDTO.Response> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
-        assertEquals(3, teamsDTO.size());
-        assertTrue(teamsDTO.stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
-        assertTrue(teamsDTO.stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
+        ApiResponse<List<TestTeamDTO>> teams = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(3, teams.getResult().size());
+        assertTrue(teams.getResult().stream()
+                .anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
+        assertTrue(teams.getResult().stream()
+                .anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
+        assertTrue(teams.getResult().stream()
+                .anyMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
 
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
-        assertTrue(teamsDTO.stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
-        assertTrue(teamsDTO.stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
+        teams = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        assertEquals(2, teams.getResult().size());
+        assertTrue(teams.getResult().stream()
+                .anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
+        assertTrue(teams.getResult().stream()
+                .anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
+    }
 
+    @Test
+    @DisplayName("Search teams / include joined teams.")
+    void searchTeamsIncludeJoinedTeams() throws Exception {
+        String keyword = "FIND_ME";
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
 
-        requestContent = objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                .searchValue(keyword)
-                .includeJoined(true)
-                .build());
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
+        request.setSearchValue(keyword);
+        request.setIncludeJoined(true);
 
         // search teams include joined teams.
-        mvcResult = mockMvc.perform(get("/api/team")
+        MvcResult mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsBytes(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(5, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
+        ApiResponse<List<TestTeamDTO>> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(5, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
 
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(5, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
+        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(5, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName())));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName())));
+    }
 
+    @Test
+    @DisplayName("Search teams / by keyword / with joined.")
+    void searchTeamsByKeywordWithJoined() throws Exception {
+        String keyword = "FIND_ME";
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
+
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
 
         // search by keyword.
-        mvcResult = mockMvc.perform(get("/api/team")
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
+        request.setSearchValue("World");
+        request.setIncludeJoined(true);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member1_3Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                        .searchValue("World")
-                        .includeJoined(true)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName()))); // Hello World
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName()))); // Cruel World
+        ApiResponse<List<TestTeamDTO>> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(2, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team1.getTeamName()))); // Hello World
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team2.getTeamName()))); // Cruel World
+        assertTrue(teamsDTO.getResult().stream().noneMatch(teamDTO -> teamDTO.getTeamName().equals(team3.getTeamName()))); // Cruel World
 
-        mvcResult = mockMvc.perform(get("/api/team")
-                .header(HttpHeaders.AUTHORIZATION, member1_3Token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                        .searchValue("World")
-                        .includeJoined(false)
-                        .build())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertTrue(teamsDTO.isEmpty());
-
+        request.setSearchValue("Matrix");
 
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                        .searchValue("Matrix")
-                        .includeJoined(true)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName()))); // Matrix: Reloaded
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName()))); // Matrix: Revolution
+        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(2, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team4.getTeamName()))); // Matrix: Reloaded
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getTeamName().equals(team5.getTeamName()))); // Matrix: Revolution
+    }
 
+    @Test
+    @DisplayName("Search teams / by keyword / without joined.")
+    void searchTeamsByKeywordWithoutJoined() throws Exception {
+        String keyword = "FIND_ME";
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
 
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+
+        // search by keyword.
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
+        request.setSearchValue("World");
+        request.setIncludeJoined(false);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/team")
+                .header(HttpHeaders.AUTHORIZATION, member1_3Token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ApiResponse<List<TestTeamDTO>> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertTrue(teamsDTO.getResult().isEmpty());
+
+        request.setSearchValue("Matrix");
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, member4_5Token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.NAME)
-                        .searchValue("Matrix")
-                        .includeJoined(false)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertTrue(teamsDTO.isEmpty());
+        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertTrue(teamsDTO.getResult().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Search teams / by leader / with joined.")
+    void searchTeamsByLeaderIncludeJoined() throws Exception {
+        String keyword = "FIND_ME";
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
 
 
         // search by leader.
-        MemberDTO.Response joinMember = memberTestMaster.createNewMember();
-        teamService.joinMember(team1.getId(), joinMember.getUserId());
-        String joinToken = memberTestMaster.getRequestToken(joinMember.getUserId(), joinMember.getPassword());
+        MemberDTO joinMember = memberTestMaster.createNewMember();
+        teamService.joinMember(team1.getId(), joinMember.getUsername());
+        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername(), joinMember.getPassword());
+
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.LEADER);
+        request.setSearchValue(member1_3.getUsername());
+        request.setIncludeJoined(true);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/team")
+                .header(HttpHeaders.AUTHORIZATION, joinToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ApiResponse<List<TestTeamDTO>> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(3, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team1.getId()));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team2.getId()));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team3.getId()));
+
+        request.setSearchValue(member4_5.getUsername());
 
         mvcResult = mockMvc.perform(get("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, joinToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.LEADER)
-                        .searchValue(member1_3.getUserId())
-                        .includeJoined(true)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(3, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team1.getId()));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team2.getId()));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team3.getId()));
-
-        mvcResult = mockMvc.perform(get("/api/team")
-                .header(HttpHeaders.AUTHORIZATION, joinToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.LEADER)
-                        .searchValue(member1_3.getUserId())
-                        .includeJoined(false)
-                        .build())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team2.getId()));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team3.getId()));
-
-
-        // search by leader not joined team.
-        mvcResult = mockMvc.perform(get("/api/team")
-                .header(HttpHeaders.AUTHORIZATION, joinToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.LEADER)
-                        .searchValue(member4_5.getUserId())
-                        .includeJoined(true)
-                        .build())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team4.getId()));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team5.getId()));
-
-        mvcResult = mockMvc.perform(get("/api/team")
-                .header(HttpHeaders.AUTHORIZATION, joinToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.SearchRequest.builder()
-                        .searchTeamField(TeamDTO.SearchRequest.SearchTeamField.LEADER)
-                        .searchValue(member4_5.getUserId())
-                        .includeJoined(false)
-                        .build())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>(){});
-        assertEquals(2, teamsDTO.size());
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team4.getId()));
-        assertTrue(teamsDTO.stream().anyMatch(teamDTO -> teamDTO.getId() == team5.getId()));
+        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(2, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team4.getId()));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team5.getId()));
     }
 
+    @Test
+    @DisplayName("Search teams / by leader / without joined.")
+    void searchTeamsByLeaderWithoutJoined() throws Exception {
+        String keyword = "FIND_ME";
+        MemberDTO member1_3 = memberTestMaster.createNewMember();
+        TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
+        TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
+        TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
+
+        MemberDTO member4_5 = memberTestMaster.createNewMember();
+        TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
+        TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
+
+
+        // search by leader.
+        MemberDTO joinMember = memberTestMaster.createNewMember();
+        teamService.joinMember(team1.getId(), joinMember.getUsername());
+        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername(), joinMember.getPassword());
+
+        TeamSearchRequest request = new TeamSearchRequest();
+        request.setSearchTeamField(TeamSearchRequest.SearchTeamField.LEADER);
+        request.setSearchValue(member1_3.getUsername());
+        request.setIncludeJoined(false);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/team")
+                .header(HttpHeaders.AUTHORIZATION, joinToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ApiResponse<List<TestTeamDTO>> teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(2, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team2.getId()));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team3.getId()));
+
+        request.setSearchValue(member4_5.getUsername());
+
+        mvcResult = mockMvc.perform(get("/api/team")
+                .header(HttpHeaders.AUTHORIZATION, joinToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        teamsDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(2, teamsDTO.getResult().size());
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team4.getId()));
+        assertTrue(teamsDTO.getResult().stream().anyMatch(teamDTO -> teamDTO.getId() == team5.getId()));
+    }
 
     @Test
     @DisplayName("Request Team Information")
-    public void getTeam() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
-        todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
-        todoListTestMaster.createNewTodoList(newMember.getUserId(), newTeam.getId());
+    void getTeam() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
+        todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
+        todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
 
         // request without token.
         mockMvc.perform(get("/api/team/{teamId}", newTeam.getId()))
@@ -331,8 +425,8 @@ public class TeamControllerTest {
         mockMvc.perform(get("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(newTeam.getId()))
-                .andExpect(jsonPath("$.teamName").value(newTeam.getTeamName()))
+                .andExpect(jsonPath("$.result.id").value(newTeam.getId()))
+                .andExpect(jsonPath("$.result.teamName").value(newTeam.getTeamName()))
                 .andDo(document("TeamController/getTeam",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -342,15 +436,22 @@ public class TeamControllerTest {
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.Team.teamDetails
-                        )));
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.Team.id,
+                                EntityResponseSnippets.Team.teamName,
+                                EntityResponseSnippets.Team.leaderUsername,
+                                EntityResponseSnippets.Team.leaderAlias,
+                                EntityResponseSnippets.Team.todoLists,
+                                EntityResponseSnippets.Team.locked)));
     }
 
     @Test
     @DisplayName("Create Team")
-    public void createTeam() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
+    void createTeam() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
 
         // request without token.
         mockMvc.perform(post("/api/team")).andExpect(status().isBadRequest());
@@ -361,18 +462,17 @@ public class TeamControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        String teamName = "createdTeam";
-
         // normal request.
-        mockMvc.perform(post("/api/team")
+        TeamInformationRequest request = new TeamInformationRequest();
+        request.setTeamName("CREATED_TEAM");
+        request.setLocked(false);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/team")
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.RegisterRequest.builder().teamName(teamName).build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("$.teamName").value(teamName))
-                .andExpect(jsonPath("$.teamLeaderUserId").value(newMember.getUserId()))
-                .andExpect(jsonPath("$.teamLeaderUsername").value(newMember.getUsername()))
                 .andDo(document("TeamController/createTeam",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -380,21 +480,37 @@ public class TeamControllerTest {
                                 RequestSnippets.authorization
                         ),
                         requestFields(
-                                RequestSnippets.Team.CreateTeam.teamName
+                                RequestSnippets.Team.CreateTeam.teamName,
+                                RequestSnippets.Team.CreateTeam.locked
                         ),
                         responseFields(
-                                EntityDescriptor.Team.teamDetails
-                        )));
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.Team.id,
+                                EntityResponseSnippets.Team.teamName,
+                                EntityResponseSnippets.Team.leaderUsername,
+                                EntityResponseSnippets.Team.leaderAlias,
+                                EntityResponseSnippets.Team.todoLists,
+                                EntityResponseSnippets.Team.locked)))
+                .andReturn();
+
+        ApiResponse<TestTeamDTO> team = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        assertEquals(newMember.getUsername(), team.getResult().getLeaderUsername());
+        assertEquals(newMember.getAlias(), team.getResult().getAlias());
+        assertEquals(request.getTeamName(), team.getResult().getTeamName());
+        assertTrue(team.getResult().getTodoLists().isEmpty());
+        assertFalse(team.getResult().isLocked());
     }
 
     @Test
     @DisplayName("Update Team Information.")
-    public void updateTeam() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+    void updateTeam() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         String updatedTeamName = "updatedTeam";
 
         // request without token.
@@ -407,25 +523,23 @@ public class TeamControllerTest {
                 .andExpect(status().isBadRequest());
 
         // request without authorization
+        TeamInformationRequest request = new TeamInformationRequest();
+        request.setTeamName(updatedTeamName);
+        request.setLocked(newTeam.isLocked());
+
         mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, anotherToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.NAME)
-                        .value(updatedTeamName)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
 
         // normal request.
-        mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
+        MvcResult mvcResult = mockMvc.perform(patch("/api/team/{teamId}", newTeam.getId())
                 .header(HttpHeaders.AUTHORIZATION, newToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TeamDTO.UpdateRequest.builder()
-                        .field(TeamDTO.UpdateRequest.UpdatableTeamInformation.NAME)
-                        .value(updatedTeamName)
-                        .build())))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.teamName").value(updatedTeamName))
+                .andExpect(jsonPath("$.result.teamName").value(updatedTeamName))
                 .andDo(document("TeamController/updateTeam",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -433,25 +547,37 @@ public class TeamControllerTest {
                                 RequestSnippets.teamIdPath
                         ),
                         requestFields(
-                                RequestSnippets.Team.UpdateTeam.updateField,
-                                RequestSnippets.Team.UpdateTeam.updateValue
+                                RequestSnippets.Team.UpdateTeam.teamName,
+                                RequestSnippets.Team.UpdateTeam.locked
                         ),
                         requestHeaders(
                                 RequestSnippets.authorization
                         ),
                         responseFields(
-                                EntityDescriptor.Team.teamInformation
-                        )));
+                                ResponseSnippets.ApiResponseDescriptor.success,
+                                ResponseSnippets.ApiResponseDescriptor.result,
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.Team.id,
+                                EntityResponseSnippets.Team.teamName,
+                                EntityResponseSnippets.Team.leaderUsername,
+                                EntityResponseSnippets.Team.leaderAlias,
+                                EntityResponseSnippets.Team.todoLists,
+                                EntityResponseSnippets.Team.locked)))
+                .andReturn();
+
+        ApiResponse<TestTeamDTO> team = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        assertEquals(request.getTeamName(), team.getResult().getTeamName());
+        assertEquals(request.isLocked(), team.getResult().isLocked());
     }
 
     @Test
     @DisplayName("Delete Team")
-    public void deleteTeam() throws Exception {
-        MemberDTO.Response newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUserId(), newMember.getPassword());
-        MemberDTO.Response anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUserId(), anotherMember.getPassword());
-        TeamDTO.Response newTeam = teamTestMaster.createNewTeam(newMember.getUserId());
+    void deleteTeam() throws Exception {
+        MemberDTO newMember = memberTestMaster.createNewMember();
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        MemberDTO anotherMember = memberTestMaster.createNewMember();
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         // request without token.
         mockMvc.perform(delete("/api/team/{teamId}", newTeam.getId())).andExpect(status().isBadRequest());
@@ -476,6 +602,7 @@ public class TeamControllerTest {
                         )));
 
         // check if team is deleted.
-        assertThrows(NoTeamFoundException.class, () -> teamService.getTeamDetails(newTeam.getId()));
+        long id = newTeam.getId();
+        assertThrows(NoTeamFoundException.class, () -> teamService.readTeam(id));
     }
 }

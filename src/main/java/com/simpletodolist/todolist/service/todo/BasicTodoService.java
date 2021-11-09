@@ -1,15 +1,13 @@
 package com.simpletodolist.todolist.service.todo;
 
+import com.simpletodolist.todolist.controller.bind.todo.TodoInformationRequest;
 import com.simpletodolist.todolist.domain.bind.TodoDTO;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.Todo;
 import com.simpletodolist.todolist.domain.entity.TodoList;
-import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.todo.NoTodoFoundException;
-import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.repository.MemberRepository;
-import com.simpletodolist.todolist.repository.TodoListRepository;
 import com.simpletodolist.todolist.repository.TodoRepository;
+import com.simpletodolist.todolist.util.EntityFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,76 +15,47 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.simpletodolist.todolist.domain.bind.TodoDTO.Create;
-import static com.simpletodolist.todolist.domain.bind.TodoDTO.Response;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BasicTodoService implements TodoService{
-
-    private final MemberRepository memberRepository;
+public class BasicTodoService {
     private final TodoRepository todoRepository;
-    private final TodoListRepository todoListRepository;
+    private final EntityFinder entityFinder;
 
-
-    @Override
-    public boolean isTodoLocked(long todoId) throws NoTodoFoundException {
-        return todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new).isLocked();
-    }
-
-    @Override
     @Transactional(readOnly = true)
-    public Response readTodo(long todoId) throws NoTodoFoundException {
-        return new Response(todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new));
+    public TodoDTO readTodo(long todoId) throws NoTodoFoundException {
+        return new TodoDTO(entityFinder.findTodoById(todoId));
     }
 
-
-    @Override
     @Transactional(readOnly = true)
-    public List<Response> readTodosOfTodoList(long todoListId) throws NoTodoListFoundException {
-        return todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new).getTodos().stream()
-                .map(Response::new).collect(Collectors.toList());
+    public List<TodoDTO> readTodosOfTodoList(long todoListId) {
+        return entityFinder.findTodoListById(todoListId)
+                .getTodos().stream()
+                .map(TodoDTO::new)
+                .collect(Collectors.toList());
     }
 
-
-    @Override
-    public Response createTodo(String memberUserId, long todoListId, Create todo) {
-        Member writer = memberRepository.findByUserId(memberUserId).orElseThrow(NoMemberFoundException::new);
-        TodoList todoList = todoListRepository.findById(todoListId).orElseThrow(NoTodoListFoundException::new);
-        Todo newTodo = new Todo(todo.getTitle(), todo.getContent(), writer, todoList);
-        todoRepository.save(newTodo);
-        return new TodoDTO.Response(newTodo);
+    public TodoDTO createTodo(String username, long todoListId, TodoInformationRequest request) {
+        Member writer = entityFinder.findMemberByUsername(username);
+        TodoList todoList = entityFinder.findTodoListById(todoListId);
+        Todo newTodo = Todo.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .writer(writer)
+                .todoList(todoList)
+                .locked(request.isLocked()).build();
+        return new TodoDTO(todoRepository.save(newTodo));
     }
 
-    @Override
-    public Response updateTodo(long todoId, TodoDTO.Update.UpdatableTodoInformation field, Object value) throws NoTodoFoundException {
-        Todo todo = todoRepository.findById(todoId).orElseThrow(NoTodoFoundException::new);
-        String changedValue = String.valueOf(value);
-        switch (field) {
-            case LOCKED:
-                boolean lock = Boolean.parseBoolean(changedValue);
-                if(lock) {
-                    todo.lock();
-                } else {
-                    todo.unlock();
-                }
-                break;
-
-            case CONTENT:
-                todo.changeContent(changedValue.length() > 1024 ? changedValue.substring(0, 1024) : changedValue);
-                break;
-
-            case TITLE:
-                changedValue = (String) value;
-                todo.changeTitle(changedValue.length() > 64 ? changedValue.substring(0, 64) : changedValue);
-                break;
-        }
-
-        return new Response(todo);
+    public TodoDTO updateTodo(long todoId, TodoInformationRequest request) throws NoTodoFoundException {
+        Todo todo = entityFinder.findTodoById(todoId);
+        todo.changeTitle(request.getTitle());
+        todo.changeContent(request.getContent());
+        if(request.isLocked()) todo.lock();
+        else todo.unlock();
+        return new TodoDTO(todo);
     }
 
-    @Override
     public void deleteTodo(long todoId) {
         todoRepository.deleteById(todoId);
     }

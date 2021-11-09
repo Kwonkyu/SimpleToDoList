@@ -1,19 +1,19 @@
 package com.simpletodolist.todolist.util;
 
+import com.simpletodolist.todolist.controller.bind.team.TeamInformationRequest;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import com.simpletodolist.todolist.service.team.TeamService;
+import com.simpletodolist.todolist.service.team.BasicTeamService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class TeamTestMaster {
+    private final BasicTeamService teamService;
 
-    private final static Map<Long, TeamDTO.Response> teams = new HashMap<>();
+    private final static Map<Long, TeamDTO> teams = new HashMap<>();
 
-    private final TeamService teamService;
-
-    public TeamTestMaster(TeamService teamService) {
+    public TeamTestMaster(BasicTeamService teamService) {
         this.teamService = teamService;
     }
 
@@ -21,17 +21,19 @@ public class TeamTestMaster {
         return UUID.randomUUID().toString().replaceAll("-", "").substring(0, length % 32);
     }
 
-    public TeamDTO.Response createNewTeam(String userId) {
+    public TeamDTO createNewTeam(String userId) {
         return createNewTeam(userId, randomString(31));
     }
-    public TeamDTO.Response createNewTeam(String userId, String teamName) {
-        TeamDTO.RegisterRequest teamDTO = TeamDTO.RegisterRequest.builder().teamName(teamName).build();
-        TeamDTO.Response result = teamService.createTeam(userId, teamDTO);
+    public TeamDTO createNewTeam(String userId, String teamName) {
+        TeamInformationRequest request = new TeamInformationRequest();
+        request.setTeamName(teamName);
+        request.setLocked(false);
+        TeamDTO result = teamService.createTeam(userId, request);
         teams.put(result.getId(), result);
         return result;
     }
 
-    public TeamDTO.Response getTeamInfo(long teamId) {
+    public TeamDTO getTeamInfo(long teamId) {
         return teams.get(teamId);
     }
 }

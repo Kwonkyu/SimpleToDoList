@@ -1,35 +1,22 @@
 package com.simpletodolist.todolist.exception;
 
-import com.simpletodolist.todolist.exception.todolist.LockedTodoListException;
+import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.exception.todolist.NotTodoListOwnerException;
+import com.simpletodolist.todolist.exception.todolist.TodoListAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class TodoListExceptionHandler {
-
     @ExceptionHandler(NoTodoListFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ResponseBody
-    public ExceptionResponseDTO noTodoListFound(NoTodoListFoundException exception){
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> noTodoListFound(NoTodoListFoundException exception){
+        return ApiResponse.fail(exception.getMessage());
     }
 
-    @ExceptionHandler(LockedTodoListException.class)
+    @ExceptionHandler(TodoListAccessException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ResponseBody
-    public ExceptionResponseDTO lockedTodoList(LockedTodoListException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
-    }
-
-    @ExceptionHandler(NotTodoListOwnerException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ResponseBody
-    public ExceptionResponseDTO notOwnerTodoList(NotTodoListOwnerException exception) {
-        return new ExceptionResponseDTO(exception.getError(), exception.getMessage());
+    public ApiResponse<Object> notOwnerTodoList(TodoListAccessException exception) {
+        return ApiResponse.fail(exception.getMessage());
     }
 }
