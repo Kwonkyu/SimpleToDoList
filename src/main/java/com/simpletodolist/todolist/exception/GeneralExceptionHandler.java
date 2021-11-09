@@ -3,7 +3,6 @@ package com.simpletodolist.todolist.exception;
 import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.util.FieldErrorDetail;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,12 +18,6 @@ public class GeneralExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Object> authenticationFailed(AuthenticationException exception) {
-        return ApiResponse.fail(exception.getMessage());
-    }
-
-    @ExceptionHandler(LockedException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ApiResponse<Object> accountLocked(LockedException exception) {
         return ApiResponse.fail(exception.getMessage());
     }
 
@@ -53,12 +46,6 @@ public class GeneralExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Object> handleIllegalArgument(IllegalArgumentException exception) {
-        return ApiResponse.fail(exception.getMessage());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiResponse<Object> handleRuntimeException(RuntimeException exception) {
         return ApiResponse.fail(exception.getMessage());
     }
 }

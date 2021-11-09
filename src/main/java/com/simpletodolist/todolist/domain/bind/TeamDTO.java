@@ -15,8 +15,8 @@ public class TeamDTO {
     @JsonProperty("leaderUsername")
     private final String leaderUsername;
 
-    @JsonProperty("alias")
-    private final String alias;
+    @JsonProperty("leaderAlias")
+    private final String leaderAlias;
 
     @JsonProperty("teamName")
     private final String teamName;
@@ -31,7 +31,7 @@ public class TeamDTO {
     public TeamDTO(Team team) {
         this.id = team.getId();
         this.leaderUsername = team.getLeader().getUsername();
-        this.alias = team.getLeader().getAlias();
+        this.leaderAlias = team.getLeader().getAlias();
         this.teamName = team.getTeamName();
         this.locked = team.isLocked();
         team.getTodoLists().forEach(todoList -> todoLists.add(new TodoListDTO(todoList)));
