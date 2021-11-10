@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+    generate-ddl: true
+    show-sql: true
+
+  datasource:
+    url: jdbc:mariadb://localhost:3306/simpletodolist
+    username: todolistmanager
+    password: password
+    driver-class-name: org.mariadb.jdbc.Driver
+
+server:
+  error:
+    include-message: always # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#changes-to-the-default-error-pages-content
