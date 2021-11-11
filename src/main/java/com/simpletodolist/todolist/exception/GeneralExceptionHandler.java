@@ -2,6 +2,7 @@ package com.simpletodolist.todolist.exception;
 
 import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.util.FieldErrorDetail;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -47,5 +48,11 @@ public class GeneralExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Object> handleIllegalArgument(IllegalArgumentException exception) {
         return ApiResponse.fail(exception.getMessage());
+    }
+
+    @ExceptionHandler(JwtException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Object> handleJwtException(JwtException jwtException) {
+        return ApiResponse.fail(jwtException.getMessage());
     }
 }

@@ -51,7 +51,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         if(!validateAuthorizationHeader(header)) { // if request has no 'authorization' header
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail("Please check your request header."));
+            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail("Authorization header not valid. Please check your request header."));
             return;
         }
 

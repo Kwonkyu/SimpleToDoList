@@ -75,9 +75,8 @@ class PublicControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").isString())
-                .andExpect(jsonPath("$.result.username").value(newMember.getUsername()))
-                .andExpect(jsonPath("$.result.alias").value(newMember.getAlias()))
+                .andExpect(jsonPath("$.result.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.result.refreshToken").isNotEmpty())
                 .andDo(document("PublicController/Login",
                         commonRequestPreprocessor,
                         commonResponsePreprocessor,
@@ -87,12 +86,9 @@ class PublicControllerTest {
                         responseFields(
                                 ResponseSnippets.ApiResponseDescriptor.success,
                                 ResponseSnippets.ApiResponseDescriptor.result,
-                                ResponseSnippets.ApiResponseDescriptor.token,
-                                EntityResponseSnippets.Member.id,
-                                EntityResponseSnippets.Member.username,
-                                EntityResponseSnippets.Member.alias,
-                                EntityResponseSnippets.Member.password,
-                                EntityResponseSnippets.Member.locked)));
+                                ResponseSnippets.ApiResponseDescriptor.message,
+                                EntityResponseSnippets.JWT.accessToken,
+                                EntityResponseSnippets.JWT.refreshToken)));
     }
 
     @Test
