@@ -42,7 +42,7 @@
 - 프론트엔드 페이지 구현
   - [ ] Vue.js를 이용한 프론트엔드 페이지 구현.
 
-개발 진행 사항은 현재 저장소의 Projects 탭에서 칸반 보드로 관리하고 있습니다.
+개발 진행 사항은 [JIRA](https://simpletodolist.atlassian.net/jira/software/projects/STDL/boards/1)에서 관리하고 있습니다.
 
 ## Tech Stacks
 - [X] Spring Framework 5.x
@@ -50,4 +50,5 @@
 - [X] Spring Data JPA
 - [X] Spring Security
 - [X] Spring Rest Docs
+- [ ] 
 - [ ] Spring HATEOAS
