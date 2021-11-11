@@ -16,6 +16,11 @@ public class RequestSnippets {
     public static final ParameterDescriptor todoListIdPath = parameterWithName("todoListId").description("할 일 리스트의 식별자입니다.");
     public static final ParameterDescriptor todoIdPath = parameterWithName("todoId").description("할 일의 식별자입니다.");
 
+    public static class Token {
+        public static final FieldDescriptor refreshToken = fieldWithPath("refreshToken").description("기존에 발급받은 JWT Refresh Token 입니다.")
+                .attributes(key("constraint").value("만료된 토큰은 사용할 수 없습니다."));
+    }
+
     public static class Member {
         public static final FieldDescriptor username = fieldWithPath("username").description("사용자의 아이디입니다.")
                 .attributes(key("constraint").value("32 글자를 초과할 수 없습니다."));
