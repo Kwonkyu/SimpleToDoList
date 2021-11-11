@@ -271,7 +271,7 @@ class TeamMembersControllerTest {
 
                         responseFields(
                                 ResponseSnippets.ApiResponseDescriptor.success,
-                                ResponseSnippets.ApiResponseDescriptor.token,
+                                ResponseSnippets.ApiResponseDescriptor.result,
                                 ResponseSnippets.ApiResponseDescriptor.message,
                                 EntityResponseSnippets.Team.id,
                                 EntityResponseSnippets.Team.teamName,
