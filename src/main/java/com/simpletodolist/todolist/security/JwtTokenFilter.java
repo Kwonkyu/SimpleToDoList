@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
+import com.simpletodolist.todolist.repository.redis.JwtStatusRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +31,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
     private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
+    private final JwtStatusRepository jwtStatusRepository;
 
 
-    private boolean validateAuthorizationHeader(String header) {
+    private boolean isInvalidAuthorizationHeader(String header) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
-        return header != null && !header.isBlank() && header.startsWith("Bearer ");
+        return header == null || header.isBlank() || !header.startsWith("Bearer ");
     }
 
     @Override
@@ -48,7 +50,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(!validateAuthorizationHeader(header)) { // if request has no 'authorization' header
+        if(isInvalidAuthorizationHeader(header)) { // if request has no 'authorization' header
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail("Authorization header not valid. Please check your request header."));
@@ -65,6 +67,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     "%s. Please check your authorization header.", exception.getLocalizedMessage())));
             return;
         }
+
+        // check if token is invalidated
+        String tokenWithoutHeader = header.split(" ")[1];
+        jwtStatusRepository.findById(tokenWithoutHeader).ifPresent(token -> {
+            throw new JwtException(String.format("Token %s is expired at %s due to %s.",
+                    token.getToken(), token.getInvalidatedDate(), token.getInvalidatedReason()));
+        });
 
         // get user identification from token and set to spring security context.
         try {

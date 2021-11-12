@@ -4,10 +4,7 @@ import com.simpletodolist.todolist.domain.bind.JWT;
 import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -67,12 +64,16 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-    public Claims parseBearerJWTSubject(String token) {
-        String parsing = token.startsWith(TokenType.BEARER.name) ? token.substring(TokenType.BEARER.name.length() + 1) : token;
+    public Claims parseJWTSubject(String token) {
         return Jwts.parser()
                 .setSigningKey(jwtSecret)
-                .parseClaimsJws(parsing)
+                .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Claims parseBearerJWTSubject(String token) {
+        String parsing = token.startsWith(TokenType.BEARER.name) ? token.substring(TokenType.BEARER.name.length() + 1) : token;
+        return parseJWTSubject(parsing);
     }
 
     public String getUsername(Claims claims) {
