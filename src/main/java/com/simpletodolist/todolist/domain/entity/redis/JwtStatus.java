@@ -4,20 +4,15 @@ import lombok.*;
 import org.springframework.data.redis.core.RedisHash;
 
 import javax.persistence.Id;
+import java.time.LocalDateTime;
 
-@RedisHash(value = "jwtStatus", timeToLive = 60 * 60 * 24)
+@RedisHash(value = "jwtStatus", timeToLive = 60 * 60 * 24 * 7)
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class JwtStatus {
-    @Id String id;
-    String username;
-    String accessToken;
-    String refreshToken;
-
-    @Builder
-    public JwtStatus(String username, String accessToken, String refreshToken) {
-        this.username = username;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
+    @Id String token;
+    boolean invalid;
+    LocalDateTime invalidatedDate;
+    String invalidatedReason;
 }
