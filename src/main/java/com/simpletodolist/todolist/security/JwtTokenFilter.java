@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import com.simpletodolist.todolist.repository.redis.JwtStatusRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
     private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
-    private final JwtStatusRepository jwtStatusRepository;
 
 
     private boolean isInvalidAuthorizationHeader(String header) {
@@ -43,6 +41,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     // https://www.baeldung.com/spring-exclude-filter
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getRequestURI().startsWith("/api/public")
+                || request.getRequestURI().startsWith("/api/token/")
                 || request.getRequestURI().startsWith("/docs")
                 || request.getRequestURI().equals("/");
     }
@@ -64,16 +63,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail(String.format(
-                    "%s. Please check your authorization header.", exception.getLocalizedMessage())));
+                    "%s. Please check your authorization value.", exception.getLocalizedMessage())));
             return;
         }
-
-        // check if token is invalidated
-        String tokenWithoutHeader = header.split(" ")[1];
-        jwtStatusRepository.findById(tokenWithoutHeader).ifPresent(token -> {
-            throw new JwtException(String.format("Token %s is expired at %s due to %s.",
-                    token.getToken(), token.getInvalidatedDate(), token.getInvalidatedReason()));
-        });
 
         // get user identification from token and set to spring security context.
         try {
