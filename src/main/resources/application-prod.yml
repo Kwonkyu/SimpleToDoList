@@ -15,6 +15,9 @@ spring:
     hikari:
       maximum-pool-size: 9
 
+  redis:
+    url: ${REDIS_URL}
+
 server:
   error:
     include-message: always
