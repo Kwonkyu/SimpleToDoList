@@ -1,9 +1,9 @@
 package com.simpletodolist.todolist.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.simpletodolist.todolist.controller.bind.member.MemberInformationRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 
 import java.util.HashMap;
@@ -12,13 +12,13 @@ import java.util.UUID;
 
 public class MemberTestMaster {
     private final BasicMemberService memberService;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtService jwtService;
 
     private final static Map<String, MemberDTO> members = new HashMap<>();
 
-    public MemberTestMaster(BasicMemberService memberService, JwtTokenUtil jwtTokenUtil) {
+    public MemberTestMaster(BasicMemberService memberService, JwtService jwtService) {
         this.memberService = memberService;
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.jwtService = jwtService;
     }
 
     private String randomString(int length) {
@@ -45,7 +45,7 @@ public class MemberTestMaster {
         return members.get(username);
     }
 
-    public String getRequestToken(String userId, String password) throws JsonProcessingException {
-        return String.format("Bearer %s", jwtTokenUtil.generateAccessToken(userId));
+    public String getRequestToken(String username) {
+        return String.format("Bearer %s", jwtService.issueNewJwt(username).getAccessToken());
     }
 }

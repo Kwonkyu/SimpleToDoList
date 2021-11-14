@@ -7,10 +7,12 @@ import com.simpletodolist.todolist.Snippets.ResponseSnippets;
 import com.simpletodolist.todolist.controller.bind.member.MemberInformationRequest;
 import com.simpletodolist.todolist.controller.bind.member.MemberLoginRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.simpletodolist.todolist.util.DocumentUtil.commonRequestPreprocessor;
 import static com.simpletodolist.todolist.util.DocumentUtil.commonResponsePreprocessor;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,13 +44,13 @@ class PublicControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    JwtService jwtService;
 
     MemberTestMaster memberTestMaster;
 
     @BeforeEach
     void init() {
-        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
+        memberTestMaster = new MemberTestMaster(memberService, jwtService);
     }
 
     @Test

@@ -19,6 +19,8 @@ public class RequestSnippets {
     public static class Token {
         public static final FieldDescriptor refreshToken = fieldWithPath("refreshToken").description("기존에 발급받은 JWT Refresh Token 입니다.")
                 .attributes(key("constraint").value("만료된 토큰은 사용할 수 없습니다."));
+        public static final FieldDescriptor accessToken = fieldWithPath("accessToken").description("기존에 발급받은 JWT Access Token 입니다.")
+                .attributes(key("constraint").value("만료된 토큰은 사용할 수 없습니다."));
     }
 
     public static class Member {

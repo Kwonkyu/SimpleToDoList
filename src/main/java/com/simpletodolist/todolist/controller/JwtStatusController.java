@@ -24,9 +24,7 @@ public class JwtStatusController {
     public ResponseEntity<ApiResponse<JWT>> refreshAccessToken(@Validated(JwtRequest.Both.class)
                                                                @RequestBody JwtRequest request) {
         String username = jwtTokenUtil.getUsername(jwtTokenUtil.parseBearerJWTSubject(request.getRefreshToken()));
-        jwtService.invalidateExistingUserJwt(username, "refreshing token");
         JWT newJwt = jwtService.issueNewJwt(username);
-        jwtService.registerUserJwt(username, newJwt.getAccessToken(), newJwt.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.success(newJwt));
     }
 }

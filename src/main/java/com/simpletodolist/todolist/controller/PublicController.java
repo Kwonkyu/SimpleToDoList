@@ -24,9 +24,7 @@ public class PublicController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<JWT>> login(@RequestBody @Valid MemberLoginRequest request) {
         memberService.authenticateMember(request.getUsername(), request.getPassword()); // replace auth work with annotation?
-        jwtService.invalidateExistingUserJwt(request.getUsername(), "issued new token");
         JWT token = jwtService.issueNewJwt(request.getUsername());
-        jwtService.registerUserJwt(request.getUsername(), token.getAccessToken(), token.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.success(token, "Expiration date of access token: 1 day, refresh token: 1 week"));
     }
 

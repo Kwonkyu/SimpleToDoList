@@ -36,7 +36,10 @@ public class JwtService {
     }
 
     public JWT issueNewJwt(String username) {
-        return jwtTokenUtil.generateJWT(username);
+        invalidateExistingUserJwt(username);
+        JWT jwt = jwtTokenUtil.generateJWT(username);
+        registerUserJwt(username, jwt.getAccessToken(), jwt.getRefreshToken());
+        return jwt;
     }
 
     public void registerUserJwt(String username, String accessToken, String refreshToken) {
