@@ -3,16 +3,19 @@ package com.simpletodolist.todolist.domain.entity.redis;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
-import javax.persistence.Id;
 
-@RedisHash(value = "userJwt", timeToLive = 60 * 60 * 24 * 7)
+@RedisHash(value = "userJwt")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserJwt {
-    @Id String username;
+    @Id
+    String username;
     String accessToken;
     String refreshToken;
 }
