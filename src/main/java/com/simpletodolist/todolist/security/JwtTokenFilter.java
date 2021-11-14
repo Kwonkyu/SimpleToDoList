@@ -32,15 +32,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
 
-    private boolean validateAuthorizationHeader(String header) {
+    private boolean isInvalidAuthorizationHeader(String header) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
-        return header != null && !header.isBlank() && header.startsWith("Bearer ");
+        return header == null || header.isBlank() || !header.startsWith("Bearer ");
     }
 
     @Override
     // https://www.baeldung.com/spring-exclude-filter
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getRequestURI().startsWith("/api/public")
+                || request.getRequestURI().startsWith("/api/token/")
                 || request.getRequestURI().startsWith("/docs")
                 || request.getRequestURI().equals("/");
     }
@@ -48,7 +49,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(!validateAuthorizationHeader(header)) { // if request has no 'authorization' header
+        if(isInvalidAuthorizationHeader(header)) { // if request has no 'authorization' header
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail("Authorization header not valid. Please check your request header."));
@@ -62,7 +63,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail(String.format(
-                    "%s. Please check your authorization header.", exception.getLocalizedMessage())));
+                    "%s. Please check your authorization value.", exception.getLocalizedMessage())));
             return;
         }
 

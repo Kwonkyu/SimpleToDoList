@@ -2,12 +2,12 @@ package com.simpletodolist.todolist.security;
 
 import com.simpletodolist.todolist.domain.bind.JWT;
 import com.simpletodolist.todolist.domain.entity.Member;
+import com.simpletodolist.todolist.domain.entity.redis.UserJwt;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.simpletodolist.todolist.repository.redis.JwtStatusRepository;
+import com.simpletodolist.todolist.repository.redis.UserJwtRepository;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,20 +18,16 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtTokenUtil {
     private final MemberRepository memberRepository;
+    private final UserJwtRepository userJwtRepository;
+    private final JwtStatusRepository jwtStatusRepository;
 
     @Value("${JWT_SECRET}")
     private String jwtSecret;
 
-    private enum TokenType {
-        BEARER("Bearer");
 
-        final String name;
-
-        TokenType(String name) {
-            this.name = name;
-        }
+    public String stripHeader(String token, TokenType tokenType) {
+        return token.startsWith(tokenType.name) ? token.substring(tokenType.name.length() + 1) : token;
     }
-
 
     public String generateAccessToken(String username) {
         Member member = memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username));
@@ -67,12 +63,28 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-    public Claims parseBearerJWTSubject(String token) {
-        String parsing = token.startsWith(TokenType.BEARER.name) ? token.substring(TokenType.BEARER.name.length() + 1) : token;
+    public Claims parseJWTSubject(String token) {
         return Jwts.parser()
                 .setSigningKey(jwtSecret)
-                .parseClaimsJws(parsing)
+                .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Claims parseBearerJWTSubject(String tokenWithType) {
+        String token = stripHeader(tokenWithType, TokenType.BEARER);
+        Claims claims = parseJWTSubject(token);
+        String username = getUsername(claims);
+        UserJwt userJwt = userJwtRepository.findById(username)
+                .orElseThrow(() -> new JwtException(String.format("Not issued token for user %s", username)));
+        jwtStatusRepository.findById(token).ifPresent(jwtStatus -> {
+            throw new JwtException(String.format("Token %s for user %s is expired on %s because of %s",
+                    jwtStatus.getToken(), username, jwtStatus.getInvalidatedDate(), jwtStatus.getInvalidatedReason()));
+        });
+        if(!token.equals(userJwt.getAccessToken()) && !token.equals(userJwt.getRefreshToken())) {
+            throw new JwtException(String.format("Invalid token for user %s", username));
+        }
+
+        return claims;
     }
 
     public String getUsername(Claims claims) {

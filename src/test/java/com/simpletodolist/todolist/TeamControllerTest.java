@@ -12,7 +12,7 @@ import com.simpletodolist.todolist.controller.bind.team.TeamSearchRequest;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.exception.team.NoTeamFoundException;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.service.team.BasicTeamService;
 import com.simpletodolist.todolist.service.todolist.BasicTodoListService;
@@ -63,7 +63,7 @@ class TeamControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    JwtService jwtService;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
@@ -72,7 +72,7 @@ class TeamControllerTest {
 
     @BeforeEach
     void init() {
-        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
+        memberTestMaster = new MemberTestMaster(memberService, jwtService);
         teamTestMaster = new TeamTestMaster(teamService);
         todoListTestMaster = new TodoListTestMaster(todoListService);
     }
@@ -86,12 +86,12 @@ class TeamControllerTest {
         TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
         TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
         TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
-        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername());
 
         MemberDTO member4_5 = memberTestMaster.createNewMember();
         TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
         TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
-        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername());
 
         TeamSearchRequest request = new TeamSearchRequest();
         request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
@@ -154,12 +154,12 @@ class TeamControllerTest {
         TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
         TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
         TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
-        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername());
 
         MemberDTO member4_5 = memberTestMaster.createNewMember();
         TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
         TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
-        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername());
 
         TeamSearchRequest request = new TeamSearchRequest();
         request.setSearchTeamField(TeamSearchRequest.SearchTeamField.NAME);
@@ -208,12 +208,12 @@ class TeamControllerTest {
         TeamDTO team1 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
         TeamDTO team2 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
         TeamDTO team3 = teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
-        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername());
 
         MemberDTO member4_5 = memberTestMaster.createNewMember();
         TeamDTO team4 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
         TeamDTO team5 = teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
-        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername());
 
         // search by keyword.
         TeamSearchRequest request = new TeamSearchRequest();
@@ -259,12 +259,12 @@ class TeamControllerTest {
         teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello World" + keyword);
         teamTestMaster.createNewTeam(member1_3.getUsername(), "Cruel World" + keyword);
         teamTestMaster.createNewTeam(member1_3.getUsername(), "Hello Cruel" + keyword);
-        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername(), member1_3.getPassword());
+        String member1_3Token = memberTestMaster.getRequestToken(member1_3.getUsername());
 
         MemberDTO member4_5 = memberTestMaster.createNewMember();
         teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Reloaded" + keyword);
         teamTestMaster.createNewTeam(member4_5.getUsername(), "Matrix: Revolution" + keyword);
-        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername(), member4_5.getPassword());
+        String member4_5Token = memberTestMaster.getRequestToken(member4_5.getUsername());
 
         // search by keyword.
         TeamSearchRequest request = new TeamSearchRequest();
@@ -313,7 +313,7 @@ class TeamControllerTest {
         // search by leader.
         MemberDTO joinMember = memberTestMaster.createNewMember();
         teamService.joinMember(team1.getId(), joinMember.getUsername());
-        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername(), joinMember.getPassword());
+        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername());
 
         TeamSearchRequest request = new TeamSearchRequest();
         request.setSearchTeamField(TeamSearchRequest.SearchTeamField.LEADER);
@@ -367,7 +367,7 @@ class TeamControllerTest {
         // search by leader.
         MemberDTO joinMember = memberTestMaster.createNewMember();
         teamService.joinMember(team1.getId(), joinMember.getUsername());
-        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername(), joinMember.getPassword());
+        String joinToken = memberTestMaster.getRequestToken(joinMember.getUsername());
 
         TeamSearchRequest request = new TeamSearchRequest();
         request.setSearchTeamField(TeamSearchRequest.SearchTeamField.LEADER);
@@ -407,7 +407,7 @@ class TeamControllerTest {
     @DisplayName("Request Team Information")
     void getTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
         todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
@@ -451,7 +451,7 @@ class TeamControllerTest {
     @DisplayName("Create Team")
     void createTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
 
         // request without token.
         mockMvc.perform(post("/api/team")).andExpect(status().isBadRequest());
@@ -507,9 +507,9 @@ class TeamControllerTest {
     @DisplayName("Update Team Information.")
     void updateTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         String updatedTeamName = "updatedTeam";
 
@@ -574,9 +574,9 @@ class TeamControllerTest {
     @DisplayName("Delete Team")
     void deleteTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         // request without token.

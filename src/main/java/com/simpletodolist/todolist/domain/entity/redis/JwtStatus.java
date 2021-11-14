@@ -1,23 +1,36 @@
 package com.simpletodolist.todolist.domain.entity.redis;
 
 import lombok.*;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 
-import javax.persistence.Id;
+import java.time.LocalDateTime;
 
-@RedisHash(value = "jwtStatus", timeToLive = 60 * 60 * 24)
+@RedisHash(value = "jwtStatus")
 @Getter
+@Setter
 @NoArgsConstructor
 public class JwtStatus {
-    @Id String id;
-    String username;
-    String accessToken;
-    String refreshToken;
+    public static final long ACCESS_TOKEN_TTL = 60 * 60 * 24L;
+    public static final long REFRESH_TOKEN_TTL = ACCESS_TOKEN_TTL * 7L;
 
-    @Builder
-    public JwtStatus(String username, String accessToken, String refreshToken) {
-        this.username = username;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
+    @Id
+    private String token;
+    private boolean invalid;
+    private LocalDateTime invalidatedDate;
+    private String invalidatedReason;
+    @TimeToLive
+    private Long timeToLive;
+
+
+    public static JwtStatus invalidated(String token, String reason, long ttl) {
+        JwtStatus jwtStatus = new JwtStatus();
+        jwtStatus.setToken(token);
+        jwtStatus.setInvalid(true);
+        jwtStatus.setInvalidatedDate(LocalDateTime.now());
+        jwtStatus.setInvalidatedReason(reason);
+        jwtStatus.setTimeToLive(ttl);
+        return jwtStatus;
     }
 }

@@ -12,7 +12,7 @@ import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.service.team.BasicTeamService;
 import com.simpletodolist.todolist.service.todo.BasicTodoService;
@@ -70,7 +70,7 @@ class MemberControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    JwtService jwtService;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
@@ -79,7 +79,7 @@ class MemberControllerTest {
 
     @BeforeEach
     void init() {
-        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
+        memberTestMaster = new MemberTestMaster(memberService, jwtService);
         teamTestMaster = new TeamTestMaster(teamService);
         todoTestMaster = new TodoTestMaster(todoService);
         todoListTestMaster = new TodoListTestMaster(todoListService);
@@ -95,7 +95,7 @@ class MemberControllerTest {
         // generate dummy data for documentation.
         MemberDTO newMember = memberTestMaster.createNewMember();
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername());
         TodoListDTO newTodoList = todoListTestMaster.createNewTodoList(newMember.getUsername(), newTeam.getId());
         todoTestMaster.createNewTodo(newMember.getUsername(), newTeam.getId(), newTodoList.getId(), false);
 
@@ -134,7 +134,7 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest());
 
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername());
 
         MemberUpdateRequest request = new MemberUpdateRequest();
         request.setAlias("UPDATED_ALIAS");
@@ -179,7 +179,7 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest());
 
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername());
 
         // normal request.
         mockMvc.perform(delete("/api/member")
@@ -203,7 +203,7 @@ class MemberControllerTest {
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
         // request without token
@@ -242,11 +242,11 @@ class MemberControllerTest {
     @DisplayName("Join Team")
     void joinTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
 
         // request without token
         mockMvc.perform(put("/api/member/teams/{teamId}", newTeam.getId()))
@@ -305,11 +305,11 @@ class MemberControllerTest {
     @DisplayName("Quit Team")
     void quitTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String requestToken = memberTestMaster.getRequestToken(newMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherRequestToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
         TeamDTO anotherTeam = teamTestMaster.createNewTeam(anotherMember.getUsername());

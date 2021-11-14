@@ -12,7 +12,7 @@ import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
 import com.simpletodolist.todolist.domain.bind.TodoListDTO;
 import com.simpletodolist.todolist.exception.todolist.NoTodoListFoundException;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.service.team.BasicTeamService;
 import com.simpletodolist.todolist.service.todo.BasicTodoService;
@@ -66,7 +66,7 @@ class TeamTodoListControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    JwtService jwtService;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
@@ -75,7 +75,7 @@ class TeamTodoListControllerTest {
 
     @BeforeEach
     void init() {
-        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
+        memberTestMaster = new MemberTestMaster(memberService, jwtService);
         teamTestMaster = new TeamTestMaster(teamService);
         todoListTestMaster = new TodoListTestMaster(todoListService);
         todoTestMaster = new TodoTestMaster(todoService);
@@ -85,9 +85,9 @@ class TeamTodoListControllerTest {
     @DisplayName("Get to-do lists of team.")
     void getTodoLists() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
@@ -139,9 +139,9 @@ class TeamTodoListControllerTest {
     @DisplayName("Create new to-do list.")
     void createTodolist() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         TodoListInformationRequest request = new TodoListInformationRequest();
@@ -210,7 +210,7 @@ class TeamTodoListControllerTest {
     @DisplayName("Get specific to-do list.")
     void getSpecificTodoList() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
@@ -272,16 +272,16 @@ class TeamTodoListControllerTest {
     @DisplayName("Update to-do list.")
     void updateTodoList() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
 
         MemberDTO lockMember = memberTestMaster.createNewMember();
-        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername(), lockMember.getPassword());
+        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
 
         MemberDTO notJoinedMember = memberTestMaster.createNewMember();
-        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername(), notJoinedMember.getPassword());
+        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername());
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         teamService.joinMember(newTeam.getId(), lockMember.getUsername());
@@ -399,16 +399,16 @@ class TeamTodoListControllerTest {
     @DisplayName("Delete to-do list")
     void deleteTodolist() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
 
         MemberDTO lockMember = memberTestMaster.createNewMember();
-        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername(), lockMember.getPassword());
+        String lockToken = memberTestMaster.getRequestToken(lockMember.getUsername());
 
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
 
         MemberDTO notJoinedMember = memberTestMaster.createNewMember();
-        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername(), notJoinedMember.getPassword());
+        String notJoinedToken = memberTestMaster.getRequestToken(notJoinedMember.getUsername());
 
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         teamService.joinMember(newTeam.getId(), lockMember.getUsername());
