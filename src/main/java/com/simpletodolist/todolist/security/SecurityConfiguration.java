@@ -1,5 +1,6 @@
 package com.simpletodolist.todolist.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,9 +22,9 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity // customize web security.
 @RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
     private final MemberRepository memberRepository;
-    private final JwtTokenFilter jwtTokenFilter;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final ObjectMapper objectMapper;
 
 
     @Override
@@ -31,6 +33,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .userDetailsService(username -> // get user details.
                         memberRepository.findByUsername(username).orElseThrow(() -> new NoMemberFoundException(username)))
                 .passwordEncoder(passwordEncoder()); // compare user's password with password encoder.
+    }
+
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().antMatchers("/api/public/**", "/api/token/**", "/docs", "/", "/login/oauth2/**");
     }
 
     @Override
@@ -43,12 +50,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http
-                .antMatcher("/api").authorizeRequests()// https://github.com/spring-projects/spring-security/issues/4368
+                .authorizeRequests() // https://github.com/spring-projects/spring-security/issues/4368
                 .antMatchers("/api/public/**").permitAll()
                 .antMatchers("/api/**").authenticated();
 
         // auth JWT token before username and password authentication.
-        http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtTokenFilter(jwtTokenUtil, memberRepository, objectMapper), UsernamePasswordAuthenticationFilter.class);
     }
 
 
