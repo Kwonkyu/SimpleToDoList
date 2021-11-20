@@ -37,7 +37,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/api/public/**", "/api/token/**", "/docs", "/", "/login/oauth2/**");
+        // ignore public api or resources.
+        web.ignoring().antMatchers("/api/public/**", "/api/token/**", "/docs/**", "/");
     }
 
     @Override
@@ -49,15 +50,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         // stateless session because api doesn't use session.
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http
-                .authorizeRequests() // https://github.com/spring-projects/spring-security/issues/4368
-                .antMatchers("/api/public/**").permitAll()
-                .antMatchers("/api/**").authenticated();
+        // secure api end-point.
+        http.authorizeRequests()
+                .antMatchers("/api/**").authenticated()
+                .antMatchers("/login/oauth2/**", "/oauth2/**").anonymous();
 
-        // auth JWT token before username and password authentication.
         http.addFilterBefore(new JwtTokenFilter(jwtTokenUtil, memberRepository, objectMapper), UsernamePasswordAuthenticationFilter.class);
-    }
 
+        http.oauth2Login()
+                .successHandler((request, response, authentication) -> response.getWriter().write("OAUTH COMPLETED"));
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
