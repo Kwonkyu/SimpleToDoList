@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,7 +26,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final MemberRepository memberRepository;
     private final JwtTokenUtil jwtTokenUtil;
     private final ObjectMapper objectMapper;
-
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -38,7 +39,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         // ignore public api or resources.
-        web.ignoring().antMatchers("/api/public/**", "/api/token/**", "/docs/**", "/");
+        web.ignoring().antMatchers("/api/public/**", "/api/token/**", "/docs/**", "/", "/login.html");
     }
 
     @Override
@@ -53,12 +54,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         // secure api end-point.
         http.authorizeRequests()
                 .antMatchers("/api/**").authenticated()
-                .antMatchers("/login/oauth2/**", "/oauth2/**").anonymous();
+                .antMatchers("/login/oauth2/**", "/oauth2/**").permitAll();
 
         http.addFilterBefore(new JwtTokenFilter(jwtTokenUtil, memberRepository, objectMapper), UsernamePasswordAuthenticationFilter.class);
 
         http.oauth2Login()
-                .successHandler((request, response, authentication) -> response.getWriter().write("OAUTH COMPLETED"));
+                .successHandler(authenticationSuccessHandler);
     }
 
     @Bean
