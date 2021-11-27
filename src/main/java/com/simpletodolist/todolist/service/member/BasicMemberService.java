@@ -8,6 +8,7 @@ import com.simpletodolist.todolist.domain.entity.Member;
 import com.simpletodolist.todolist.domain.entity.MemberTeamAssociation;
 import com.simpletodolist.todolist.domain.entity.Team;
 import com.simpletodolist.todolist.exception.member.DuplicatedMemberException;
+import com.simpletodolist.todolist.exception.member.NoMemberFoundException;
 import com.simpletodolist.todolist.exception.team.TeamAccessException;
 import com.simpletodolist.todolist.repository.MemberRepository;
 import com.simpletodolist.todolist.util.EntityFinder;
@@ -40,12 +41,12 @@ public class BasicMemberService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public MemberDTO authenticateMember(String username, String rawPassword) {
+    public void authenticateMember(String username, String rawPassword) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, rawPassword));
 
         Member member = (Member) authentication.getPrincipal();
-        return new MemberDTO(member);
+        if(member == null) throw new NoMemberFoundException(username);
     }
 
     public MemberDTO registerMember(MemberInformationRequest request) {

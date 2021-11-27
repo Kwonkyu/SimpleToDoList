@@ -8,7 +8,7 @@ import com.simpletodolist.todolist.Snippets.ResponseSnippets;
 import com.simpletodolist.todolist.controller.bind.ApiResponse;
 import com.simpletodolist.todolist.domain.bind.MemberDTO;
 import com.simpletodolist.todolist.domain.bind.TeamDTO;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
+import com.simpletodolist.todolist.service.authorization.JwtService;
 import com.simpletodolist.todolist.service.member.BasicMemberService;
 import com.simpletodolist.todolist.service.team.BasicTeamService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
@@ -52,14 +52,14 @@ class TeamMembersControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    JwtService jwtService;
 
     MemberTestMaster memberTestMaster;
     TeamTestMaster teamTestMaster;
 
     @BeforeEach
     void init() {
-        memberTestMaster = new MemberTestMaster(memberService, jwtTokenUtil);
+        memberTestMaster = new MemberTestMaster(memberService, jwtService);
         teamTestMaster = new TeamTestMaster(teamService);
     }
 
@@ -67,9 +67,9 @@ class TeamMembersControllerTest {
     @DisplayName("Get members of team")
     void getMembersOfTeam() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
 
         // request without token
@@ -111,14 +111,14 @@ class TeamMembersControllerTest {
     @DisplayName("Join member to team")
     void joinMember() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
         MemberDTO joiningMember = memberTestMaster.createNewMember();
-        String joiningToken = memberTestMaster.getRequestToken(joiningMember.getUsername(), joiningMember.getPassword());
+        String joiningToken = memberTestMaster.getRequestToken(joiningMember.getUsername());
 
         // request without token
         mockMvc.perform(put("/api/team/{teamId}/members/{username}", newTeam.getId(), joiningMember.getUsername()))
@@ -167,14 +167,14 @@ class TeamMembersControllerTest {
     @DisplayName("Withdraw member from team")
     void withdrawMember() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
         MemberDTO otherMember = memberTestMaster.createNewMember();
-        String otherToken = memberTestMaster.getRequestToken(otherMember.getUsername(), otherMember.getPassword());
+        String otherToken = memberTestMaster.getRequestToken(otherMember.getUsername());
 
         // request without token
         mockMvc.perform(delete("/api/team/{teamId}/members/{username}", newTeam.getId(), anotherMember.getUsername()))
@@ -224,14 +224,14 @@ class TeamMembersControllerTest {
     @DisplayName("Change team leader")
     void changeLeader() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        String newToken = memberTestMaster.getRequestToken(newMember.getUsername(), newMember.getPassword());
+        String newToken = memberTestMaster.getRequestToken(newMember.getUsername());
         MemberDTO anotherMember = memberTestMaster.createNewMember();
-        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername(), anotherMember.getPassword());
+        String anotherToken = memberTestMaster.getRequestToken(anotherMember.getUsername());
         TeamDTO newTeam = teamTestMaster.createNewTeam(newMember.getUsername());
         teamService.joinMember(newTeam.getId(), anotherMember.getUsername());
 
         MemberDTO otherMember = memberTestMaster.createNewMember();
-        String otherToken = memberTestMaster.getRequestToken(otherMember.getUsername(), otherMember.getPassword());
+        String otherToken = memberTestMaster.getRequestToken(otherMember.getUsername());
 
 
         // request without token
@@ -271,7 +271,7 @@ class TeamMembersControllerTest {
 
                         responseFields(
                                 ResponseSnippets.ApiResponseDescriptor.success,
-                                ResponseSnippets.ApiResponseDescriptor.token,
+                                ResponseSnippets.ApiResponseDescriptor.result,
                                 ResponseSnippets.ApiResponseDescriptor.message,
                                 EntityResponseSnippets.Team.id,
                                 EntityResponseSnippets.Team.teamName,

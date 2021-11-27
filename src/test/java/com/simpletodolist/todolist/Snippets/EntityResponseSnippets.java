@@ -6,6 +6,12 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 
 public class EntityResponseSnippets {
+public static class JWT {
+    public static final FieldDescriptor accessToken = fieldWithPath("result.accessToken")
+            .description("JWT Access Token 입니다. 이를 이용하여 리소스에 접근할 수 있습니다.");
+    public static final FieldDescriptor refreshToken = fieldWithPath("result.refreshToken")
+            .description("JWT Refresh Token 입니다. 이를 이용하여 새로운 Access Token을 생성할 수 있습니다.");
+}
 
     public static class Team {
         // https://stackoverflow.com/questions/31162140/how-to-document-top-level-array-as-response-payload-with-spring-rest-docs
