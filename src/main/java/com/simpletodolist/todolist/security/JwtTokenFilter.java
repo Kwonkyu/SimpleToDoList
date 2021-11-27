@@ -15,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -24,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
+//@Component <- Spring auto-imports filter when it's in spring container.
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
@@ -35,15 +34,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private boolean isInvalidAuthorizationHeader(String header) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
         return header == null || header.isBlank() || !header.startsWith("Bearer ");
-    }
-
-    @Override
-    // https://www.baeldung.com/spring-exclude-filter
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/api/public")
-                || request.getRequestURI().startsWith("/api/token/")
-                || request.getRequestURI().startsWith("/docs")
-                || request.getRequestURI().equals("/");
     }
 
     @Override

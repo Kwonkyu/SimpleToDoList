@@ -14,6 +14,13 @@ spring:
     password: password
     driver-class-name: org.mariadb.jdbc.Driver
 
-server:
-  error:
-    include-message: always # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#changes-to-the-default-error-pages-content
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
