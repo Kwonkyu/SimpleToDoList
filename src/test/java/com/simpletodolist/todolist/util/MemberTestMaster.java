@@ -1,10 +1,9 @@
 package com.simpletodolist.todolist.util;
 
-import com.simpletodolist.todolist.controller.bind.member.MemberInformationRequest;
-import com.simpletodolist.todolist.domain.bind.MemberDTO;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
-import com.simpletodolist.todolist.service.authorization.JwtService;
-import com.simpletodolist.todolist.service.member.BasicMemberService;
+import com.simpletodolist.todolist.domains.member.bind.request.MemberInformationRequest;
+import com.simpletodolist.todolist.domains.member.bind.MemberDTO;
+import com.simpletodolist.todolist.domains.jwt.service.JwtService;
+import com.simpletodolist.todolist.domains.member.service.BasicMemberService;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,7 +1,7 @@
 package com.simpletodolist.todolist.util.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.simpletodolist.todolist.domain.bind.TodoListDTO;
+import com.simpletodolist.todolist.domains.todolist.bind.TodoListDTO;
 
 import java.util.List;
 

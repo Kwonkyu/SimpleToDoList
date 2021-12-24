@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simpletodolist.todolist.Snippets.EntityResponseSnippets;
 import com.simpletodolist.todolist.Snippets.RequestSnippets;
 import com.simpletodolist.todolist.Snippets.ResponseSnippets;
-import com.simpletodolist.todolist.controller.bind.ApiResponse;
-import com.simpletodolist.todolist.controller.bind.JwtRequest;
-import com.simpletodolist.todolist.domain.bind.JWT;
-import com.simpletodolist.todolist.domain.bind.MemberDTO;
-import com.simpletodolist.todolist.security.JwtTokenUtil;
-import com.simpletodolist.todolist.service.authorization.JwtService;
-import com.simpletodolist.todolist.service.member.BasicMemberService;
+import com.simpletodolist.todolist.common.bind.ApiResponse;
+import com.simpletodolist.todolist.domains.jwt.bind.JwtRequest;
+import com.simpletodolist.todolist.domains.jwt.JwtResponse;
+import com.simpletodolist.todolist.domains.member.bind.MemberDTO;
+import com.simpletodolist.todolist.common.util.JwtTokenUtil;
+import com.simpletodolist.todolist.domains.jwt.service.JwtService;
+import com.simpletodolist.todolist.domains.member.service.BasicMemberService;
 import com.simpletodolist.todolist.util.MemberTestMaster;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,14 +66,14 @@ class JwtRelatedControllerTest {
     @DisplayName("Try using expired token.")
     void usingInvalidToken() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        JWT jwt = jwtService.issueNewJwt(newMember.getUsername());
+        JwtResponse jwtResponse = jwtService.issueNewJwt(newMember.getUsername());
         mockMvc.perform(get("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.getAccessToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtResponse.getAccessToken()))
                 .andExpect(status().isOk());
 
         jwtService.invalidateExistingUserJwt(newMember.getUsername());
         mockMvc.perform(get("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.getAccessToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtResponse.getAccessToken()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -81,9 +81,9 @@ class JwtRelatedControllerTest {
     @DisplayName("Try using unregistered but valid token.")
     void usingUnregisteredValid() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        JWT jwt = jwtTokenUtil.generateJWT(newMember.getUsername());
+        JwtResponse jwtResponse = jwtTokenUtil.generateJWT(newMember.getUsername());
         mockMvc.perform(get("/api/member")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.getAccessToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtResponse.getAccessToken()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -91,18 +91,18 @@ class JwtRelatedControllerTest {
     @DisplayName("Refresh with expired refresh token.")
     void refreshWithExpired() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        JWT jwt = jwtService.issueNewJwt(newMember.getUsername());
+        JwtResponse jwtResponse = jwtService.issueNewJwt(newMember.getUsername());
 
         JwtRequest request = new JwtRequest();
-        request.setAccessToken(jwt.getAccessToken());
-        request.setRefreshToken(jwt.getRefreshToken());
+        request.setAccessToken(jwtResponse.getAccessToken());
+        request.setRefreshToken(jwtResponse.getRefreshToken());
 
         mockMvc.perform(post("/api/token/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request)))
                 .andExpect(status().isOk())
                 .andDo(result -> {
-                    ApiResponse<JWT> updatedJwt = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
+                    ApiResponse<JwtResponse> updatedJwt = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
                     request.setAccessToken(updatedJwt.getResult().getAccessToken());
                 });
 
@@ -116,15 +116,15 @@ class JwtRelatedControllerTest {
     @DisplayName("Refresh token.")
     void refreshToken() throws Exception {
         MemberDTO newMember = memberTestMaster.createNewMember();
-        JWT jwt = jwtService.issueNewJwt(newMember.getUsername());
+        JwtResponse jwtResponse = jwtService.issueNewJwt(newMember.getUsername());
 
         JwtRequest jwtRequest = new JwtRequest();
-        jwtRequest.setAccessToken(jwt.getAccessToken());
-        jwtRequest.setRefreshToken(jwt.getRefreshToken());
+        jwtRequest.setAccessToken(jwtResponse.getAccessToken());
+        jwtRequest.setRefreshToken(jwtResponse.getRefreshToken());
 
         MvcResult mvcResult = mockMvc.perform(
                 post("/api/token/refresh")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.getAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtResponse.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(jwtRequest)))
                 .andExpect(status().isOk())
@@ -143,9 +143,9 @@ class JwtRelatedControllerTest {
                                 EntityResponseSnippets.JWT.accessToken,
                                 EntityResponseSnippets.JWT.refreshToken)))
                 .andReturn();
-        JWT refreshedJwt = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), JWT.class);
+        JwtResponse refreshedJwtResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), JwtResponse.class);
 
-        assertNotEquals(refreshedJwt.getAccessToken(), jwt.getAccessToken());
-        assertNotEquals(refreshedJwt.getRefreshToken(), jwtRequest.getRefreshToken());
+        assertNotEquals(refreshedJwtResponse.getAccessToken(), jwtResponse.getAccessToken());
+        assertNotEquals(refreshedJwtResponse.getRefreshToken(), jwtRequest.getRefreshToken());
     }
 }
