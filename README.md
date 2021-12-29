@@ -3,7 +3,7 @@
 그리고 Roy Fielding이 제안한 REST 아키텍처를 준수하는 API, 즉 RESTful API에 대해서 알게 되어 이를 활용하는 API 서버 애플리케이션을 만들고자 제작한 애플리케이션입니다.
 
 이번에도 동일하게 [Heroku에 배포](https://simple-todolist-springboot.herokuapp.com/docs/index.html)하였는데 SimpleBBS와는 달리 별도의 화면을 그려내지 않았기 때문에
-링크에서는 아래처럼 API 문서를 대신 제공하고 있습니다.
+링크에서는 아래처럼 API 문서를 대신 제공하고 있습니다. 블로그에서 [개발 기록](https://velog.io/@park2348190/series/SimpleToDoList)을 업로드하고 있습니다.
 <!-- ![image](https://user-images.githubusercontent.com/12295334/140961052-ead40ae9-e368-43fb-9f96-260cf6d81df1.png) -->
 <img src="https://user-images.githubusercontent.com/12295334/140961052-ead40ae9-e368-43fb-9f96-260cf6d81df1.png" width="70%">
 
