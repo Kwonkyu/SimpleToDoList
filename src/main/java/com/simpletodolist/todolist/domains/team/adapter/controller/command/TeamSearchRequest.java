@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.domains.team.bind.request;
+package com.simpletodolist.todolist.domains.team.adapter.controller.command;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
