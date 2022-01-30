@@ -8,16 +8,15 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
 
   datasource:
-    url: ${JAWSDB_MARIA_URL}
-    username: ${JAWSDB_MARIA_USERNAME}
-    password: ${JAWSDB_MARIA_PASSWORD}
+    url: ${MARIADB10_URL}
+    username: ${MARIADB10_USERNAME}
+    password: ${MARIADB10_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
-      maximum-pool-size: 9
+      maximum-pool-size: 9 # on heroku environment.
 
   redis:
-    url: ${REDIS_URL}
+    host: ${REDIS_HOST}
+    password: ${REDIS_PASSWORD}
+    port: ${REDIS_PORT}
 
-server:
-  error:
-    include-message: always
