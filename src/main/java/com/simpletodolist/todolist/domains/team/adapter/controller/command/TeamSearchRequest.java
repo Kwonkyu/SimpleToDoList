@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 public class TeamSearchRequest {
     @NotNull(message = "탐색 항목은 비워둘 수 없습니다.")
     @JsonProperty("field")
-    private SearchTeamField searchTeamField;
+    private SearchField searchField;
 
     @NotBlank(message = "검색 값은 비워둘 수 없습니다.")
     @JsonProperty("value")
@@ -21,7 +21,13 @@ public class TeamSearchRequest {
     @JsonProperty("joined")
     private boolean includeJoined;
 
-    public enum SearchTeamField {
+    @JsonProperty("page")
+    private int page;
+
+    @JsonProperty("size")
+    private int size;
+
+    public enum SearchField {
         NAME, LEADER,
     }
 }
