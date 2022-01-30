@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.common.bind;
+package com.simpletodolist.todolist.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

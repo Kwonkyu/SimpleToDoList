@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.domains.member.bind.request;
+package com.simpletodolist.todolist.common.controller.command;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class MemberLoginRequest {
+public class UserLoginRequest {
     @NotBlank(message = "사용자 ID는 비워둘 수 없습니다")
     @Length(max = 32, message = "아이디는 32 글자를 초과할 수 없습니다.")
     @JsonProperty("username")

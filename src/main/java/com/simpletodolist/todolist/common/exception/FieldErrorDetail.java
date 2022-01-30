@@ -1,13 +1,18 @@
 package com.simpletodolist.todolist.common.exception;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.FieldError;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldErrorDetail {
-    private String rejectedField;
-    private String cause;
+
+	private final String rejectedField;
+	private final String cause;
+
+	public static FieldErrorDetail of(FieldError fieldError) {
+		return new FieldErrorDetail(fieldError.getField(), fieldError.getDefaultMessage());
+	}
 }

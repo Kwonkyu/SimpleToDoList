@@ -1,35 +1,52 @@
 package com.simpletodolist.todolist.common.controller;
 
-import com.simpletodolist.todolist.common.bind.ApiResponse;
-import com.simpletodolist.todolist.domains.member.bind.request.MemberLoginRequest;
-import com.simpletodolist.todolist.domains.member.bind.request.MemberInformationRequest;
-import com.simpletodolist.todolist.domains.jwt.JwtResponse;
-import com.simpletodolist.todolist.domains.member.bind.MemberDTO;
-import com.simpletodolist.todolist.domains.jwt.service.JwtService;
-import com.simpletodolist.todolist.domains.member.service.BasicMemberService;
+import com.simpletodolist.todolist.common.ApiResponse;
+import com.simpletodolist.todolist.common.controller.command.UserLoginRequest;
+import com.simpletodolist.todolist.common.controller.command.UserRegisterRequest;
+import com.simpletodolist.todolist.domains.user.domain.User;
+import com.simpletodolist.todolist.domains.user.service.BasicUserService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/public")
 public class PublicController {
-    private final BasicMemberService memberService;
-    private final JwtService jwtService;
 
+	private final BasicUserService memberService;
+	private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<JwtResponse>> login(@RequestBody @Valid MemberLoginRequest request) {
-        memberService.authenticateMember(request.getUsername(), request.getPassword()); // replace auth work with annotation?
-        JwtResponse token = jwtService.issueNewJwt(request.getUsername());
-        return ResponseEntity.ok(ApiResponse.success(token, "Expiration date of access token: 1 day, refresh token: 1 week"));
-    }
+	@PostMapping("/login")
+	public ResponseEntity<Object> login(
+		@RequestBody @Valid UserLoginRequest request,
+		HttpServletRequest httpServletRequest
+	) {
+		Authentication authentication = authenticationManager.authenticate(
+			new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<MemberDTO>> registerMember(@Valid @RequestBody MemberInformationRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.registerMember(request)));
-    }
+		if (authentication.isAuthenticated()) {
+			HttpSession session = httpServletRequest.getSession();
+			session.setAttribute("username", authentication.getName());
+		}
+
+		return ResponseEntity.ok("logged in");
+	}
+
+	@PostMapping("/register")
+	public ResponseEntity<ApiResponse<User>> registerMember(
+		@Valid @RequestBody UserRegisterRequest request
+	) {
+		return ResponseEntity.ok(ApiResponse.success(
+			memberService.registerMember(request)));
+	}
 }
