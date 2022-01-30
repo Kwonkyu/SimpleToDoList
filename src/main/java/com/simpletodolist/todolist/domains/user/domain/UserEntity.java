@@ -1,7 +1,7 @@
-package com.simpletodolist.todolist.domains.member.entity;
+package com.simpletodolist.todolist.domains.user.domain;
 
-import com.simpletodolist.todolist.domains.team.entity.MemberTeamAssociation;
-import com.simpletodolist.todolist.domains.team.entity.Team;
+import com.simpletodolist.todolist.domains.team.domain.MemberEntity;
+import com.simpletodolist.todolist.domains.team.domain.TeamEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,32 +19,40 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Member implements UserDetails {
+public class UserEntity implements UserDetails {
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
 
-    @Column(name = "username", nullable = false, length = 32)
+    @Column(name = "username", nullable = false, length = 32, unique = true)
     private String username;
 
-    @Column(name = "alias", nullable = false, length = 32)
+    @Column(name = "alias", nullable = false, length = 64)
     private String alias;
 
     @Column(name = "password", nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private final List<MemberTeamAssociation> teams = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private final List<MemberEntity> teams = new ArrayList<>();
 
     @Column(name = "locked")
     private boolean locked;
 
+    public void addTeamRegistration(MemberEntity registration) {
+        this.teams.add(registration);
+    }
+
+    public void deleteTeamRegistration(MemberEntity registration) {
+        this.teams.remove(registration);
+    }
 
     @Builder
-    public Member(@NonNull String username,
-                  @NonNull String alias,
-                  @NonNull String password,
-                  boolean locked) {
+    public UserEntity(@NonNull String username,
+                      @NonNull String alias,
+                      @NonNull String password,
+                      boolean locked) {
         if(username.isBlank()) {
             throw new IllegalArgumentException("Username should not be blank.");
         }
@@ -55,8 +63,8 @@ public class Member implements UserDetails {
         this.locked = locked;
     }
 
-    public List<Team> getTeamsReadOnly(){
-        return teams.stream().map(MemberTeamAssociation::getTeam).collect(Collectors.toList());
+    public List<TeamEntity> getTeamsReadOnly(){
+        return teams.stream().map(MemberEntity::getTeam).collect(Collectors.toList());
     }
 
     public void changeAlias(@NonNull String alias) {
@@ -105,7 +113,7 @@ public class Member implements UserDetails {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Member member = (Member) o;
+        UserEntity member = (UserEntity) o;
         return id == member.id &&
                 locked == member.locked &&
                 username.equals(member.username) &&

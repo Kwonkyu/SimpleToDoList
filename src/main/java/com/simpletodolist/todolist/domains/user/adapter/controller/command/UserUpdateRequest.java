@@ -1,4 +1,4 @@
-package com.simpletodolist.todolist.domains.member.bind.request;
+package com.simpletodolist.todolist.domains.user.adapter.controller.command;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class MemberUpdateRequest {
+public class UserUpdateRequest {
     @NotBlank(message = "별명은 공백이 될 수 없습니다.")
     @JsonProperty("alias")
     private String alias;
