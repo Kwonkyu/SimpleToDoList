@@ -1,121 +1,194 @@
 package com.simpletodolist.todolist.domains.team.service;
 
-import com.simpletodolist.todolist.domains.team.bind.request.TeamInformationRequest;
-import com.simpletodolist.todolist.domains.team.bind.request.TeamSearchRequest;
-import com.simpletodolist.todolist.domains.member.bind.MemberDTO;
-import com.simpletodolist.todolist.domains.team.bind.TeamDTO;
-import com.simpletodolist.todolist.domains.member.entity.Member;
-import com.simpletodolist.todolist.domains.team.entity.Team;
-import com.simpletodolist.todolist.domains.member.repository.MemberRepository;
-import com.simpletodolist.todolist.domains.team.repository.TeamRepository;
-import com.simpletodolist.todolist.domains.todolist.repository.TodoListRepository;
-import com.simpletodolist.todolist.common.util.EntityFinder;
+import com.simpletodolist.todolist.domains.team.adapter.controller.command.TeamCreateRequest;
+import com.simpletodolist.todolist.domains.team.adapter.controller.command.TeamSearchRequest;
+import com.simpletodolist.todolist.domains.team.adapter.controller.command.TeamUpdateRequest;
+import com.simpletodolist.todolist.domains.team.adapter.repository.TeamRepository;
+import com.simpletodolist.todolist.domains.team.domain.Members;
+import com.simpletodolist.todolist.domains.team.domain.SearchedTeams;
+import com.simpletodolist.todolist.domains.team.domain.Team;
+import com.simpletodolist.todolist.domains.team.domain.TeamEntity;
+import com.simpletodolist.todolist.domains.team.service.port.MemberService;
+import com.simpletodolist.todolist.domains.team.service.port.TeamAuthorizationService;
+import com.simpletodolist.todolist.domains.team.service.port.TeamCrudService;
+import com.simpletodolist.todolist.domains.team.service.port.TeamLeaderService;
+import com.simpletodolist.todolist.domains.user.adapter.repository.UserRepository;
+import com.simpletodolist.todolist.domains.user.domain.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BasicTeamService {
-    private final MemberRepository memberRepository;
-    private final TeamRepository teamRepository;
-    private final TodoListRepository todoListRepository;
-    private final EntityFinder entityFinder;
+public class BasicTeamService implements
+	MemberService,
+	TeamAuthorizationService,
+	TeamCrudService,
+	TeamLeaderService {
 
+	private final UserRepository userRepository;
+	private final TeamRepository teamRepository;
 
-    @Transactional(readOnly = true)
-    public TeamDTO readTeam(long teamId) {
-        return new TeamDTO(entityFinder.findTeamById(teamId));
-    }
+	@Override
+	public Members getJoinedMembers(
+		Long teamId
+	) {
+		return new Members(teamRepository.findByIdUnwrapped(teamId)
+										 .getMembersReadOnly());
+	}
 
-    @Transactional(readOnly = true)
-    public List<TeamDTO> searchTeams(TeamSearchRequest request, String username) {
-        List<Team> result;
-        switch (request.getSearchTeamField()) {
-            case LEADER:
-                Member leader = entityFinder.findMemberByUsername(request.getSearchValue());
-                result = teamRepository.findAllByLeader(leader);
-                break;
+	@Override
+	public Members inviteMember(
+		Long teamId, String invitedUsername
+	) {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity newMember = userRepository.findByUsernameUnwrapped(invitedUsername);
+		team.addMember(newMember);
+		return new Members(team.getMembersReadOnly());
+	}
 
-            case NAME:
-                result = teamRepository.findAllByTeamNameContaining(request.getSearchValue());
-                break;
+	@Override
+	public Members withdrawMember(
+		Long teamId, String withdrawUsername
+	) {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity withdrawMember = userRepository.findByUsernameUnwrapped(withdrawUsername);
+		team.removeMember(withdrawMember);
+		return new Members(team.getMembersReadOnly());
+	}
 
-            default:
-                throw new IllegalArgumentException("Unsupported team search operation.");
-        }
+	@Override
+	public void checkPublicAccess(Long teamId, String joinedUsername) throws AccessDeniedException {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity member = userRepository.findByUsernameUnwrapped(joinedUsername);
+		if (team.isLocked() && !team.getMembersReadOnly()
+									.contains(member)) {
+			throw new AccessDeniedException(String.format(
+				"Team %s is not public. Contact leader %s.",
+				team.getTeamName(), member.getUsername()
+			));
+		}
+	}
 
-        Stream<Team> stream = result.stream();
-        if(request.isIncludeJoined()) {
-            return stream
-                    .map(TeamDTO::new)
-                    .collect(Collectors.toList());
-        } else {
-            Member member = entityFinder.findMemberByUsername(username);
-            return stream
-                    .filter(team -> !team.getMembersReadOnly().contains(member))
-                    .map(TeamDTO::new)
-                    .collect(Collectors.toList());
-        }
-    }
+	@Override
+	public void checkLeaderAccess(Long teamId, String leaderUsername) throws AccessDeniedException {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity member = userRepository.findByUsernameUnwrapped(leaderUsername);
+		if (!team.getLeader()
+				 .equals(member)) {
+			throw new AccessDeniedException(String.format(
+				"Member %s is not leader of team %s",
+				member.getUsername(), team.getTeamName()
+			));
+		}
+	}
 
-    @Transactional(readOnly = true)
-    public List<MemberDTO> getMembers(long teamId) {
-        return entityFinder.findTeamById(teamId).getMembersReadOnly().stream()
-                .map(MemberDTO::new)
-                .collect(Collectors.toList());
-    }
+	@Override
+	public void checkMemberAccess(Long teamId, String memberUsername) throws AccessDeniedException {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity member = userRepository.findByUsernameUnwrapped(memberUsername);
+		if (!team.getMembersReadOnly()
+				 .contains(member)) {
+			throw new AccessDeniedException(String.format(
+				"Member %s is not authorized to team %s",
+				member.getUsername(), team.getTeamName()
+			));
+		}
+	}
 
-    public TeamDTO createTeam(String username, TeamInformationRequest request) {
-        Member member = entityFinder.findMemberByUsername(username);
-        Team team = new Team(member, request.getTeamName(), false);
-        team.addMember(member);
-        return new TeamDTO(teamRepository.save(team));
-    }
+	@Override
+	public Team getTeamInformation(Long teamId) {
+		return new Team(teamRepository.findByIdUnwrapped(teamId));
+	}
 
-    public TeamDTO updateTeam(long teamId, TeamInformationRequest request) {
-        Team team = entityFinder.findTeamById(teamId);
-        team.changeTeamName(request.getTeamName());
-        if (request.isLocked()) {
-            team.lock();
-        } else {
-            team.unlock();
-        }
-        return new TeamDTO(team);
-    }
+	@Override
+	public SearchedTeams searchTeams(
+		TeamSearchRequest request, String username
+	) {
+		Page<TeamEntity> pageResult;
+		PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize());
+		// REFACTOR: dynamic query.
+		if (request.isIncludeJoined()) {
+			switch (request.getSearchField()) {
+				case LEADER:
+					UserEntity leader = userRepository.findByUsernameUnwrapped(
+						request.getSearchValue());
+					pageResult = teamRepository.findAllByLeader(leader, pageRequest);
+					break;
 
-    public void deleteTeam(long teamId) {
-        Team team = entityFinder.findTeamById(teamId);
-        team.getMembersReadOnly().forEach(memberRepository::delete);
-        team.getTodoLists().forEach(todoListRepository::delete);
-        teamRepository.delete(team);
-    }
+				case NAME:
+					pageResult = teamRepository.findAllByTeamNameContaining(
+						request.getSearchValue(), pageRequest);
+					break;
 
-    public List<MemberDTO> joinMember(long teamId, String username) {
-        Team team = entityFinder.findTeamById(teamId);
-        Member member = entityFinder.findMemberByUsername(username);
-        team.addMember(member);
-        return team.getMembersReadOnly().stream()
-                .map(MemberDTO::new)
-                .collect(Collectors.toList());
-    }
+				default:
+					pageResult = Page.empty();
+			}
+		} else {
+			UserEntity currentUser = userRepository.findByUsernameUnwrapped(username);
+			switch (request.getSearchField()) {
+				case LEADER:
+					UserEntity leader = userRepository.findByUsernameUnwrapped(
+						request.getSearchValue());
+					pageResult = teamRepository.findAllByLeaderAndNotJoined(
+						leader, currentUser, pageRequest);
+					break;
 
-    public List<MemberDTO> withdrawMember(long teamId, String username) {
-        Team team = entityFinder.findTeamById(teamId);
-        Member member = entityFinder.findMemberByUsername(username);
-        team.removeMember(member); // 당연한 거 아냐? 세션에 남아있는걸.
-        return team.getMembersReadOnly().stream().map(MemberDTO::new).collect(Collectors.toList());
-    }
+				case NAME:
+					pageResult = teamRepository.findAllByTeamNameLikeAndNotJoined(
+						request.getSearchValue(), currentUser, pageRequest);
+					break;
 
-    public TeamDTO changeLeader(long teamId, String username) {
-        Team team = entityFinder.findTeamById(teamId);
-        Member member = entityFinder.findMemberByUsername(username);
-        team.changeLeader(member);
-        return new TeamDTO(team);
-    }
+				default:
+					pageResult = Page.empty();
+			}
+		}
+
+		return new SearchedTeams(pageResult);
+	}
+
+	@Override
+	public Team createTeam(
+		TeamCreateRequest request, String leaderUsername
+	) {
+		UserEntity leader = userRepository.findByUsernameUnwrapped(leaderUsername);
+		TeamEntity createdTeam = teamRepository.save(
+			TeamEntity.builder()
+					  .teamName(request.getTeamName())
+					  .locked(false)
+					  .leader(leader)
+					  .build());
+		return new Team(createdTeam);
+	}
+
+	@Override
+	public Team updateTeam(
+		Long teamId, TeamUpdateRequest request
+	) {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		request.setTeamName(request.getTeamName());
+		request.setLocked(request.isLocked());
+		return new Team(team);
+	}
+
+	@Override
+	public void deleteTeam(Long teamId) {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		team.getTodoLists()
+			.clear();
+		team.getMembers()
+			.clear();
+	}
+
+	@Override
+	public Team changeLeader(Long teamId, String newLeaderUsername) {
+		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		UserEntity newLeader = userRepository.findByUsernameUnwrapped(newLeaderUsername);
+		team.changeLeader(newLeader);
+		return new Team(team);
+	}
 }
