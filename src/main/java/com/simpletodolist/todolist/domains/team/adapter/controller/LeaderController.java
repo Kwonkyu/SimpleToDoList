@@ -27,8 +27,8 @@ public class LeaderController {
 		@PathVariable(name = "teamId") long teamId,
 		@PathVariable(name = "username") String targetUsername
 	) {
-		authorizationService.checkLeaderAccess(teamId, authentication.getName());
-		authorizationService.checkMemberAccess(teamId, targetUsername);
+		authorizationService.checkLeaderPermission(teamId, authentication.getName());
+		authorizationService.checkMemberPermission(teamId, targetUsername);
 		return ResponseEntity.ok(ApiResponse.success(
 			leaderService.changeLeader(teamId, targetUsername)));
 	}

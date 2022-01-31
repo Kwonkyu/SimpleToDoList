@@ -48,6 +48,10 @@ public class TeamEntity {
 	@OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
 	private final List<TodoListEntity> todoLists = new ArrayList<>();
 
+	// MEMO: when team is locked
+	// - not-joined user can't read team's information.
+	// - not-joined user can't read team's to-do lists.
+	// - not-joined user can't read team's to-dos.
 	@Column(name = "locked", nullable = false)
 	private boolean locked = false;
 

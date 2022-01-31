@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BasicTeamService implements
+class TeamService implements
 	MemberService,
 	TeamAuthorizationService,
 	TeamCrudService,
@@ -35,16 +35,15 @@ public class BasicTeamService implements
 
 	@Override
 	@Transactional(readOnly = true)
-	public Members getJoinedMembers(
-		Long teamId
-	) {
+	public Members getJoinedMembers(Long teamId) {
 		return new Members(teamRepository.findTeamById(teamId)
 										 .getMembersReadOnly());
 	}
 
 	@Override
 	public Members inviteMember(
-		Long teamId, String invitedUsername
+		Long teamId,
+		String invitedUsername
 	) {
 		TeamEntity team = teamRepository.findTeamById(teamId);
 		UserEntity newMember = userRepository.findUserByUsername(invitedUsername);
@@ -78,7 +77,7 @@ public class BasicTeamService implements
 
 	@Override
 	@Transactional(readOnly = true)
-	public void checkLeaderAccess(Long teamId, String leaderUsername) throws AccessDeniedException {
+	public void checkLeaderPermission(Long teamId, String leaderUsername) throws AccessDeniedException {
 		TeamEntity team = teamRepository.findTeamById(teamId);
 		UserEntity member = userRepository.findUserByUsername(leaderUsername);
 		if (!team.getLeader()
@@ -92,11 +91,10 @@ public class BasicTeamService implements
 
 	@Override
 	@Transactional(readOnly = true)
-	public void checkMemberAccess(Long teamId, String memberUsername) throws AccessDeniedException {
+	public void checkMemberPermission(Long teamId, String memberUsername) throws AccessDeniedException {
 		TeamEntity team = teamRepository.findTeamById(teamId);
 		UserEntity member = userRepository.findUserByUsername(memberUsername);
-		if (!team.getMembersReadOnly()
-				 .contains(member)) {
+		if (!team.hasMember(member)) {
 			throw new AccessDeniedException(String.format(
 				"Member %s is not authorized to team %s",
 				member.getUsername(), team.getTeamName()

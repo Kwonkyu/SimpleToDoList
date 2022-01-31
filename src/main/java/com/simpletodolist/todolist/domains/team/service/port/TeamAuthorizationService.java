@@ -18,7 +18,7 @@ public interface TeamAuthorizationService {
 	 * @param leaderUsername Username of user.
 	 * @throws AccessDeniedException when user is not leader of team.
 	 */
-	void checkLeaderAccess(Long teamId, String leaderUsername) throws AccessDeniedException;
+	void checkLeaderPermission(Long teamId, String leaderUsername) throws AccessDeniedException;
 
 	/**
 	 * Check whether user is member of team.
@@ -26,5 +26,5 @@ public interface TeamAuthorizationService {
 	 * @param memberUsername Username of user.
 	 * @throws AccessDeniedException when user is not member of team.
 	 */
-	void checkMemberAccess(Long teamId, String memberUsername) throws AccessDeniedException;
+	void checkMemberPermission(Long teamId, String memberUsername) throws AccessDeniedException;
 }

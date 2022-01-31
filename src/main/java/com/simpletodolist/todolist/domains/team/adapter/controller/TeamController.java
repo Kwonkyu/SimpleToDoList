@@ -21,10 +21,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/team")
+@RequestMapping("/api/teams")
 @RequiredArgsConstructor
 public class TeamController {
 
@@ -34,8 +35,18 @@ public class TeamController {
 	@GetMapping
 	public ResponseEntity<ApiResponse<SearchedTeams>> searchTeams(
 		@AuthenticationPrincipal Authentication authentication,
-		@Valid @RequestBody TeamSearchRequest request
+		@RequestParam("field") String searchField,
+		@RequestParam("value") String searchValue,
+		@RequestParam("joined") boolean includeJoined,
+		@RequestParam(name = "page", required = false, defaultValue = "0") int page,
+		@RequestParam(name = "size", required = false, defaultValue = "10") int size
 	) {
+		TeamSearchRequest request = new TeamSearchRequest();
+		request.setSearchField(TeamSearchRequest.SearchField.valueOf(searchField));
+		request.setSearchValue(searchValue);
+		request.setIncludeJoined(includeJoined);
+		request.setPage(page);
+		request.setSize(size);
 		return ResponseEntity.ok(ApiResponse.success(
 			teamCrudService.searchTeams(request, authentication.getName())));
 	}
@@ -67,7 +78,7 @@ public class TeamController {
 		@PathVariable(name = "teamId") long teamId,
 		@Valid @RequestBody TeamUpdateRequest request
 	) {
-		authorizationService.checkLeaderAccess(teamId, authentication.getName());
+		authorizationService.checkLeaderPermission(teamId, authentication.getName());
 		return ResponseEntity.ok(ApiResponse.success(
 			teamCrudService.updateTeam(teamId, request)));
 	}
@@ -77,7 +88,7 @@ public class TeamController {
 		@AuthenticationPrincipal Authentication authentication,
 		@PathVariable(name = "teamId") long teamId
 	) {
-		authorizationService.checkLeaderAccess(teamId, authentication.getName());
+		authorizationService.checkLeaderPermission(teamId, authentication.getName());
 		teamCrudService.deleteTeam(teamId);
 		return ResponseEntity.noContent()
 							 .build();
