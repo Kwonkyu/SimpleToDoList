@@ -15,8 +15,9 @@ public class TodoLists {
 	private final List<TodoList> todoListList;
 
 	public TodoLists(List<TodoListEntity> todoListEntities) {
-		this.todoListList = todoListEntities.stream()
-										 .map(TodoList::new)
-										 .collect(Collectors.toList());
+		this.todoListList = todoListEntities
+			.stream()
+			.map(TodoList::new)
+			.collect(Collectors.toList());
 	}
 }

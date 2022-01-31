@@ -27,24 +27,29 @@ class TodoListService implements TodoListCrudService, TodoListAuthorizationServi
 	private final TodoListRepository todoListRepository;
 	private final UserRepository userRepository;
 
+	@Override
+	public void checkAccessPermission(Long todoListId, String username) {
+		TodoListEntity todoList = todoListRepository.findTodoListById(todoListId);
+		TeamEntity team = todoList.getTeam();
+		UserEntity user = userRepository.findUserByUsername(username);
+		if (!team.hasMember(user)) {
+			throw new AccessDeniedException("Unable to read to-do list: access denied.");
+		}
+	}
 
 	@Override
-	@Transactional(readOnly = true)
-	public void checkOwnerAccess(
-		Long teamId,
-		Long todoListId,
-		String username
-	) {
+	public void checkModifyPermission(Long todoListId, String username) {
+		TodoListEntity todoList = todoListRepository.findTodoListById(todoListId);
+		TeamEntity team = todoList.getTeam();
 		UserEntity user = userRepository.findUserByUsername(username);
-		TeamEntity team = teamRepository.findTeamById(teamId);
-		if (!team.hasMember(user)) {
-			throw new AccessDeniedException("Access denied to team.");
+		if (team.getLeader()
+				.equals(user)) {
+			return;
 		}
 
-		TodoListEntity todoList = todoListRepository.findTodoListByIdAndTeam(todoListId, team);
 		if (todoList.isLocked() && !todoList.getOwner()
 											.equals(user)) {
-			throw new AccessDeniedException("Access denied to todo list.");
+			throw new AccessDeniedException("Unable to read to-do list: access denied.");
 		}
 	}
 
@@ -57,21 +62,16 @@ class TodoListService implements TodoListCrudService, TodoListAuthorizationServi
 
 	@Override
 	@Transactional(readOnly = true)
-	public TodoList getTodoListInformation(
-		Long teamId,
-		Long todoListId
-	) throws NoTodoListFoundException {
-		TeamEntity team = teamRepository.findTeamById(teamId);
-		return new TodoList(todoListRepository.findTodoListByIdAndTeam(todoListId, team));
+	public TodoList getTodoListInformation(Long todoListId) throws NoTodoListFoundException {
+		return new TodoList(todoListRepository.findTodoListById(todoListId));
 	}
 
 	@Override
 	public TodoList createTodoList(
-		Long teamId,
 		TodoListCreateRequest request,
 		String username
 	) {
-		TeamEntity team = teamRepository.findTeamById(teamId);
+		TeamEntity team = teamRepository.findTeamById(request.getTeamId());
 		UserEntity user = userRepository.findUserByUsername(username);
 		return new TodoList(todoListRepository.save(
 			TodoListEntity.builder()
@@ -84,12 +84,10 @@ class TodoListService implements TodoListCrudService, TodoListAuthorizationServi
 
 	@Override
 	public TodoList updateTodoList(
-		Long teamId,
 		Long todoListId,
 		TodoListUpdateRequest request
 	) {
-		TeamEntity team = teamRepository.findTeamById(teamId);
-		TodoListEntity todoList = todoListRepository.findTodoListByIdAndTeam(todoListId, team);
+		TodoListEntity todoList = todoListRepository.findTodoListById(todoListId);
 		todoList.changeName(request.getTodoListName());
 		todoList.changeLocked(request.isLocked());
 		return new TodoList(todoList);
@@ -97,11 +95,10 @@ class TodoListService implements TodoListCrudService, TodoListAuthorizationServi
 
 	@Override
 	public void deleteTodoList(
-		Long teamId,
 		Long todoListId
 	) {
-		TeamEntity team = teamRepository.findTeamById(teamId);
-		TodoListEntity todoList = todoListRepository.findTodoListByIdAndTeam(todoListId, team);
+		TodoListEntity todoList = todoListRepository.findTodoListById(todoListId);
+		TeamEntity team = todoList.getTeam();
 		team.getTodoLists()
 			.remove(todoList);
 		todoList.getTodos()

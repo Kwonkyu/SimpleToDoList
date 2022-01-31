@@ -12,6 +12,10 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class TodoListCreateRequest {
 
+    @NotNull
+    @JsonProperty("teamId")
+    private long teamId;
+
     @NotBlank(message = "할 일 리스트의 이름은 비워둘 수 없습니다.")
     @Length(max = 64, message = "할 일 리스트의 이름은 64 글자를 초과할 수 없습니다.")
     @JsonProperty("name")

@@ -5,7 +5,6 @@ import com.simpletodolist.todolist.domains.user.domain.JoinedTeam;
 import com.simpletodolist.todolist.domains.user.domain.JoinedTeams;
 import com.simpletodolist.todolist.domains.user.service.port.JoinedTeamManageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,17 +13,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/member")
+@RequestMapping("/api/user/teams")
 @RequiredArgsConstructor
 public class JoinedTeamController {
 
 	private final JoinedTeamManageService joinedTeamManageService;
 
-	@GetMapping("/teams")
+	@GetMapping
 	public ResponseEntity<ApiResponse<JoinedTeams>> getTeamsOfMember(
 		@AuthenticationPrincipal Authentication authentication
 	) {
@@ -32,7 +30,7 @@ public class JoinedTeamController {
 			joinedTeamManageService.getJoinedTeams(authentication.getName())));
 	}
 
-	@PutMapping("/teams/{teamId}")
+	@PutMapping("/{teamId}")
 	public ResponseEntity<ApiResponse<JoinedTeam>> joinTeam(
 		@PathVariable(name = "teamId") long teamId,
 		@AuthenticationPrincipal Authentication authentication
@@ -43,12 +41,13 @@ public class JoinedTeamController {
 		));
 	}
 
-	@DeleteMapping("/teams/{teamId}")
-	@ResponseStatus(HttpStatus.OK)
-	public void quitTeam(
+	@DeleteMapping("/{teamId}")
+	public ResponseEntity<Object> quitTeam(
 		@PathVariable(name = "teamId") long teamId,
 		@AuthenticationPrincipal Authentication authentication
 	) {
 		joinedTeamManageService.withdrawTeam(teamId, authentication.getName());
+		return ResponseEntity.noContent()
+							 .build();
 	}
 }

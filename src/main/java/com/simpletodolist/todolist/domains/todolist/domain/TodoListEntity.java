@@ -47,6 +47,10 @@ public class TodoListEntity {
 	@JoinColumn(name = "member_id", referencedColumnName = "id")
 	private UserEntity owner;
 
+	// MEMO: when to-do list is locked
+	// - only to-do list owner can update to-do list's information.
+	// - only to-do list owner can delete to-do list.
+	// - team leader can update or delete to-do list even it's locked.
 	@Column(name = "locked")
 	private boolean locked = false;
 
