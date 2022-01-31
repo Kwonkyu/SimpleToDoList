@@ -12,8 +12,8 @@ spring:
     username: ${MARIADB10_USERNAME}
     password: ${MARIADB10_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
-    hikari:
-      maximum-pool-size: 9 # on heroku environment.
+#    hikari:
+#      maximum-pool-size: 9 # on heroku environment.
 
   redis:
     host: ${REDIS_HOST}
