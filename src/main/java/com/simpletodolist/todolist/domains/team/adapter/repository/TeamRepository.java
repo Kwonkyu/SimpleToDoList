@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TeamRepository extends JpaRepository<TeamEntity, Long> {
 
-	default TeamEntity findByIdUnwrapped(Long id) {
+	default TeamEntity findTeamById(Long id) {
 		return findById(id)
 			.orElseThrow(() -> new TeamNotFoundException(id));
 	}

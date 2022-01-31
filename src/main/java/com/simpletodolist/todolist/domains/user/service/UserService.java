@@ -23,16 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BasicUserService implements UserCrudService, JoinedTeamManageService {
+public class UserService implements UserCrudService, JoinedTeamManageService {
 
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
 	private final TeamRepository teamRepository;
 
-	@Transactional(readOnly = true)
 	@Override
+	@Transactional(readOnly = true)
 	public User getMemberDetails(String username) {
-		return new User(userRepository.findByUsernameUnwrapped(username));
+		return new User(userRepository.findUserByUsername(username));
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class BasicUserService implements UserCrudService, JoinedTeamManageServic
 
 	@Override
 	public User updateMember(String username, UserUpdateRequest request) {
-		UserEntity member = userRepository.findByUsernameUnwrapped(username);
+		UserEntity member = userRepository.findUserByUsername(username);
 		member.changeAlias(request.getAlias());
 		member.changePassword(passwordEncoder.encode(request.getPassword()));
 		return new User(member);
@@ -63,7 +63,7 @@ public class BasicUserService implements UserCrudService, JoinedTeamManageServic
 
 	@Override
 	public void withdrawMember(String username) {
-		UserEntity member = userRepository.findByUsernameUnwrapped(username);
+		UserEntity member = userRepository.findUserByUsername(username);
 		// TODO: query check.
 		List<TeamEntity> joinedTeams = member.getTeams()
 											 .stream()
@@ -75,8 +75,8 @@ public class BasicUserService implements UserCrudService, JoinedTeamManageServic
 
 	@Override
 	public JoinedTeam joinTeam(Long teamId, String username) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity member = userRepository.findByUsernameUnwrapped(username);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity member = userRepository.findUserByUsername(username);
 		if (team.isLocked()) {
 			throw new AccessDeniedException("Unable to join team.");
 		}
@@ -87,15 +87,16 @@ public class BasicUserService implements UserCrudService, JoinedTeamManageServic
 
 	@Override
 	public void withdrawTeam(Long teamId, String username) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity member = userRepository.findByUsernameUnwrapped(username);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity member = userRepository.findUserByUsername(username);
 		team.removeMember(member);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public JoinedTeams getJoinedTeams(String username) {
 		return new JoinedTeams(userRepository
-								   .findByUsernameUnwrapped(username)
+								   .findUserByUsername(username)
 								   .getTeamsReadOnly());
 	}
 }

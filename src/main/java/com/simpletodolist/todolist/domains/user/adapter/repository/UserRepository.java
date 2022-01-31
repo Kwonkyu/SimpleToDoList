@@ -8,7 +8,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
 	Optional<UserEntity> findByUsername(String username);
 
-	default UserEntity findByUsernameUnwrapped(String username) {
+	default UserEntity findUserByUsername(String username) {
 		return findByUsername(username)
 			.orElseThrow(() -> new UserNotFoundException(username));
 	}

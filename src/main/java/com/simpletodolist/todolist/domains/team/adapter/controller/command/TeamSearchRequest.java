@@ -1,33 +1,33 @@
 package com.simpletodolist.todolist.domains.team.adapter.controller.command;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
 public class TeamSearchRequest {
-    @NotNull(message = "탐색 항목은 비워둘 수 없습니다.")
-    @JsonProperty("field")
-    private SearchField searchField;
 
-    @NotBlank(message = "검색 값은 비워둘 수 없습니다.")
-    @JsonProperty("value")
-    private String searchValue;
+	@NotNull(message = "탐색 항목은 비워둘 수 없습니다.")
+	@JsonProperty("field")
+	private SearchField searchField;
 
-    @JsonProperty("joined")
-    private boolean includeJoined;
+	@NotBlank(message = "검색 값은 비워둘 수 없습니다.")
+	@JsonProperty("value")
+	private String searchValue;
 
-    @JsonProperty("page")
-    private int page;
+	@JsonProperty("joined")
+	private boolean includeJoined;
 
-    @JsonProperty("size")
-    private int size;
+	@JsonProperty("page")
+	private int page;
 
-    public enum SearchField {
-        NAME, LEADER,
-    }
+	@JsonProperty("size")
+	private int size;
+
+	public enum SearchField {
+		NAME, LEADER,
+	}
 }

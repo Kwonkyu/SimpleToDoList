@@ -34,10 +34,11 @@ public class BasicTeamService implements
 	private final TeamRepository teamRepository;
 
 	@Override
+	@Transactional(readOnly = true)
 	public Members getJoinedMembers(
 		Long teamId
 	) {
-		return new Members(teamRepository.findByIdUnwrapped(teamId)
+		return new Members(teamRepository.findTeamById(teamId)
 										 .getMembersReadOnly());
 	}
 
@@ -45,8 +46,8 @@ public class BasicTeamService implements
 	public Members inviteMember(
 		Long teamId, String invitedUsername
 	) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity newMember = userRepository.findByUsernameUnwrapped(invitedUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity newMember = userRepository.findUserByUsername(invitedUsername);
 		team.addMember(newMember);
 		return new Members(team.getMembersReadOnly());
 	}
@@ -55,16 +56,17 @@ public class BasicTeamService implements
 	public Members withdrawMember(
 		Long teamId, String withdrawUsername
 	) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity withdrawMember = userRepository.findByUsernameUnwrapped(withdrawUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity withdrawMember = userRepository.findUserByUsername(withdrawUsername);
 		team.removeMember(withdrawMember);
 		return new Members(team.getMembersReadOnly());
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public void checkPublicAccess(Long teamId, String joinedUsername) throws AccessDeniedException {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity member = userRepository.findByUsernameUnwrapped(joinedUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity member = userRepository.findUserByUsername(joinedUsername);
 		if (team.isLocked() && !team.getMembersReadOnly()
 									.contains(member)) {
 			throw new AccessDeniedException(String.format(
@@ -75,9 +77,10 @@ public class BasicTeamService implements
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public void checkLeaderAccess(Long teamId, String leaderUsername) throws AccessDeniedException {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity member = userRepository.findByUsernameUnwrapped(leaderUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity member = userRepository.findUserByUsername(leaderUsername);
 		if (!team.getLeader()
 				 .equals(member)) {
 			throw new AccessDeniedException(String.format(
@@ -88,9 +91,10 @@ public class BasicTeamService implements
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public void checkMemberAccess(Long teamId, String memberUsername) throws AccessDeniedException {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity member = userRepository.findByUsernameUnwrapped(memberUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity member = userRepository.findUserByUsername(memberUsername);
 		if (!team.getMembersReadOnly()
 				 .contains(member)) {
 			throw new AccessDeniedException(String.format(
@@ -101,11 +105,13 @@ public class BasicTeamService implements
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Team getTeamInformation(Long teamId) {
-		return new Team(teamRepository.findByIdUnwrapped(teamId));
+		return new Team(teamRepository.findTeamById(teamId));
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public SearchedTeams searchTeams(
 		TeamSearchRequest request, String username
 	) {
@@ -115,7 +121,7 @@ public class BasicTeamService implements
 		if (request.isIncludeJoined()) {
 			switch (request.getSearchField()) {
 				case LEADER:
-					UserEntity leader = userRepository.findByUsernameUnwrapped(
+					UserEntity leader = userRepository.findUserByUsername(
 						request.getSearchValue());
 					pageResult = teamRepository.findAllByLeader(leader, pageRequest);
 					break;
@@ -129,10 +135,10 @@ public class BasicTeamService implements
 					pageResult = Page.empty();
 			}
 		} else {
-			UserEntity currentUser = userRepository.findByUsernameUnwrapped(username);
+			UserEntity currentUser = userRepository.findUserByUsername(username);
 			switch (request.getSearchField()) {
 				case LEADER:
-					UserEntity leader = userRepository.findByUsernameUnwrapped(
+					UserEntity leader = userRepository.findUserByUsername(
 						request.getSearchValue());
 					pageResult = teamRepository.findAllByLeaderAndNotJoined(
 						leader, currentUser, pageRequest);
@@ -155,7 +161,7 @@ public class BasicTeamService implements
 	public Team createTeam(
 		TeamCreateRequest request, String leaderUsername
 	) {
-		UserEntity leader = userRepository.findByUsernameUnwrapped(leaderUsername);
+		UserEntity leader = userRepository.findUserByUsername(leaderUsername);
 		TeamEntity createdTeam = teamRepository.save(
 			TeamEntity.builder()
 					  .teamName(request.getTeamName())
@@ -169,7 +175,7 @@ public class BasicTeamService implements
 	public Team updateTeam(
 		Long teamId, TeamUpdateRequest request
 	) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		TeamEntity team = teamRepository.findTeamById(teamId);
 		request.setTeamName(request.getTeamName());
 		request.setLocked(request.isLocked());
 		return new Team(team);
@@ -177,7 +183,7 @@ public class BasicTeamService implements
 
 	@Override
 	public void deleteTeam(Long teamId) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
+		TeamEntity team = teamRepository.findTeamById(teamId);
 		team.getTodoLists()
 			.clear();
 		team.getMembers()
@@ -186,8 +192,8 @@ public class BasicTeamService implements
 
 	@Override
 	public Team changeLeader(Long teamId, String newLeaderUsername) {
-		TeamEntity team = teamRepository.findByIdUnwrapped(teamId);
-		UserEntity newLeader = userRepository.findByUsernameUnwrapped(newLeaderUsername);
+		TeamEntity team = teamRepository.findTeamById(teamId);
+		UserEntity newLeader = userRepository.findUserByUsername(newLeaderUsername);
 		team.changeLeader(newLeader);
 		return new Team(team);
 	}

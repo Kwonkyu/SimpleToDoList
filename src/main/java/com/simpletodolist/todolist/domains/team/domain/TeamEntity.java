@@ -1,6 +1,6 @@
 package com.simpletodolist.todolist.domains.team.domain;
 
-import com.simpletodolist.todolist.domains.todolist.entity.TodoList;
+import com.simpletodolist.todolist.domains.todolist.domain.TodoListEntity;
 import com.simpletodolist.todolist.domains.user.domain.UserEntity;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class TeamEntity {
 	private final List<MemberEntity> members = new ArrayList<>();
 
 	@OneToMany(mappedBy = "team", cascade = CascadeType.PERSIST, orphanRemoval = true)
-	private final List<TodoList> todoLists = new ArrayList<>();
+	private final List<TodoListEntity> todoLists = new ArrayList<>();
 
 	@Column(name = "locked", nullable = false)
 	private boolean locked = false;
@@ -58,14 +58,14 @@ public class TeamEntity {
 		this.locked = locked;
 	}
 
-	public boolean isExistingMember(UserEntity userEntity) {
+	public boolean hasMember(UserEntity userEntity) {
 		return members.stream()
 					  .map(MemberEntity::getUser)
 					  .anyMatch(userEntity::equals);
 	}
 
 	public void addMember(UserEntity user) {
-		if (isExistingMember(user)) {
+		if (hasMember(user)) {
 			throw new IllegalStateException("User already joined team.");
 		}
 
@@ -100,7 +100,7 @@ public class TeamEntity {
 	}
 
 	public void changeLeader(UserEntity member) {
-		if (!isExistingMember(member)) {
+		if (!hasMember(member)) {
 			throw new IllegalStateException("Leader must be member of team.");
 		}
 		leader = member;
