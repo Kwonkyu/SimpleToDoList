@@ -2,16 +2,13 @@
 스프링 프레임워크를 좀 더 공부하면서 React, Vue 등 클라이언트 라이브러리와 API를 기반으로 통신하며 화면을 그려내는 클라이언트 측 렌더링(CSR)에 대해 알게 되었습니다.
 그리고 Roy Fielding이 제안한 REST 아키텍처를 준수하는 API, 즉 RESTful API에 대해서 알게 되어 이를 활용하는 API 서버 애플리케이션을 만들고자 제작한 애플리케이션입니다.
 
-이번에도 동일하게 [Heroku에 배포](https://simple-todolist-springboot.herokuapp.com/docs/index.html)하였는데 SimpleBBS와는 달리 별도의 화면을 그려내지 않았기 때문에
-링크에서는 아래처럼 API 문서를 대신 제공하고 있습니다. 블로그에서 [개발 기록](https://velog.io/@park2348190/series/SimpleToDoList)을 업로드하고 있습니다.
-<!-- ![image](https://user-images.githubusercontent.com/12295334/140961052-ead40ae9-e368-43fb-9f96-260cf6d81df1.png) -->
-<img src="https://user-images.githubusercontent.com/12295334/140961052-ead40ae9-e368-43fb-9f96-260cf6d81df1.png" width="70%">
-
-이 프로젝트는 [블랙커피 스터디](https://edu.nextstep.camp/s/YDLr4omo/)에서 진행했던 간단한 할 일 관리 애플리케이션과 상용 서비스 [Trello](https://trello.com/)에서 영감을 받아 진행하였습니다. 상용 서비스와 비교하면 상대적으로 기능이 부족하지만 그에 대등하고자 하는 것을 최종 목표로 삼고 그러면서도 완전히 기능을 베끼지 않고 SimpleTodoList 만의 특징을 갖고자 합니다.
+이전에는 Heroku에 애플리케이션을 배포했지만 현재 별도의 인스턴스에 Docker를 활용한 컨테이너화 및 배포 프로세스를 적용하기 위해 배포하지 않았습니다.
+대신 블로그에서 [개발 기록](https://velog.io/@park2348190/series/SimpleToDoList)을 업로드하고 있습니다.
+<!-- <img src="https://user-images.githubusercontent.com/12295334/140961052-ead40ae9-e368-43fb-9f96-260cf6d81df1.png" width="70%"> -->
 
 ## 구현 기능
 - Spring MVC와 RESTful API를 통한 HTTP 요청, 응답 처리.
-- JWT와 Spring Security 기반 인증, 인가 적용.
+- Spring Session과 Spring Security 기반 인증, 인가 적용.
 - 회원, 비회원 별 서비스 제공.
 - 팀 > 할 일 리스트 > 할 일 관계로 기능 계층 구현.
   - 할 일 리스트에 할 일 CRUD 기능 구현.
@@ -46,8 +43,14 @@ SimpleBBS로 스프링에 입문했다면 SimpleTodoList로 웹 개발에 입문
 - MariaDB 10.x
   - MySQL의 소유권이 Oracle이라는 기업에 넘어갔기 때문에 오픈 소스인 MariaDB를 사용하였습니다.
   - 역량이 부족하여 데이터베이스 튜닝 경험은 없습니다.
-- JWT
-  - 서버측에서 별도의 추가 인증 과정(데이터베이스 접근 등) 없이 인증을 할 수 있다는 장점과 Stateless한 환경에서 동작하는 API 서버 애플리케이션의 인증 수단으로 적합하다고 판단하여 사용했습니다.
+- ~~JWT~~
+  - ~~서버측에서 별도의 추가 인증 과정(데이터베이스 접근 등) 없이 인증을 할 수 있다는 장점과 Stateless한 환경에서 동작하는 API 서버 애플리케이션의 인증 수단으로 적합하다고 판단하여 사용했습니다.~~
+  - [블로그 포스팅](https://velog.io/@park2348190/API-%EC%84%9C%EB%B2%84%EC%9D%98-%EC%9D%B8%EC%A6%9D-%EC%88%98%EB%8B%A8%EC%9C%BC%EB%A1%9C-JWT%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EA%B2%83%EC%9D%B4-%EC%98%B3%EC%9D%80%EA%B0%80)을 작성하면서 고민한 결과 JWT 대신 일반적인 세션을 활용하는 것이 적합하다고 생각하여 폐기했습니다.
+- Spring Session
+  - 애플리케이션을 컨테이너화하여 여러 인스턴스로 동시에 동작하는 경우 세션을 공통 저장소에서 유지하기 위해 Spring Session 프로젝트를 활용하였습니다.
+- Redis(latest)
+  - 상기 Spring Session 프로젝트에 활용하였습니다.
+
 
 ## 개발 환경
 - Java 11
