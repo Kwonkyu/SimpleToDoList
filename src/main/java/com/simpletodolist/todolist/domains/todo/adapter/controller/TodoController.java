@@ -13,8 +13,8 @@ import java.net.URI;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,32 +38,32 @@ public class TodoController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<Todos>> readTodos(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam(name = "todoList") long todoListId
 	) {
-		todoListAuthorizationService.checkAccessPermission(todoListId, authentication.getName());
+		todoListAuthorizationService.checkAccessPermission(todoListId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			todoService.getTodos(todoListId)));
 	}
 
 	@GetMapping("/{todoId}")
 	public ResponseEntity<ApiResponse<Todo>> readTodo(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "todoId") long todoId
 	) {
-		todoAuthorizationService.checkAccessPermission(todoId, authentication.getName());
+		todoAuthorizationService.checkAccessPermission(todoId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			todoService.getTodoInformation(todoId)));
 	}
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<Todo>> createTodo(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestBody @Valid TodoCreateRequest request
 	) {
 		teamAuthorizationService.checkMemberPermission(
-			request.getTeamId(), authentication.getName());
-		Todo todo = todoService.createTodo(request, authentication.getName());
+			request.getTeamId(), userDetails.getUsername());
+		Todo todo = todoService.createTodo(request, userDetails.getUsername());
 		return ResponseEntity
 			.created(URI.create("/api/todos/" + todo.getId()))
 			.body(ApiResponse.success(todo));
@@ -71,21 +71,21 @@ public class TodoController {
 
 	@PutMapping("/{todoId}")
 	public ResponseEntity<ApiResponse<Todo>> updateTodo(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "todoId") long todoId,
 		@Valid @RequestBody TodoUpdateRequest request
 	) {
-		todoAuthorizationService.checkModifyPermission(todoId, authentication.getName());
+		todoAuthorizationService.checkModifyPermission(todoId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			todoService.updateTodo(request, todoId)));
 	}
 
 	@DeleteMapping("/{todoId}")
 	public ResponseEntity<Object> deleteTodo(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "todoId") long todoId
 	) {
-		todoAuthorizationService.checkModifyPermission(todoId, authentication.getName());
+		todoAuthorizationService.checkModifyPermission(todoId, userDetails.getUsername());
 		todoService.deleteTodo(todoId);
 		return ResponseEntity.noContent()
 							 .build();

@@ -20,9 +20,6 @@ public class User {
     @JsonProperty("alias")
     private String alias;
 
-    @JsonProperty("password")
-    private String password;
-
     @JsonProperty("locked")
     boolean locked;
 
@@ -30,6 +27,5 @@ public class User {
     public User(UserEntity member) {
         // test usage of copyProperties.
         BeanUtils.copyProperties(member, this);
-        this.password = "ENCRYPTED";
     }
 }

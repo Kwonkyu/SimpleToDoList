@@ -1,7 +1,9 @@
 package com.simpletodolist.todolist.domains.user.service;
 
-import com.simpletodolist.todolist.domains.user.adapter.controller.command.UserRegisterRequest;
+import com.simpletodolist.todolist.domains.team.adapter.repository.TeamRepository;
 import com.simpletodolist.todolist.domains.team.domain.MemberEntity;
+import com.simpletodolist.todolist.domains.team.domain.TeamEntity;
+import com.simpletodolist.todolist.domains.user.adapter.controller.command.UserRegisterRequest;
 import com.simpletodolist.todolist.domains.user.adapter.controller.command.UserUpdateRequest;
 import com.simpletodolist.todolist.domains.user.adapter.repository.UserRepository;
 import com.simpletodolist.todolist.domains.user.domain.JoinedTeam;
@@ -10,8 +12,6 @@ import com.simpletodolist.todolist.domains.user.domain.User;
 import com.simpletodolist.todolist.domains.user.domain.UserEntity;
 import com.simpletodolist.todolist.domains.user.service.port.JoinedTeamManageService;
 import com.simpletodolist.todolist.domains.user.service.port.UserCrudService;
-import com.simpletodolist.todolist.domains.team.domain.TeamEntity;
-import com.simpletodolist.todolist.domains.team.adapter.repository.TeamRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +31,12 @@ public class UserService implements UserCrudService, JoinedTeamManageService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public User getMemberDetails(String username) {
+	public User getUserDetails(String username) {
 		return new User(userRepository.findUserByUsername(username));
 	}
 
 	@Override
-	public User registerMember(UserRegisterRequest request) {
+	public User registerUser(UserRegisterRequest request) {
 		if (userRepository.existsByUsername(request.getUsername())) {
 			throw new IllegalArgumentException(
 				String.format("Username %s already exists.", request.getUsername()));
@@ -54,7 +54,7 @@ public class UserService implements UserCrudService, JoinedTeamManageService {
 	}
 
 	@Override
-	public User updateMember(String username, UserUpdateRequest request) {
+	public User updateUser(String username, UserUpdateRequest request) {
 		UserEntity member = userRepository.findUserByUsername(username);
 		member.changeAlias(request.getAlias());
 		member.changePassword(passwordEncoder.encode(request.getPassword()));
@@ -62,7 +62,7 @@ public class UserService implements UserCrudService, JoinedTeamManageService {
 	}
 
 	@Override
-	public void withdrawMember(String username) {
+	public void withdrawUser(String username) {
 		UserEntity member = userRepository.findUserByUsername(username);
 		// TODO: query check.
 		List<TeamEntity> joinedTeams = member.getTeams()

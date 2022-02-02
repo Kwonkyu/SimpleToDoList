@@ -8,11 +8,22 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
     show-sql: true
 
-  session:
-    store-type: redis
-
   datasource:
     url: jdbc:mariadb://localhost:3306/simpletodolist
     username: todolist
     password: password
     driver-class-name: org.mariadb.jdbc.Driver
+
+  session:
+    store-type: redis
+
+  redis:
+    host: localhost
+    password:
+    port: 6379
+
+logging:
+  level:
+    org:
+      springframework:
+        web: debug

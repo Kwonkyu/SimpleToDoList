@@ -6,8 +6,8 @@ import com.simpletodolist.todolist.domains.team.service.port.TeamAuthorizationSe
 import com.simpletodolist.todolist.domains.team.service.port.TeamLeaderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +23,11 @@ public class LeaderController {
 
 	@PutMapping("/leader/{username}")
 	public ResponseEntity<ApiResponse<Team>> changeTeamLeaderStatus(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "teamId") long teamId,
 		@PathVariable(name = "username") String targetUsername
 	) {
-		authorizationService.checkLeaderPermission(teamId, authentication.getName());
+		authorizationService.checkLeaderPermission(teamId, userDetails.getUsername());
 		authorizationService.checkMemberPermission(teamId, targetUsername);
 		return ResponseEntity.ok(ApiResponse.success(
 			leaderService.changeLeader(teamId, targetUsername)));

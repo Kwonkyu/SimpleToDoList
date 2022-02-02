@@ -15,6 +15,9 @@ spring:
 #    hikari:
 #      maximum-pool-size: 9 # on heroku environment.
 
+  session:
+    store-type: redis
+
   redis:
     host: ${REDIS_HOST}
     password: ${REDIS_PASSWORD}

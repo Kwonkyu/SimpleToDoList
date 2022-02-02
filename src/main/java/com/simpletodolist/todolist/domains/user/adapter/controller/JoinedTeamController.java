@@ -6,8 +6,8 @@ import com.simpletodolist.todolist.domains.user.domain.JoinedTeams;
 import com.simpletodolist.todolist.domains.user.service.port.JoinedTeamManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,29 +24,29 @@ public class JoinedTeamController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<JoinedTeams>> getTeamsOfMember(
-		@AuthenticationPrincipal Authentication authentication
+		@AuthenticationPrincipal UserDetails userDetails
 	) {
 		return ResponseEntity.ok(ApiResponse.success(
-			joinedTeamManageService.getJoinedTeams(authentication.getName())));
+			joinedTeamManageService.getJoinedTeams(userDetails.getUsername())));
 	}
 
 	@PutMapping("/{teamId}")
 	public ResponseEntity<ApiResponse<JoinedTeam>> joinTeam(
 		@PathVariable(name = "teamId") long teamId,
-		@AuthenticationPrincipal Authentication authentication
+		@AuthenticationPrincipal UserDetails userDetails
 	) {
 		// Member can't join locked team. But team leader can invite member to team(check TeamMembersController).
 		return ResponseEntity.ok(ApiResponse.success(
-			joinedTeamManageService.joinTeam(teamId, authentication.getName())
+			joinedTeamManageService.joinTeam(teamId, userDetails.getUsername())
 		));
 	}
 
 	@DeleteMapping("/{teamId}")
 	public ResponseEntity<Object> quitTeam(
 		@PathVariable(name = "teamId") long teamId,
-		@AuthenticationPrincipal Authentication authentication
+		@AuthenticationPrincipal UserDetails userDetails
 	) {
-		joinedTeamManageService.withdrawTeam(teamId, authentication.getName());
+		joinedTeamManageService.withdrawTeam(teamId, userDetails.getUsername());
 		return ResponseEntity.noContent()
 							 .build();
 	}

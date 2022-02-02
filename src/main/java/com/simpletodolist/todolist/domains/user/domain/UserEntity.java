@@ -5,6 +5,7 @@ import com.simpletodolist.todolist.domains.team.domain.TeamEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,11 +20,12 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(name = "user_entity")
 public class UserEntity implements UserDetails {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private Long id;
 
     @Column(name = "username", nullable = false, length = 32, unique = true)
     private String username;
@@ -77,8 +79,6 @@ public class UserEntity implements UserDetails {
         this.password = password;
     }
 
-    public void toggleLock() { locked = !locked; }
-
     public void lock() { locked = true; }
 
     public void unlock() { locked = false; }
@@ -111,18 +111,19 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserEntity member = (UserEntity) o;
-        return id == member.id &&
-                locked == member.locked &&
-                username.equals(member.username) &&
-                alias.equals(member.alias) &&
-                password.equals(member.password);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(
+            o)) {
+            return false;
+        }
+        UserEntity that = (UserEntity) o;
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, alias, password, locked);
+        return getClass().hashCode();
     }
 }

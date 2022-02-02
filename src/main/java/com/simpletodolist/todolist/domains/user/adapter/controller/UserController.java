@@ -6,8 +6,8 @@ import com.simpletodolist.todolist.domains.user.domain.User;
 import com.simpletodolist.todolist.domains.user.service.port.UserCrudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,24 +21,25 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<User>> memberInfo(
-        @AuthenticationPrincipal Authentication authentication
+        @AuthenticationPrincipal UserDetails userDetails
         ){
         return ResponseEntity.ok(ApiResponse.success(
-            userCrudService.getMemberDetails(authentication.getName())));
+                userCrudService.getUserDetails(userDetails.getUsername())));
     }
 
     @PatchMapping
     public ResponseEntity<ApiResponse<User>> updateMemberInfo(
             @Valid @RequestBody UserUpdateRequest request,
-            @AuthenticationPrincipal Authentication authentication) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(
-            userCrudService.updateMember(authentication.getName(), request)));
+            userCrudService.updateUser(userDetails.getUsername(), request)));
     }
+    // TODO: UserEntity 대신 User에 UserDetails를 등록해서 이후 세션에서 꺼내쓰도록?
 
     @DeleteMapping
     public ResponseEntity<Object> withdrawMember(
-        @AuthenticationPrincipal Authentication authentication){
-        userCrudService.withdrawMember(authentication.getName());
+        @AuthenticationPrincipal UserDetails userDetails){
+        userCrudService.withdrawUser(userDetails.getUsername());
         return ResponseEntity.noContent()
                              .build();
     }

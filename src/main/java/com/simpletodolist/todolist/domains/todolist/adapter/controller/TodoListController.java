@@ -12,8 +12,8 @@ import java.net.URI;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,21 +35,21 @@ public class TodoListController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<TodoLists>> getTeamTodoLists(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam("team") long teamId
 	) {
-		teamAuthService.checkMemberPermission(teamId, authentication.getName());
+		teamAuthService.checkMemberPermission(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			crudService.getTodoLists(teamId)));
 	}
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<TodoList>> createTodoList(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestBody @Valid TodoListCreateRequest request
 	) {
-		teamAuthService.checkMemberPermission(request.getTeamId(), authentication.getName());
-		TodoList created = crudService.createTodoList(request, authentication.getName());
+		teamAuthService.checkMemberPermission(request.getTeamId(), userDetails.getUsername());
+		TodoList created = crudService.createTodoList(request, userDetails.getUsername());
 		return ResponseEntity
 			.created(URI.create(String.format("/api/todolist/%d", created.getId())))
 			.body(ApiResponse.success(created));
@@ -57,31 +57,31 @@ public class TodoListController {
 
 	@GetMapping("/{todoListId}")
 	public ResponseEntity<ApiResponse<TodoList>> getTodoList(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "todoListId") long todoListId
 	) {
-		todoListAuthorizationService.checkAccessPermission(todoListId, authentication.getName());
+		todoListAuthorizationService.checkAccessPermission(todoListId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			crudService.getTodoListInformation(todoListId)));
 	}
 
 	@PutMapping("/{todoListId}")
 	public ResponseEntity<ApiResponse<TodoList>> updateTodoList(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable("todoListId") long todoListId,
 		@Valid @RequestBody TodoListUpdateRequest request
 	) {
-		todoListAuthorizationService.checkModifyPermission(todoListId, authentication.getName());
+		todoListAuthorizationService.checkModifyPermission(todoListId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			crudService.updateTodoList(todoListId, request)));
 	}
 
 	@DeleteMapping("/{todoListId}")
 	public ResponseEntity<Object> deleteTodoList(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "todoListId") long todoListId
 	) {
-		todoListAuthorizationService.checkModifyPermission(todoListId, authentication.getName());
+		todoListAuthorizationService.checkModifyPermission(todoListId, userDetails.getUsername());
 		crudService.deleteTodoList(todoListId);
 		return ResponseEntity.noContent()
 							 .build();

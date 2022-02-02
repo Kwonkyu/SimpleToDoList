@@ -6,8 +6,8 @@ import com.simpletodolist.todolist.domains.team.service.port.MemberService;
 import com.simpletodolist.todolist.domains.team.service.port.TeamAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,21 +24,21 @@ public class MemberController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<Members>> getTeamMembers(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam("team") long teamId
 	) {
-		teamAuthService.checkPublicAccess(teamId, authentication.getName());
+		teamAuthService.checkPublicAccess(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			memberService.getJoinedMembers(teamId)));
 	}
 
 	@DeleteMapping
 	public ResponseEntity<ApiResponse<Members>> kickMember(
-	    @AuthenticationPrincipal Authentication authentication,
+	    @AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam("username") String targetUsername,
 		@RequestParam("team") long teamId
 	) {
-		teamAuthService.checkLeaderPermission(teamId, authentication.getName());
+		teamAuthService.checkLeaderPermission(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			memberService.withdrawMember(teamId, targetUsername)));
 	}

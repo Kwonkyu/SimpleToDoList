@@ -5,14 +5,14 @@ import com.simpletodolist.todolist.domains.user.adapter.controller.command.UserL
 import com.simpletodolist.todolist.domains.user.adapter.controller.command.UserRegisterRequest;
 import com.simpletodolist.todolist.domains.user.domain.User;
 import com.simpletodolist.todolist.domains.user.service.port.UserCrudService;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,18 +28,14 @@ public class AuthenticationController {
 
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(
-		@RequestBody @Valid UserLoginRequest request,
-		HttpServletRequest httpServletRequest
+		@RequestBody @Valid UserLoginRequest request
 	) {
 		Authentication authentication = authenticationManager.authenticate(
 			new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-
-		if (authentication.isAuthenticated()) {
-			HttpSession session = httpServletRequest.getSession();
-			session.setAttribute("username", authentication.getName());
-		}
-
-		return ResponseEntity.ok("logged in");
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		securityContext.setAuthentication(authentication);
+		return ResponseEntity.ok()
+							 .build();
 	}
 
 	@PostMapping("/register")
@@ -47,6 +43,6 @@ public class AuthenticationController {
 		@Valid @RequestBody UserRegisterRequest request
 	) {
 		return ResponseEntity.ok(ApiResponse.success(
-			memberService.registerMember(request)));
+			memberService.registerUser(request)));
 	}
 }

@@ -12,8 +12,8 @@ import com.simpletodolist.todolist.domains.team.service.port.TeamAuthorizationSe
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,26 +35,26 @@ public class MemberInvitationController {
 
 	@GetMapping("/user")
 	public ResponseEntity<ApiResponse<Invitations>> getInvitationsOfUser(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam(name = "cursor", required = false, defaultValue = "0") long cursor,
 		@RequestParam(name = "size", required = false, defaultValue = "10") int size,
 		@RequestParam(name = "pending", required = false, defaultValue = "false") boolean pending
 	) {
 		return ResponseEntity.ok(ApiResponse.success(
 			pending ?
-				crudService.getPendingInvitations(authentication.getName(), cursor, size) :
-				crudService.getInvitations(authentication.getName(), cursor, size)));
+				crudService.getPendingInvitations(userDetails.getUsername(), cursor, size) :
+				crudService.getInvitations(userDetails.getUsername(), cursor, size)));
 	}
 
 	@GetMapping("/team/{teamId}")
 	public ResponseEntity<ApiResponse<Invitations>> getInvitationsOfTeam(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable("teamId") long teamId,
 		@RequestParam(name = "cursor", required = false, defaultValue = "0") long cursor,
 		@RequestParam(name = "size", required = false, defaultValue = "10") int size,
 		@RequestParam(name = "pending", required = false, defaultValue = "false") boolean pending
 	) {
-		teamAuthService.checkLeaderPermission(teamId, authentication.getName());
+		teamAuthService.checkLeaderPermission(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			pending ?
 				crudService.getPendingInvitations(teamId, cursor, size) :
@@ -63,23 +63,23 @@ public class MemberInvitationController {
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<Invitation>> sendInvitation(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@Valid @RequestBody InvitationCreateRequest request
 	) {
 		teamAuthService.checkLeaderPermission(
-			request.getTeamId(), authentication.getName());
+			request.getTeamId(), userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			crudService.sendInvitationTo(request.getTeamId(), request.getUsername())));
 	}
 
 	@PutMapping("/{invitationId}")
 	public ResponseEntity<ApiResponse<Invitation>> handleInvitation(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable("invitationId") long invitationId,
 		@Valid @RequestBody InvitationHandleRequest request
 	) {
 		invitationAuthService.checkStatusModifyPermission(
-			invitationId, authentication.getName(), request.getStatus());
+			invitationId, userDetails.getUsername(), request.getStatus());
 		return ResponseEntity.ok(ApiResponse.success(
 			handleService.handleInvitation(invitationId, request)));
 	}

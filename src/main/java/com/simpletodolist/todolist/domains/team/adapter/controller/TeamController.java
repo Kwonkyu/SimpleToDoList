@@ -12,8 +12,8 @@ import java.net.URI;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +34,7 @@ public class TeamController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<SearchedTeams>> searchTeams(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@RequestParam("field") String searchField,
 		@RequestParam("value") String searchValue,
 		@RequestParam("joined") boolean includeJoined,
@@ -48,25 +48,25 @@ public class TeamController {
 		request.setPage(page);
 		request.setSize(size);
 		return ResponseEntity.ok(ApiResponse.success(
-			teamCrudService.searchTeams(request, authentication.getName())));
+			teamCrudService.searchTeams(request, userDetails.getUsername())));
 	}
 
 	@GetMapping("/{teamId}")
 	public ResponseEntity<ApiResponse<Team>> getTeamDetails(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "teamId") long teamId
 	) {
-		authorizationService.checkPublicAccess(teamId, authentication.getName());
+		authorizationService.checkPublicAccess(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			teamCrudService.getTeamInformation(teamId)));
 	}
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<Team>> registerTeam(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@Valid @RequestBody TeamCreateRequest request
 	) {
-		Team team = teamCrudService.createTeam(request, authentication.getName());
+		Team team = teamCrudService.createTeam(request, userDetails.getUsername());
 		return ResponseEntity
 			.created(URI.create("/api/team/" + team.getId()))
 			.body(ApiResponse.success(team));
@@ -74,21 +74,21 @@ public class TeamController {
 
 	@PutMapping("/{teamId}")
 	public ResponseEntity<ApiResponse<Team>> updateTeam(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "teamId") long teamId,
 		@Valid @RequestBody TeamUpdateRequest request
 	) {
-		authorizationService.checkLeaderPermission(teamId, authentication.getName());
+		authorizationService.checkLeaderPermission(teamId, userDetails.getUsername());
 		return ResponseEntity.ok(ApiResponse.success(
 			teamCrudService.updateTeam(teamId, request)));
 	}
 
 	@DeleteMapping("/{teamId}")
 	public ResponseEntity<Object> removeTeam(
-		@AuthenticationPrincipal Authentication authentication,
+		@AuthenticationPrincipal UserDetails userDetails,
 		@PathVariable(name = "teamId") long teamId
 	) {
-		authorizationService.checkLeaderPermission(teamId, authentication.getName());
+		authorizationService.checkLeaderPermission(teamId, userDetails.getUsername());
 		teamCrudService.deleteTeam(teamId);
 		return ResponseEntity.noContent()
 							 .build();

@@ -7,27 +7,34 @@ import com.simpletodolist.todolist.domains.user.domain.User;
 public interface UserCrudService {
 
 	/**
-	 * Get member details.
-	 * @param username Member's username.
-	 * @return Member's information.
+	 * Get user details.
+	 *
+	 * @param username user's username.
+	 * @return user's information.
 	 */
-	User getMemberDetails(String username);
+	User getUserDetails(String username);
 
 	/**
-	 * Register new member.
-	 * @param request Member create command object.
-	 * @return Created member's information.
+	 * Register new user.
+	 *
+	 * @param request user create command object.
+	 * @return Created user's information.
 	 */
-	User registerMember(UserRegisterRequest request);
+	User registerUser(UserRegisterRequest request);
 
 	/**
-	 * Update member.
-	 * @param username Member's username.
-	 * @param request Member update command object.
-	 * @return Updated member's information.
+	 * Update user.
+	 *
+	 * @param username user's username.
+	 * @param request  user update command object.
+	 * @return Updated user's information.
 	 */
-	User updateMember(String username, UserUpdateRequest request);
+	User updateUser(String username, UserUpdateRequest request);
 
-
-	void withdrawMember(String username);
+	/**
+	 * Withdraw user.
+	 *
+	 * @param username user's username.
+	 */
+	void withdrawUser(String username);
 }
